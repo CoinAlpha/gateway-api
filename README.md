@@ -26,9 +26,9 @@ yarn run dev
 # Run prod mode
 yarn run start
 
-
 # API
-http://localhost:5000/status
+http://localhost:5000/
+http://localhost:5000/api/status
 
 # Protocol Endpoints
 http://localhost:5000/celo/status

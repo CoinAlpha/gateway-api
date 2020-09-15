@@ -2,7 +2,7 @@ const express = require('express');
 const httpStatus = require('http-status-codes');
 const util = require('util');
 const helmet = require('helmet');
-const routes = require('../index.route');
+const apiRoutes = require('../index.route');
 const celoRoutes = require('../protocols/celo.route');
 const terraRoutes = require('../protocols/terra.route');
 
@@ -13,14 +13,14 @@ const app = express();
 app.use(helmet());
 
 // mount all routes to this path
-// app.use('/api', routes);
+app.use('/api', apiRoutes);
 app.use('/celo', celoRoutes);
 app.use('/terra', terraRoutes);
 
 app.get('/', (req, res) => {
     res.status(httpStatus.StatusCodes.OK)
     .send({
-        success: httpStatus.ReasonPhrases.OK
+        status: httpStatus.ReasonPhrases.OK,
     });
 });
 
