@@ -1,0 +1,18 @@
+# OS files
+.DS_Store[?]
+Desktop.ini
+
+# IDEA files
+.idea
+
+# Environment files
+*.env
+*.env.*
+# except the example .env.example
+!.env.example
+
+# node installs
+node_modules/
+
+# debug logs
+npm-debug.log
