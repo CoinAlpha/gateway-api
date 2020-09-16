@@ -12,7 +12,6 @@ const unit_multiplier = BigNumber('1e+18')
 
 const utils = require('../hummingbot/utils')
 
-
 router.use((req, res, next) => {
   console.log('celo route:', Date.now())
   next()
@@ -26,13 +25,16 @@ router.get('/status', (req, res) => {
 
   const nodeSync = spawn(celocli, ['node:synced']);
 
-  nodeSync.stdout.on( 'data', sync => {
-    console.log( `out_message: ${out_message}` )
+  let err_message = [], out_message = []  
+
+  nodeSync.stdout.on( 'data', out => {
+    out_message.push(out.toString().trim())
+    // console.log( `out_message: ${out_message}` )
   })
 
-  nodeSync.stderr.on( 'data', error => {
-    err_message = error.toString();
-    console.log( `err_message: ${err_message}` )
+  nodeSync.stderr.on( 'data', err => {
+    err_message.push(err.toString().trim())
+    // console.log( `err_message: ${err_message}` )
   })
 
   nodeSync.on( 'close', code => {
@@ -56,11 +58,11 @@ router.get('/exchange_rates', (req, res) => {
   let err_message = [], out_message = []  
 
   nodeSync.stdout.on( 'data', out => {
-    out_message.push(out.toString())
+    out_message.push(out.toString().trim())
   })
 
   nodeSync.stderr.on( 'data', err => {
-    err_message.push(err.toString())
+    err_message.push(err.toString().trim())
   })
 
   nodeSync.on( 'close', code => {
