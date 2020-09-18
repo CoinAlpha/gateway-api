@@ -37,6 +37,8 @@ http://localhost:5000/celo/exchange_rates
 http://localhost:5000/terra/status
 http://localhost:5000/terra/exchange_rates
 
+http://localhost:5000/balancer/exchange_rates
+
 # 
 ```
 
