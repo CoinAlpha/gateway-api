@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const apiRoutes = require('../index.route');
 const celoRoutes = require('../protocols/celo.route');
 const terraRoutes = require('../protocols/terra.route');
+const balancerRoutes = require('../protocols/balancer.route');
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(helmet());
 app.use('/api', apiRoutes);
 app.use('/celo', celoRoutes);
 app.use('/terra', terraRoutes);
+app.use('/balancer', balancerRoutes);
 
 app.get('/', (req, res) => {
     res.status(httpStatus.StatusCodes.OK)
