@@ -1,4 +1,4 @@
-const _ = require('lodash')
+const fs = require('fs');
 const express = require('express')
 const router = express.Router()
 const sor = require('@balancer-labs/sor')
@@ -9,37 +9,23 @@ const ethers = require('ethers')
 const MAX_UINT = ethers.constants.MaxUint256;
 const utils = require('../hummingbot/utils')
 
-// load environment config
-const network = 'ethereum';
-const providerUrl = process.env.INFURA_URL;
-const privateKey = "0x" + process.env.ETH_PRIVATE_KEY;
-const provider = new ethers.providers.JsonRpcProvider(providerUrl)
-const abi = [
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "_owner",
-        "type": "address"
-      }
-    ],
-    "name": "balanceOf",
-    "outputs": [
-      {
-        "name": "balance",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "type": "function"
-  }
-]
+// network selection
+const network = 'kovan'
 
-// token addresses
-const tokenDict = {
-  DAI: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-  WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+// chain-specific configs
+const providerUrl = 'https://' + network + '.infura.io/v3/' + process.env.INFURA_API_KEY
+const provider = new ethers.providers.JsonRpcProvider(providerUrl)
+
+let erc20_tokens
+switch(network) {
+  case 'mainnet':
+    erc20_tokens = fs.readFileSync('hummingbot/erc20_tokens.json')
+    break
+  case 'kovan':
+    erc20_tokens = fs.readFileSync('hummingbot/erc20_tokens_kovan.json')
+    break
 }
+erc20_tokens = JSON.parse(erc20_tokens)
 
 // get ETH balance
 const getETHBalance = async (wallet) => {
@@ -49,20 +35,22 @@ const getETHBalance = async (wallet) => {
 
 // get ERC-20 token balance
 const getERC20Balance = async (wallet, tokenAddress) => {
-  const contract = new ethers.Contract(tokenAddress, abi, provider)
+  // instantiate a contract and pass in provider for read-only access
+  const contract = new ethers.Contract(tokenAddress, utils.ERC20Abi, provider)
   const balance = await contract.balanceOf(wallet.address)
   return balance/1e18.toString()
 }
 
 router.get('/get-balances', async (req, res) => {
-  const initTime = Date.now()
-  const balances = {}
+  const privateKey = "0x" + process.env.ETH_PRIVATE_KEY // replace by passing this in as param
   const wallet = new ethers.Wallet(privateKey, provider)
-  balances["ETH"] = await getETHBalance(wallet)
+  const initTime = Date.now()
 
+  const balances = {}
+  balances["ETH"] = await getETHBalance(wallet, privateKey)
   Promise.all(
-    Object.keys(tokenDict).map(async (key) =>
-        balances[key] = await getERC20Balance(wallet, tokenDict[key])
+    Object.keys(erc20_tokens).map(async (key) =>
+        balances[key] = await getERC20Balance(wallet, erc20_tokens[key])
     )).then(() => {
       res.status(200).json({
         network: network,
@@ -72,6 +60,37 @@ router.get('/get-balances', async (req, res) => {
       })
     }
   )
+})
+
+// Faucet to get test tokens
+router.get('/faucet', (req, res) => {
+  const tokenSymbol = req.query.symbol
+  const privateKey = "0x" + process.env.ETH_PRIVATE_KEY // replace by passing this in as param
+  const wallet = new ethers.Wallet(privateKey, provider)
+  const initTime = Date.now()
+
+  // Deposit Kovan ETH to get Kovan WETH
+  const wei = ethers.utils.parseEther("0.3")
+  const tokenAddress = erc20_tokens["WETH"]
+  // instantiate a contract and pass in wallet, which act on behalf of that signer
+  const contract = new ethers.Contract(tokenAddress, utils.KovanWETHAbi, wallet)
+  contract.deposit({value: wei}).then((response) => {
+      res.status(200).json({
+        network: network,
+        timestamp: initTime,
+        result: response
+      })
+  })
+  
+  // When Balancer gives us the faucet ABI, we can use this faucet to get all Kovan tokens
+  // const contract = new ethers.Contract(utils.KovanFaucetAddress, utils.KovanFaucetAbi, provider)
+  // contract.drip(wallet.address, tokenAddress).then((response) => {
+  //   res.status(200).json({
+  //     network: network,
+  //     timestamp: initTime,
+  //     result: response
+  //   })
+  // })
 })
 
 module.exports = router;

@@ -16,8 +16,10 @@ const provider = new ethers.providers.JsonRpcProvider(providerUrl)
 
 // balancer settings
 const multi = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441'
-const tokenIn = '0x6B175474E89094C44Da98b954EedeAC495271d0F' // DAI
-const tokenOut = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2' // WETH
+// const tokenIn = '0x6B175474E89094C44Da98b954EedeAC495271d0F' // DAI mainnet
+// const tokenOut = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2' // WETH mainnet
+const tokenIn = '0x95b58a6bff3d14b7db2f5cb5f0ad413dc2940658' // DAI rinkeby
+const tokenOut = '0xc778417e063141139fce010982780140aa0cd5ab' // WETH rinkeby
 
 const getSwaps = async () => {
   const data = await sor.getPoolsWithTokens(tokenIn, tokenOut);
