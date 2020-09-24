@@ -37,7 +37,15 @@ http://localhost:5000/celo/exchange_rates
 http://localhost:5000/terra/status
 http://localhost:5000/terra/exchange_rates
 
-http://localhost:5000/balancer/exchange_rates
+http://localhost:5000/ethereum/get_balances
+http://localhost:5000/ethereum/unlock_account
+http://localhost:5000/ethereum/check_network_status
+
+http://localhost:5000/balancer/get_swaps
+http://localhost:5000/balancer/get_quote_price
+http://localhost:5000/balancer/get_order_price
+http://localhost:5000/balancer/buy
+http://localhost:5000/balancer/sell
 
 # 
 ```

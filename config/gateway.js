@@ -3,7 +3,10 @@ const httpStatus = require('http-status-codes');
 const util = require('util');
 const helmet = require('helmet');
 const apiRoutes = require('../index.route');
+
+// Protocol routes
 const celoRoutes = require('../protocols/celo.route');
+const ethRoutes = require('../protocols/eth.route');
 const terraRoutes = require('../protocols/terra.route');
 const balancerRoutes = require('../protocols/balancer.route');
 
@@ -15,6 +18,7 @@ app.use(helmet());
 
 // mount all routes to this path
 app.use('/api', apiRoutes);
+app.use('/eth', ethRoutes);
 app.use('/celo', celoRoutes);
 app.use('/terra', terraRoutes);
 app.use('/balancer', balancerRoutes);
