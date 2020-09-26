@@ -42,9 +42,9 @@ const getERC20Balance = async (wallet, tokenAddress) => {
 }
 
 router.get('/get-balances', async (req, res) => {
+  const initTime = Date.now()
   const privateKey = "0x" + process.env.ETH_PRIVATE_KEY // replace by passing this in as param
   const wallet = new ethers.Wallet(privateKey, provider)
-  const initTime = Date.now()
 
   const balances = {}
   balances["ETH"] = await getETHBalance(wallet, privateKey)
@@ -64,14 +64,17 @@ router.get('/get-balances', async (req, res) => {
 
 // Faucet to get test tokens
 router.get('/faucet', (req, res) => {
-  const tokenSymbol = req.query.symbol
+  const initTime = Date.now()
   const privateKey = "0x" + process.env.ETH_PRIVATE_KEY // replace by passing this in as param
   const wallet = new ethers.Wallet(privateKey, provider)
-  const initTime = Date.now()
+
+  let tokenSymbol
+  req.query.symbol  ? tokenSymbol = req.query.symbol
+                    : tokenSymbol = "WETH"
 
   // Deposit Kovan ETH to get Kovan WETH
   const wei = ethers.utils.parseEther("0.3")
-  const tokenAddress = erc20_tokens["WETH"]
+  const tokenAddress = erc20_tokens[tokenSymbol]
   // instantiate a contract and pass in wallet, which act on behalf of that signer
   const contract = new ethers.Contract(tokenAddress, utils.KovanWETHAbi, wallet)
   contract.deposit({value: wei}).then((response) => {
