@@ -92,10 +92,8 @@ router.get('/buy', async (req, res) => {
   const amount =  ethers.utils.parseEther(req.query.amount)
   console.log(tokenIn, tokenOut, amount);
 
-  const { swaps, expectedOut } = await getSwaps();
-  const totalAmountOut = batchSwapExactIn(wallet, swaps, tokenIn, tokenOut, amount)
-
-  // TO-DO: call swapExactInAmount on the exchange-proxy contract
+  const { swaps, expectedOut } = await getSwaps(amount);
+  const totalAmountOut = await batchSwapExactIn(wallet, swaps, tokenIn, tokenOut, amount)
 
   res.status(200).json({
     network: network,
