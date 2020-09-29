@@ -8,12 +8,10 @@ const spawn = require('child_process').spawn
 
 const network = 'celo'
 const celocli = 'celocli'
-const celoGoldSymbol = 'CELO'
-const denom_unit_multiplier = BigNumber('1e+18')
+const DENOM_UNIT_MULTIPLIER = BigNumber('1e+18')
 
 const hbUtils = require('../services/utils')
 const separator = '=>'
-
 
 router.use((req, res, next) => {
   debug('celo route:', Date.now())
@@ -71,7 +69,7 @@ router.get('/price', (req, res) => {
   const tradingPair = paramData.trading_pair
   const tradeType = paramData.trade_type
   const requestAmount = paramData.amount
-  const amount = parseFloat(requestAmount) * denom_unit_multiplier
+  const amount = parseFloat(requestAmount) * DENOM_UNIT_MULTIPLIER
   debug('params', req.params)
   debug('paramData', paramData)
 
@@ -100,7 +98,7 @@ router.get('/price', (req, res) => {
           let base = exchangeInfo[0].trim().split(' ')
           let quote = exchangeInfo[1].trim().split(' ')
           let market = [base[1].toUpperCase(), quote[1].toUpperCase()].join('-')
-          exchange_rates[market] = quote[0]/denom_unit_multiplier
+          exchange_rates[market] = quote[0]/DENOM_UNIT_MULTIPLIER
           debug (exchangeInfo, exchange_rates)
         }
       })
@@ -152,7 +150,7 @@ router.get('/balance', (req, res) => {
           let balanceArray = item.split('\n')
           balanceArray.forEach((x) => {
               let keyValue = x.split(':')
-              walletBalances[keyValue[0].trim()] = keyValue[1].trim()/denom_unit_multiplier
+              walletBalances[keyValue[0].trim()] = keyValue[1].trim()/DENOM_UNIT_MULTIPLIER
             }
           )
           debug('walletBalances', walletBalances)

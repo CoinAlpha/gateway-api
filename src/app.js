@@ -1,26 +1,27 @@
-const express = require('express');
-const bodyParser = require('body-parser')
-const httpStatus = require('http-status-codes');
-const helmet = require('helmet');
+import bodyParser from 'body-parser'
+import express from 'express'
+import helmet from 'helmet'
+import httpStatus from 'http-status-codes'
 
 // Routes
-const apiRoutes = require('./routes/index.route');
-const celoRoutes = require('./routes/celo.route');
-const ethRoutes = require('./routes/eth.route');
-const terraRoutes = require('./routes/terra.route');
-const balancerRoutes = require('./routes/balancer.route');
+import apiRoutes from './routes/index.route'
+import balancerRoutes from './routes/balancer.route'
+import celoRoutes from './routes/celo.route'
+import ethRoutes from './routes/eth.route'
+import terraRoutes from './routes/terra.route'
 
+// create app
 const app = express();
 
+// middleware
 // #security: remove response headers from middleware
 // https://www.npmjs.com/package/helmet
 app.use(helmet());
 
 // whitelist local ips
 // ipv6 format for locahost
-const ipWhitelist = ['::ffff:127.0.0.1', '::ffff:1', 'fe80::1', '::1']
+// const ipWhitelist = ['::ffff:127.0.0.1', '::ffff:1', 'fe80::1', '::1']
 // app.use(ipFilter(ipWhitelist, { mode: 'allow' }))
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -58,4 +59,4 @@ app.use((err, req, res, next) => {
   })
 })
 
-module.exports = app;
+export default app;

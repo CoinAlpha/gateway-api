@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 // absolute imports
-const http = require('http')
-const debug = require('debug')
-const dotenv = require('dotenv');
+import http from 'http';
+import debug from 'debug';
+import dotenv from 'dotenv';
 
 // relative imports
-const app = require('./app');
+import app from './app'
 
 // terminate if environment not found
 const result = dotenv.config();

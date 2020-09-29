@@ -1,15 +1,12 @@
 /*
   Hummingbot Utils
 */
-
-'use strict'
-
 const lodash = require('lodash')
 const debug = require('debug')('router')
 
-const latency = (startTime, endTime) => parseFloat((endTime - startTime) / 1000)
+export const latency = (startTime, endTime) => parseFloat((endTime - startTime) / 1000)
 
-const isValidParams = (params) => {
+export const isValidParams = (params) => {
   const values = Object.values(params)
   for (let i = 0; i < values.length; i++) { // DO NOT use forEach, it returns callback without breaking the loop
     if (typeof values[i] === 'undefined') {
@@ -19,14 +16,14 @@ const isValidParams = (params) => {
   return true
 }
 
-const isValidData = (data, format) => {
+export const isValidData = (data, format) => {
   if (typeof data !== 'undefined' && Object.keys(data).length !== 0 && lodash.isEqual(Object.keys(data), format)) {
     return true
   }
   return false
 }
 
-const getParamData = (data, format) => {
+export const getParamData = (data, format) => {
   debug(data, format)
   const dataObject = {}
   if (isValidData(data, format)) {
@@ -39,7 +36,7 @@ const getParamData = (data, format) => {
   return dataObject
 }
 
-const getSymbols = (tradingPair) => {
+export const getSymbols = (tradingPair) => {
   const symbols = tradingPair.split('-')
   const baseQuotePair = {
     base: symbols[0].toUpperCase(),
@@ -48,21 +45,11 @@ const getSymbols = (tradingPair) => {
   return baseQuotePair
 }
 
-const reportConnectionError = (res, error) => {
+export const reportConnectionError = (res, error) => {
   res.json({
     error: error.errno,
     code: error.code,
   })
 }
 
-const strToDecimal = (str) => parseInt(str) / 100;
-
-module.exports = {
-  latency,
-  isValidData,
-  isValidParams,
-  getParamData,
-  getSymbols,
-  reportConnectionError,
-  strToDecimal,
-};
+export const strToDecimal = (str) => parseInt(str) / 100;

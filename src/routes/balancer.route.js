@@ -1,9 +1,12 @@
-const express = require('express')
+import BigNumber from 'bignumber.js';
+import ethers from 'ethers';
+import express from 'express';
+
+import { latency } from '../services/utils';
+import Balancer from '../services/balancer';
+
 const router = express.Router()
-const BigNumber = require('bignumber.js')
-const ethers = require('ethers')
-const utils = require('../services/utils')
-const balancer = require('../services/balancer')
+const balancer = new Balancer('kovan')
 
 router.get('/', (req, res) => {
   res.status(200).send('Balancer')
@@ -18,7 +21,7 @@ router.get('/get-swaps', async (req, res) => {
   res.status(200).json({
     network: balancer.network,
     timestamp: initTime,
-    latency: utils.latency(initTime, Date.now()),
+    latency: latency(initTime, Date.now()),
     amount: amount,
     swaps: swaps,
     expectedOut: expectedOut
@@ -38,10 +41,10 @@ router.get('/buy', async (req, res) => {
   res.status(200).json({
     network: balancer.network,
     timestamp: initTime,
-    latency: utils.latency(initTime, Date.now()),
+    latency: latency(initTime, Date.now()),
     swaps: swaps,
     totalAmountOut: totalAmountOut
   })
 })
 
-module.exports = router;
+export default router;

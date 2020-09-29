@@ -9,5 +9,6 @@ module.exports = {
 
     // disable rules from base configurations
     'no-console': 'off',
+    'no-multi-spaces': 'off',
   }
 };
