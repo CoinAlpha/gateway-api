@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  gateway:
+    build: .
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - 5001:5000
+
+ 
