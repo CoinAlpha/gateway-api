@@ -73,6 +73,16 @@ http://localhost:5001/celo/price?trading_pair=UST-KRT&trade_type=sell&amount=1.1
 
 http://localhost:5000/terra/status
 
-http://localhost:5000/balancer/exchange_rates
+http://localhost:5000/ethereum/get_balances
+http://localhost:5000/ethereum/faucet
 
+http://localhost:5000/balancer/get_swaps
+
+# To do
+http://localhost:5000/balancer/get_quote_price
+http://localhost:5000/balancer/get_order_price
+http://localhost:5000/balancer/buy
+http://localhost:5000/balancer/sell
+
+```
 
