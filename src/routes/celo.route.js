@@ -4,15 +4,14 @@ const express = require('express')
 const router = express.Router()
 const BigNumber = require('bignumber.js');
 const debug = require('debug')('router')
-
-const spawn = require("child_process").spawn
+const spawn = require('child_process').spawn
 
 const network = 'celo'
 const celocli = 'celocli'
 const celoGoldSymbol = 'CELO'
 const denom_unit_multiplier = BigNumber('1e+18')
 
-const hbUtils = require('../hummingbot/utils')
+const hbUtils = require('../services/utils')
 const separator = '=>'
 
 
@@ -32,7 +31,7 @@ router.get('/status', (req, res) => {
 
   const nodeSync = spawn(celocli, ['node:synced']);
 
-  let err_message = [], out_message = []  
+  let err_message = [], out_message = []
 
   nodeSync.stdout.on( 'data', out => {
     out_message.push(out.toString().trim())
@@ -54,7 +53,7 @@ router.get('/status', (req, res) => {
       res.status(401).json({
         error: err_message.join('')
       })
-    }  
+    }
   })
 })
 
@@ -131,7 +130,7 @@ router.get('/balance', (req, res) => {
   debug(paramData)
 
   const balance = spawn(celocli, ["account:balance", address]);
- 
+
   let err_message = [], out_message = []
   let walletBalances = {}
 
@@ -187,12 +186,12 @@ router.post('/unlock', (req, res) => {
   const paramData = hbUtils.getParamData(req.body, keyFormat)
   const address = paramData.address
   const secret = paramData.secret
- 
+
   debug(paramData)
   debug(req.body)
 
   const lockStatus = spawn(celocli, ["account:unlock", address, "--password", secret]);
- 
+
   let err_message = [], out_message = []
 
   lockStatus.stdout.on( 'data', out => {
@@ -242,13 +241,13 @@ router.post('/trade', (req, res) => {
       }
   */
   const keyFormat = ['trading_pair', 'trade_type', 'amount', 'price']
-  const paramData = hbUtils.getParamData(req.body, keyFormat) 
+  const paramData = hbUtils.getParamData(req.body, keyFormat)
   debug(paramData)
   // const result = Object.assign(paramData, {
   //   message: 'WIP',
   //   timestamp: Date.now()
   // })
-  res.status(200).json({"status": "WIP"})  
+  res.status(200).json({"status": "WIP"})
 })
 
 

@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
-'use strict'
-
+// absolute imports
 const http = require('http')
 const debug = require('debug')
 const dotenv = require('dotenv');
+
+// relative imports
+const app = require('./app');
 
 // terminate if environment not found
 const result = dotenv.config();
@@ -16,20 +18,18 @@ if (result.error) {
 const env = process.env.NODE_ENV;
 const port = process.env.PORT;
 
-const app = require('./config/gateway');
-
 // set app environment
 app.set('env', env)
 
 const server = http.createServer(app)
 
- // event listener for "error" event
+// event listener for "error" event
 const onError = error => {
   if (error.syscall !== 'listen') {
     throw error
   }
 
-  let bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port
+  const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
@@ -48,8 +48,8 @@ const onError = error => {
 
 // event listener for "listening" event.
 const onListening = () => {
-  let addr = server.address()
-  let bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
+  const addr = server.address()
+  const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
   // console.error('bind', bind)
   debug('listening on ' + bind)
 }
@@ -58,5 +58,3 @@ const onListening = () => {
 server.listen(port)
 server.on('error', onError)
 server.on('listening', onListening)
-
-

@@ -1,17 +1,14 @@
-'use strict'
-
 const express = require('express');
 const bodyParser = require('body-parser')
-const ipFilter = require('express-ipfilter').IpFilter
 const httpStatus = require('http-status-codes');
 const helmet = require('helmet');
-const apiRoutes = require('../index.route');
 
-// Protocol routes
-const celoRoutes = require('../protocols/celo.route');
-const ethRoutes = require('../protocols/eth.route');
-const terraRoutes = require('../protocols/terra.route');
-const balancerRoutes = require('../protocols/balancer.route');
+// Routes
+const apiRoutes = require('./routes/index.route');
+const celoRoutes = require('./routes/celo.route');
+const ethRoutes = require('./routes/eth.route');
+const terraRoutes = require('./routes/terra.route');
+const balancerRoutes = require('./routes/balancer.route');
 
 const app = express();
 
@@ -21,8 +18,9 @@ app.use(helmet());
 
 // whitelist local ips
 // ipv6 format for locahost
-const ip_whitelist = ['::ffff:127.0.0.1', '::ffff:1', 'fe80::1', '::1']
-// app.use(ipFilter(ip_whitelist, { mode: 'allow' }))
+const ipWhitelist = ['::ffff:127.0.0.1', '::ffff:1', 'fe80::1', '::1']
+// app.use(ipFilter(ipWhitelist, { mode: 'allow' }))
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -34,9 +32,9 @@ app.use('/terra', terraRoutes);
 app.use('/balancer', balancerRoutes);
 
 app.get('/', (req, res) => {
-    res.status(httpStatus.StatusCodes.OK)
+  res.status(httpStatus.StatusCodes.OK)
     .send({
-        status: httpStatus.ReasonPhrases.OK,
+      status: httpStatus.ReasonPhrases.OK,
     });
 });
 
@@ -47,7 +45,7 @@ app.use((req, res, next) => {
   res
     .status(httpStatus.StatusCodes.NOT_FOUND)
     .send({
-        error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
+      error: httpStatus.getReasonPhrase(httpStatus.StatusCodes.NOT_FOUND),
     });
 });
 
@@ -58,7 +56,6 @@ app.use((err, req, res, next) => {
   res.json({
     error: err.message,
   })
-
 })
 
 module.exports = app;

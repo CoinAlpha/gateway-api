@@ -5,22 +5,20 @@ const router = express.Router();
 const BigNumber = require('bignumber.js');
 const debug = require('debug')('router')
 
-const LCDClient = require("@terra-money/terra.js").LCDClient
-const Coins = require("@terra-money/terra.js").Coins
-const Coin = require("@terra-money/terra.js").Coin
-// const MsgSend = require("@terra-money/terra.js").MsgSend
-const MnemonicKey = require("@terra-money/terra.js").MnemonicKey
-const BankAPI = require("@terra-money/terra.js").BankAPI
+const LCDClient = require('@terra-money/terra.js').LCDClient
+const Coin = require('@terra-money/terra.js').Coin
+// const MsgSend = require('@terra-money/terra.js').MsgSend
+const MnemonicKey = require('@terra-money/terra.js').MnemonicKey
 // Terra.js includes Dec and Int, which represent decimal numbers and integer numbers, in a Cosmos-SDK compatible way.
-const Dec = require("@terra-money/terra.js").Dec
-const Int = require("@terra-money/terra.js").Int
+
+const hbUtils = require('../services/utils')
 
 const TerraTokens = {
-  'LUNA': { 'denom': 'uluna' },
-  'UST': { 'denom': 'uusd' },
-  'KRT': { 'denom': 'ukrw' },
-  'SDT': { 'denom': 'usdr' },
-  'MNT': { 'denom': 'umnt' },
+  LUNA: { denom: 'uluna' },
+  UST: { denom: 'uusd' },
+  KRT: { denom: 'ukrw' },
+  SDT: { denom: 'usdr' },
+  MNT: { denom: 'umnt' },
 }
 
 const getTerraSymbol = (denom) => {
@@ -35,7 +33,6 @@ const getTerraSymbol = (denom) => {
 
 const denom_unit_multiplier = BigNumber('1e+6')
 
-const hbUtils = require('../hummingbot/utils')
 
 // load environment config
 const network = 'terra'
@@ -193,7 +190,7 @@ router.post('/trade', async (req, res) => {
   const keyFormat = ['trading_pair', 'trade_type', 'amount', 'price', 'address', 'secret']
   const paramData = hbUtils.getParamData(req.body, keyFormat)
   const secret = paramData.secret
-  debug(paramData) 
+  debug(paramData)
 
   let accountInfo, coin
 
@@ -205,12 +202,11 @@ router.post('/trade', async (req, res) => {
   const address = wallet.key.accAddress
 
   res.status(200).json({
-    _status: 'WIP', 
+    _status: 'WIP',
     address: address,
     // balance: walletBalances,
     timestamp: Date.now()
   })
-
-})  
+})
 
 module.exports = router;
