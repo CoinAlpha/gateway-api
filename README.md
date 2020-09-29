@@ -69,9 +69,10 @@ http://localhost:5000/api/status
 
 # Protocol Endpoints
 http://localhost:5000/celo/status
-http://localhost:5001/celo/price?trading_pair=UST-KRT&trade_type=sell&amount=1.123
+http://localhost:5001/celo/price?trading_pair=CELO-CUSD&trade_type=sell&amount=1.123
 
 http://localhost:5000/terra/status
+http://localhost:5001/celo/price?trading_pair=UST-KRT&trade_type=sell&amount=1.123
 
 http://localhost:5000/ethereum/get_balances
 http://localhost:5000/ethereum/faucet

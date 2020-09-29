@@ -9,8 +9,7 @@ const spawn = require("child_process").spawn
 
 const network = 'celo'
 const celocli = 'celocli'
-const celo_base = "CGLD"
-const celo_quote = "CUSD"
+const celoGoldSymbol = 'CELO'
 const denom_unit_multiplier = BigNumber('1e+18')
 
 const hbUtils = require('../hummingbot/utils')
@@ -103,17 +102,11 @@ router.get('/price', (req, res) => {
           let quote = exchangeInfo[1].trim().split(' ')
           let market = [base[1].toUpperCase(), quote[1].toUpperCase()].join('-')
           exchange_rates[market] = quote[0]/denom_unit_multiplier
+          debug (exchangeInfo, exchange_rates)
         }
       })
 
-      if (hbUtils.isBuy(tradeType)) {
-        price = exchange_rates[tradingPair]
-      } else {
-        // swap symbol position for price lookup
-        const symbols = hbUtils.getSymbols(tradingPair)
-        symbols = [symbols.quote, symbols.base].join('-')
-        price = exchange_rates[symbols]
-      }
+      price = exchange_rates[tradingPair]
 
       const result = Object.assign(paramData, {
           price: price,

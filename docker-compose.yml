@@ -3,54 +3,9 @@ version: '3'
 services:
   gateway:
     build: .
-      # context: .
-      # dockerfile: Dockerfile
     volumes:
       - .:/usr/src/app
     ports:
       - 5001:5000
 
-# services:
-#   nodejs:
-#     build:
-#       context: .
-#       dockerfile: Dockerfile
-#     image: dev/hummingdock
-#     container_name: hummingdock
-#     restart: unless-stopped
-#     env_file: .env
-#     environment:
-#       - MONGO_USERNAME=$MONGO_USERNAME
-#       - MONGO_PASSWORD=$MONGO_PASSWORD
-#       - MONGO_HOSTNAME=db
-#       - MONGO_PORT=$MONGO_PORT
-#       - MONGO_DB=$MONGO_DB
-#     ports:
-#       - "7000:9000"
-#     volumes:
-#       - .:/usr/src/app
-#       # - node_modules:/usr/src/app/node_modules
-#     networks:
-#       - app-network
-#     command: /usr/src/app/node_modules/.bin/nodemon index.js 
-
-#   db:
-#     image: mongo:4.1.8-xenial
-#     container_name: db
-#     restart: unless-stopped
-#     env_file: .env
-#     environment:
-#       - MONGO_INITDB_ROOT_USERNAME=$MONGO_USERNAME
-#       - MONGO_INITDB_ROOT_PASSWORD=$MONGO_PASSWORD
-#     volumes:     
-#       - dbdata:/data/db
-#     networks:
-#       - app-network  
-
-# networks:
-#   app-network:
-#     driver: bridge
-
-# volumes:
-#   dbdata:
-#   node_modules: 
+ 

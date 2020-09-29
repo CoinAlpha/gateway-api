@@ -130,11 +130,7 @@ router.get('/price', async (req, res) => {
     // get the current swap rate
     let baseDenom = TerraTokens[symbols.base].denom
     let quoteDenom = TerraTokens[symbols.quote].denom
-    // swap base & quote pair for sell
-    if (hbUtils.isSell(tradeType)) {
-      baseDenom = TerraTokens[symbols.quote].denom
-      quoteDenom = TerraTokens[symbols.base].denom
-    }
+
     const offerCoin = new Coin(baseDenom, amount);
     await terra.market.swapRate(offerCoin, quoteDenom).then(swapCoin => {
       price = Number(swapCoin.amount)/denom_unit_multiplier
