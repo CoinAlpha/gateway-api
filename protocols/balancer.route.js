@@ -10,14 +10,16 @@ const ethRoutes = require('../protocols/eth.route')
 const MAX_UINT = ethers.constants.MaxUint256;
 const utils = require('../hummingbot/utils')
 
-// network selection
-// also, you have to change the REACT_APP_SUBGRAPH_URL and restart server
+// select network
+// **IMPORTANT: you also have to change REACT_APP_SUBGRAPH_URL in .env and restart server**
 const network = 'kovan' // ( mainnet / kovan )
 const providerUrl = 'https://' + network + '.infura.io/v3/' + process.env.INFURA_API_KEY
 const provider = new ethers.providers.JsonRpcProvider(providerUrl)
 
+// balancer addresses
 let erc20_tokens
 let exchangeProxy
+const multi = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441'
 switch(network) {
   case 'mainnet':
     erc20_tokens = JSON.parse(fs.readFileSync('hummingbot/erc20_tokens.json'))
@@ -29,12 +31,9 @@ switch(network) {
     break
 }
 
-// balancer settings
-const multi = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441'
-const tokenIn = erc20_tokens["WETH"]
-const tokenOut = erc20_tokens["DAI"]
+// FUNCTIONS
 
-const getSwaps = async (amount) => {
+const getSwaps = async (tokenIn, tokenOut, amount) => {
   const data = await sor.getPoolsWithTokens(tokenIn, tokenOut)
 
   let poolData
@@ -54,53 +53,85 @@ const getSwaps = async (amount) => {
 }
 
 const batchSwapExactIn = async (wallet, swaps, tokenIn, tokenOut, amount) => {
+  console.log(tokenIn, tokenOut, amount)
   const contract = new ethers.Contract(exchangeProxy, utils.BalancerExchangeProxyAbi, wallet)
-  // approve exchangeProxy contract
   const totalAmountOut = await contract.batchSwapExactIn(swaps, tokenIn, tokenOut, amount, 0)
   console.log(totalAmountOut)
   return totalAmountOut
 }
 
+// ROUTES
+
 router.get('/', (req, res) => {
   res.status(200).send('Balancer')
 })
 
-router.get('/get-swaps', async (req, res) => {
+router.get('/price', async (req, res) => {
   const initTime = Date.now()
 
-  let amount
-  req.query.amount  ? amount = new BigNumber(req.query.amount)
-                    : amount = new BigNumber('10000000000000000000')
-  const { swaps, expectedOut } = await getSwaps(amount);
+  // params: tokenIn (required), tokenOut (required), amount (required)
+  const tokenIn = req.query.tokenIn
+  const tokenOut = req.query.tokenOut
+  const amount =  new BigNumber(parseInt(req.query.amount)*1e18)
+
+  // fetch the optimal pool mix from balancer-sor
+  const { swaps, expectedOut } = await getSwaps(
+    erc20_tokens[tokenIn], 
+    erc20_tokens[tokenOut], 
+    amount,
+  )
 
   res.status(200).json({
     network: network,
     timestamp: initTime,
     latency: utils.latency(initTime, Date.now()),
-    amount: amount,
+    tokenIn: tokenIn,
+    tokenOut: tokenOut,
+    amount: parseFloat(req.query.amount),
+    expectedOut: parseInt(expectedOut)/1e18,
     swaps: swaps,
-    expectedOut: expectedOut
   })
 })
 
-router.get('/buy', async (req, res) => {
+router.get('/trade', async (req, res) => {
   const initTime = Date.now()
   const privateKey = "0x" + process.env.ETH_PRIVATE_KEY // replace by passing this in as param
   const wallet = new ethers.Wallet(privateKey, provider)
 
-  // const amount =  new BigNumber(req.query.amount)
-  const amount =  ethers.utils.parseEther(req.query.amount)
-  console.log(tokenIn, tokenOut, amount);
+  // params: tokenIn (required), tokenOut (required), amount (required), maxPrice (optional)
+  const tokenIn = req.query.tokenIn
+  const tokenOut = req.query.tokenOut
+  const amount = new BigNumber(parseInt(req.query.amount)*1e18)
+  const amountString = (parseInt(req.query.amount)*1e18).toString()
 
-  const { swaps, expectedOut } = await getSwaps(amount);
-  const totalAmountOut = await batchSwapExactIn(wallet, swaps, tokenIn, tokenOut, amount)
+  let maxPrice
+  req.query.maxPrice  ? maxPrice = new BigNumber(req.query.maxPrice)
+                      : maxPrice = new BigNumber('0')
 
+  // fetch the optimal pool mix from balancer-sor and pass them to exchange-proxy
+  const { swaps, expectedOut } = await getSwaps(
+    erc20_tokens[tokenIn], 
+    erc20_tokens[tokenOut], 
+    amount
+  )
+  // pass swaps to exchange-proxy to complete trade
+  const totalAmountOut = await batchSwapExactIn(
+    wallet, 
+    swaps, 
+    erc20_tokens[tokenIn], 
+    erc20_tokens[tokenOut],
+    amountString,
+  )
+
+  // submit response
   res.status(200).json({
     network: network,
     timestamp: initTime,
     latency: utils.latency(initTime, Date.now()),
-    swaps: swaps,
-    totalAmountOut: totalAmountOut
+    tokenIn: tokenIn,
+    tokenOut: tokenOut,
+    amount: parseFloat(req.query.amount),
+    totalAmountOut: totalAmountOut,
   })
 
 })

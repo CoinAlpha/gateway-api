@@ -27,6 +27,8 @@ switch(network) {
 }
 erc20_tokens = JSON.parse(erc20_tokens)
 
+// FUNCTIONS
+
 // get ETH balance
 const getETHBalance = async (wallet) => {
   const balance = await wallet.getBalance()
@@ -49,11 +51,13 @@ const getERC20Allowance = async (wallet, spender, tokenAddress) => {
   return allowance/1e18.toString()
 }
 
-const approveERC20 = async (spender, tokenAddress, amount) => {
+const approveERC20 = async (wallet, spender, tokenAddress, amount) => {
   // instantiate a contract and pass in wallet, which act on behalf of that signer
   const contract = new ethers.Contract(tokenAddress, utils.ERC20Abi, wallet)
   return await contract.approve(spender, amount)
 }
+
+// ROUTES
 
 router.get('/balances', async (req, res) => {
   const initTime = Date.now()
@@ -114,7 +118,7 @@ router.get('/approve', async (req, res) => {
   const tokenAddress = erc20_tokens[symbol]
 
   // call approve function
-  const approval = await approveERC20(wallet, tokenAddress, amount)
+  const approval = await approveERC20(wallet, spender, tokenAddress, amount)
 
   // submit response
   res.status(200).json({
@@ -134,20 +138,24 @@ router.get('/faucet', (req, res) => {
   const privateKey = "0x" + process.env.ETH_PRIVATE_KEY // replace by passing this in as param
   const wallet = new ethers.Wallet(privateKey, provider)
 
-  // params: symbol (optional)
+  // params: symbol (optional), amount (optional)
   let symbol
   req.query.symbol  ? symbol = req.query.symbol
                     : symbol = "WETH"
-
-  // Deposit Kovan ETH to get Kovan WETH
-  const wei = ethers.utils.parseEther("0.3")
   const tokenAddress = erc20_tokens[symbol]
+                    let amount
+  req.query.amount  ? amount = ethers.utils.parseEther(req.query.amount)
+                    : amount = ethers.utils.parseEther("0.3")
+                  
+  // Deposit Kovan ETH to get Kovan WETH
   // instantiate a contract and pass in wallet, which act on behalf of that signer
   const contract = new ethers.Contract(tokenAddress, utils.KovanWETHAbi, wallet)
-  contract.deposit({value: wei}).then((response) => {
+  contract.deposit({value: amount}).then((response) => {
       res.status(200).json({
         network: network,
         timestamp: initTime,
+        symbol: symbol,
+        amount: amount,
         result: response
       })
   })

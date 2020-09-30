@@ -74,16 +74,29 @@ http://localhost:5001/celo/price?trading_pair=CELO-CUSD&trade_type=sell&amount=1
 http://localhost:5000/terra/status
 http://localhost:5001/celo/price?trading_pair=UST-KRT&trade_type=sell&amount=1.123
 
-http://localhost:5000/ethereum/get_balances
+# ETHEREUM
+
+# get ETH and ERC-20 tokens balances in the user's wallet
+http://localhost:5000/ethereum/balances
+
+# get ERC-20 allowances for a contract address
+http://localhost:5000/ethereum/allowances
+
+# approve a contract to allow transferring tokens to it
+http://localhost:5000/ethereum/approve
+
+# send testnet ETH to a faucet to get testnet WETH
 http://localhost:5000/ethereum/faucet
 
-http://localhost:5000/balancer/get_swaps
 
-# To do
-http://localhost:5000/balancer/get_quote_price
-http://localhost:5000/balancer/get_order_price
-http://localhost:5000/balancer/buy
-http://localhost:5000/balancer/sell
+# BALANCER
+
+# get price and pools for a trade
+http://localhost:5000/balancer/price
+
+# execute trade
+http://localhost:5000/balancer/trade
+
 
 ```
 
