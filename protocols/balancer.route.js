@@ -72,7 +72,7 @@ router.get('/price', async (req, res) => {
   // params: tokenIn (required), tokenOut (required), amount (required)
   const tokenIn = req.query.tokenIn
   const tokenOut = req.query.tokenOut
-  const amount =  new BigNumber(parseInt(req.query.amount)*1e18)
+  const amount =  new BigNumber(parseInt(req.query.amount*1e18))
 
   // fetch the optimal pool mix from balancer-sor
   const { swaps, expectedOut } = await getSwaps(
@@ -101,8 +101,8 @@ router.get('/trade', async (req, res) => {
   // params: tokenIn (required), tokenOut (required), amount (required), maxPrice (optional)
   const tokenIn = req.query.tokenIn
   const tokenOut = req.query.tokenOut
-  const amount = new BigNumber(parseInt(req.query.amount)*1e18)
-  const amountString = (parseInt(req.query.amount)*1e18).toString()
+  const amount =  new BigNumber(parseInt(req.query.amount*1e18))
+  const amountString = (parseInt(req.query.amount*1e18)).toString()
 
   let maxPrice
   req.query.maxPrice  ? maxPrice = new BigNumber(req.query.maxPrice)
