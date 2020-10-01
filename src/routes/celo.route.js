@@ -4,17 +4,14 @@ const express = require('express')
 const router = express.Router()
 const BigNumber = require('bignumber.js');
 const debug = require('debug')('router')
-
-const spawn = require("child_process").spawn
+const spawn = require('child_process').spawn
 
 const network = 'celo'
 const celocli = 'celocli'
-const celoGoldSymbol = 'CELO'
-const denom_unit_multiplier = BigNumber('1e+18')
+const DENOM_UNIT_MULTIPLIER = BigNumber('1e+18')
 
-const hbUtils = require('../hummingbot/utils')
+const hbUtils = require('../services/utils')
 const separator = '=>'
-
 
 router.use((req, res, next) => {
   debug('celo route:', Date.now())
@@ -32,7 +29,7 @@ router.get('/status', (req, res) => {
 
   const nodeSync = spawn(celocli, ['node:synced']);
 
-  let err_message = [], out_message = []  
+  let err_message = [], out_message = []
 
   nodeSync.stdout.on( 'data', out => {
     out_message.push(out.toString().trim())
@@ -54,7 +51,7 @@ router.get('/status', (req, res) => {
       res.status(401).json({
         error: err_message.join('')
       })
-    }  
+    }
   })
 })
 
@@ -72,7 +69,7 @@ router.get('/price', (req, res) => {
   const tradingPair = paramData.trading_pair
   const tradeType = paramData.trade_type
   const requestAmount = paramData.amount
-  const amount = parseFloat(requestAmount) * denom_unit_multiplier
+  const amount = parseFloat(requestAmount) * DENOM_UNIT_MULTIPLIER
   debug('params', req.params)
   debug('paramData', paramData)
 
@@ -101,7 +98,7 @@ router.get('/price', (req, res) => {
           let base = exchangeInfo[0].trim().split(' ')
           let quote = exchangeInfo[1].trim().split(' ')
           let market = [base[1].toUpperCase(), quote[1].toUpperCase()].join('-')
-          exchange_rates[market] = quote[0]/denom_unit_multiplier
+          exchange_rates[market] = quote[0]/DENOM_UNIT_MULTIPLIER
           debug (exchangeInfo, exchange_rates)
         }
       })
@@ -131,7 +128,7 @@ router.get('/balance', (req, res) => {
   debug(paramData)
 
   const balance = spawn(celocli, ["account:balance", address]);
- 
+
   let err_message = [], out_message = []
   let walletBalances = {}
 
@@ -153,7 +150,7 @@ router.get('/balance', (req, res) => {
           let balanceArray = item.split('\n')
           balanceArray.forEach((x) => {
               let keyValue = x.split(':')
-              walletBalances[keyValue[0].trim()] = keyValue[1].trim()/denom_unit_multiplier
+              walletBalances[keyValue[0].trim()] = keyValue[1].trim()/DENOM_UNIT_MULTIPLIER
             }
           )
           debug('walletBalances', walletBalances)
@@ -187,12 +184,12 @@ router.post('/unlock', (req, res) => {
   const paramData = hbUtils.getParamData(req.body, keyFormat)
   const address = paramData.address
   const secret = paramData.secret
- 
+
   debug(paramData)
   debug(req.body)
 
   const lockStatus = spawn(celocli, ["account:unlock", address, "--password", secret]);
- 
+
   let err_message = [], out_message = []
 
   lockStatus.stdout.on( 'data', out => {
@@ -242,13 +239,13 @@ router.post('/trade', (req, res) => {
       }
   */
   const keyFormat = ['trading_pair', 'trade_type', 'amount', 'price']
-  const paramData = hbUtils.getParamData(req.body, keyFormat) 
+  const paramData = hbUtils.getParamData(req.body, keyFormat)
   debug(paramData)
   // const result = Object.assign(paramData, {
   //   message: 'WIP',
   //   timestamp: Date.now()
   // })
-  res.status(200).json({"status": "WIP"})  
+  res.status(200).json({"status": "WIP"})
 })
 
 
