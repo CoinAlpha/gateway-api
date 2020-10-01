@@ -12,15 +12,14 @@ export default class Balancer {
   constructor (network = 'kovan') {
     // network defaults to kovan
     const providerUrl = `https://${network}.infura.io/v3/${process.env.INFURA_API_KEY}`
-    console.log(providerUrl)
     this.network = network
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
 
     if (network === 'kovan') {
-      this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens.json'))
+      this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
       this.exchangeProxy = '0x6317C5e82A06E1d8bf200d21F4510Ac2c038AC81'
     } else if (network === 'mainnet') {
-      this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
+      this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens.json'))
       this.exchangeProxy = '0x3208a3E3d5b0074D69E0888B8618295B9D6B13d3'
     } else {
       throw Error(`Invalid network ${network}`)

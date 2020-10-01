@@ -1,3 +1,4 @@
+require('dotenv').config()
 import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import express from 'express';

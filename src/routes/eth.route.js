@@ -16,8 +16,8 @@ router.get('/balances', async (req, res) => {
   const balances = {}
   balances.ETH = await eth.getETHBalance(wallet, privateKey)
   Promise.all(
-    Object.keys(erc20Tokens).map(async (key) =>
-      balances[key] = await eth.getERC20Balance(wallet, erc20Tokens[key])
+    Object.keys(eth.erc20Tokens).map(async (key) =>
+      balances[key] = await eth.getERC20Balance(wallet, eth.erc20Tokens[key])
     )).then(() => {
     res.status(200).json({
       network: eth.network,
@@ -38,8 +38,8 @@ router.get('/allowances', async (req, res) => {
 
   const approvals = {}
   Promise.all(
-    Object.keys(erc20_tokens).map(async (key) =>
-    approvals[key] = await eth.getERC20Allowance(wallet, spender, erc20_tokens[key])
+    Object.keys(eth.erc20Tokens).map(async (key) =>
+    approvals[key] = await eth.getERC20Allowance(wallet, spender, eth.erc20Tokens[key])
     )).then(() => {
       res.status(200).json({
         network: eth.network,
@@ -63,7 +63,7 @@ router.get('/approve', async (req, res) => {
   let amount
   req.query.amount  ? amount = ethers.utils.parseEther(req.query.amount)
                     : amount = ethers.utils.parseEther('1000000000') // approve for 1 billion units if no amount specified
-  const tokenAddress = eth.erc20_tokens[symbol]
+  const tokenAddress = eth.erc20Tokens[symbol]
 
   // call approve function
   const approval = await eth.approveERC20(wallet, spender, tokenAddress, amount)
@@ -90,7 +90,7 @@ router.get('/faucet', (req, res) => {
   let symbol
   req.query.symbol  ? symbol = req.query.symbol
                     : symbol = "WETH"
-  const tokenAddress = eth.erc20_tokens[symbol]
+  const tokenAddress = eth.erc20Tokens[symbol]
                     let amount
   req.query.amount  ? amount = ethers.utils.parseEther(req.query.amount)
                     : amount = ethers.utils.parseEther("0.3")
