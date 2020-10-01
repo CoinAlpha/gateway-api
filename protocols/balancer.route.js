@@ -53,9 +53,9 @@ const getSwaps = async (tokenIn, tokenOut, amount) => {
 }
 
 const batchSwapExactIn = async (wallet, swaps, tokenIn, tokenOut, amount) => {
-  console.log(tokenIn, tokenOut, amount)
+  console.log(swaps, tokenIn, tokenOut, amount, '0')
   const contract = new ethers.Contract(exchangeProxy, utils.BalancerExchangeProxyAbi, wallet)
-  const totalAmountOut = await contract.batchSwapExactIn(swaps, tokenIn, tokenOut, amount, 0)
+  const totalAmountOut = await contract.batchSwapExactIn(swaps, tokenIn, tokenOut, amount, '0')
   console.log(totalAmountOut)
   return totalAmountOut
 }

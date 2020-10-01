@@ -10,7 +10,7 @@ const MAX_UINT = ethers.constants.MaxUint256;
 const utils = require('../hummingbot/utils')
 
 // network selection
-const network = 'kovan'
+const network = 'kovan' // kovan / mainnet
 
 // chain-specific configs
 const providerUrl = 'https://' + network + '.infura.io/v3/' + process.env.INFURA_API_KEY
