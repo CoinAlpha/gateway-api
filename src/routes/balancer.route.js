@@ -39,7 +39,7 @@ router.get('/price', async (req, res) => {
 router.get('/trade', async (req, res) => {
   const initTime = Date.now()
   const privateKey = "0x" + process.env.ETH_PRIVATE_KEY // replace by passing this in as param
-  const wallet = new ethers.Wallet(privateKey, provider)
+  const wallet = new ethers.Wallet(privateKey, balancer.provider)
 
   // params: tokenIn (required), tokenOut (required), amount (required), maxPrice (optional)
   const tokenIn = req.query.tokenIn

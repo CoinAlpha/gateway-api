@@ -1,9 +1,7 @@
 require('dotenv').config()
 const fs = require('fs');
-const BigNumber = require('bignumber.js')
 const ethers = require('ethers')
 const abi = require('../static/abi')
-const utils = require('../services/utils')
 
 export default class Ethereum {
   constructor (network = 'kovan') {

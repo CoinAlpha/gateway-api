@@ -1,8 +1,9 @@
+require('dotenv').config() // needed to configure REACT_APP_SUBGRAPH_URL used by @balancer-labs/sor
 const fs = require('fs');
 const sor = require('@balancer-labs/sor')
 const BigNumber = require('bignumber.js')
 const ethers = require('ethers')
-const utils = require('../services/utils')
+const abi = require('../static/abi')
 
 // constants
 const MAX_UINT = ethers.constants.MaxUint256;
@@ -27,7 +28,6 @@ export default class Balancer {
   }
 
   async getSwaps (tokenIn, tokenOut, amount) {
-    console.log(process.env.REACT_APP_SUBGRAPH_URL)
     const data = await sor.getPoolsWithTokens(tokenIn, tokenOut)
 
     let poolData
@@ -51,7 +51,7 @@ export default class Balancer {
 
   async batchSwapExactIn (wallet, swaps, tokenIn, tokenOut, amount) {
     console.log(swaps, tokenIn, tokenOut, amount, '0')
-    const contract = new ethers.Contract(exchangeProxy, utils.BalancerExchangeProxyAbi, wallet)
+    const contract = new ethers.Contract(this.exchangeProxy, abi.BalancerExchangeProxyAbi, wallet)
     const totalAmountOut = await contract.batchSwapExactIn(swaps, tokenIn, tokenOut, amount, '0')
     console.log(totalAmountOut)
     return totalAmountOut
