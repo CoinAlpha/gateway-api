@@ -100,7 +100,7 @@ router.get('/faucet', (req, res) => {
   const contract = new ethers.Contract(tokenAddress, utils.KovanWETHAbi, wallet)
   contract.deposit({value: amount}).then((response) => {
       res.status(200).json({
-        network: network,
+        network: eth.network,
         timestamp: initTime,
         symbol: symbol,
         amount: amount,

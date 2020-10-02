@@ -68,7 +68,7 @@ router.get('/trade', async (req, res) => {
 
   // submit response
   res.status(200).json({
-    network: network,
+    network: balancer.network,
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
     tokenIn: tokenIn,
