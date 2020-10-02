@@ -50,10 +50,8 @@ export default class Balancer {
   }
 
   async batchSwapExactIn (wallet, swaps, tokenIn, tokenOut, amount) {
-    console.log(swaps, tokenIn, tokenOut, amount, '0')
     const contract = new ethers.Contract(this.exchangeProxy, abi.BalancerExchangeProxyAbi, wallet)
     const totalAmountOut = await contract.batchSwapExactIn(swaps, tokenIn, tokenOut, amount, '0')
-    console.log(totalAmountOut)
     return totalAmountOut
   }
 }
