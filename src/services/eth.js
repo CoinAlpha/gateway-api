@@ -46,4 +46,10 @@ export default class Ethereum {
     const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, wallet)
     return await contract.approve(spender, amount)
   }
+
+  async deposit (wallet, tokenAddress, amount) {
+    // deposit ETH to a contract address
+    const contract = new ethers.Contract(tokenAddress, abi.KovanWETHAbi, wallet)
+    return await contract.deposit({value: amount})
+  }
 }

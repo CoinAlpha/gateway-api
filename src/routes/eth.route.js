@@ -81,7 +81,7 @@ router.get('/approve', async (req, res) => {
 })
 
 // Faucet to get test tokens
-router.get('/faucet', (req, res) => {
+router.get('/faucet', async (req, res) => {
   const initTime = Date.now()
   const privateKey = `0x${process.env.ETH_PRIVATE_KEY}` // replace by passing this in as param
   const wallet = new ethers.Wallet(privateKey, eth.provider)
@@ -91,21 +91,20 @@ router.get('/faucet', (req, res) => {
   req.query.symbol  ? symbol = req.query.symbol
                     : symbol = "WETH"
   const tokenAddress = eth.erc20Tokens[symbol]
-                    let amount
+  let amount
   req.query.amount  ? amount = ethers.utils.parseEther(req.query.amount)
-                    : amount = ethers.utils.parseEther("0.3")
-                  
-  // Deposit Kovan ETH to get Kovan WETH
-  // instantiate a contract and pass in wallet, which act on behalf of that signer
-  const contract = new ethers.Contract(tokenAddress, utils.KovanWETHAbi, wallet)
-  contract.deposit({value: amount}).then((response) => {
-      res.status(200).json({
-        network: eth.network,
-        timestamp: initTime,
-        symbol: symbol,
-        amount: amount,
-        result: response
-      })
+                    : amount = ethers.utils.parseEther("0.5")
+
+  // call deposit function
+  const response = await eth.deposit(wallet, tokenAddress, amount)
+
+  // submit response
+  res.status(200).json({
+    network: eth.network,
+    timestamp: initTime,
+    symbol: symbol,
+    amount: amount,
+    result: response
   })
 
   // When Balancer gives us the faucet ABI, we can use this faucet to get all Kovan tokens
