@@ -9,10 +9,6 @@ import Balancer from '../services/balancer';
 const router = express.Router()
 const balancer = new Balancer('kovan')
 
-router.get('/', (req, res) => {
-  res.status(200).send('Balancer')
-})
-
 router.get('/price', async (req, res) => {
   const initTime = Date.now()
 
@@ -23,13 +19,13 @@ router.get('/price', async (req, res) => {
 
   // fetch the optimal pool mix from balancer-sor
   const { swaps, expectedOut } = await balancer.getSwaps(
-    erc20_tokens[tokenIn], 
-    erc20_tokens[tokenOut], 
+    balancer.erc20Tokens[tokenIn], 
+    balancer.erc20Tokens[tokenOut], 
     amount,
   )
 
   res.status(200).json({
-    network: network,
+    network: balancer.network,
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
     tokenIn: tokenIn,
@@ -57,16 +53,16 @@ router.get('/trade', async (req, res) => {
 
   // fetch the optimal pool mix from balancer-sor and pass them to exchange-proxy
   const { swaps, expectedOut } = await balancer.getSwaps(
-    balancer.erc20_tokens[tokenIn], 
-    balancer.erc20_tokens[tokenOut], 
+    balancer.erc20Tokens[tokenIn], 
+    balancer.erc20Tokens[tokenOut], 
     amount
   )
   // pass swaps to exchange-proxy to complete trade
   const totalAmountOut = await balancer.batchSwapExactIn(
     wallet, 
     swaps, 
-    balancer.erc20_tokens[tokenIn], 
-    balancer.erc20_tokens[tokenOut],
+    balancer.erc20Tokens[tokenIn], 
+    balancer.erc20Tokens[tokenOut],
     amountString,
   )
 

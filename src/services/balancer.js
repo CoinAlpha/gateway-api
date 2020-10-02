@@ -17,16 +17,17 @@ export default class Balancer {
 
     if (network === 'kovan') {
       this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
-      this.exchangeProxy = '0x6317C5e82A06E1d8bf200d21F4510Ac2c038AC81'
+      this.exchangeProxy = '0x4e67bf5bD28Dd4b570FBAFe11D0633eCbA2754Ec'
     } else if (network === 'mainnet') {
       this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens.json'))
-      this.exchangeProxy = '0x3208a3E3d5b0074D69E0888B8618295B9D6B13d3'
+      this.exchangeProxy = '0x6317C5e82A06E1d8bf200d21F4510Ac2c038AC81'
     } else {
       throw Error(`Invalid network ${network}`)
     }
   }
 
   async getSwaps (tokenIn, tokenOut, amount) {
+    console.log(process.env.REACT_APP_SUBGRAPH_URL)
     const data = await sor.getPoolsWithTokens(tokenIn, tokenOut)
 
     let poolData
