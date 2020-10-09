@@ -41,15 +41,29 @@ export default class Ethereum {
     return allowance/1e18.toString()
   }
 
-  async approveERC20 (wallet, spender, tokenAddress, amount) {
+  // approve a spender to transfer tokens from a wallet address
+  async approveERC20 (wallet, spender, tokenAddress, amount, gasPrice = process.env.GAS_PRICE) {
+    const GAS_LIMIT = 100000
     // instantiate a contract and pass in wallet, which act on behalf of that signer
     const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, wallet)
-    return await contract.approve(spender, amount)
+    return await contract.approve(
+      spender, 
+      amount, {
+        gasPrice: gasPrice*1e9,
+        gasLimit: GAS_LIMIT
+      }
+    )
   }
 
-  async deposit (wallet, tokenAddress, amount) {
+  async deposit (wallet, tokenAddress, amount, gasPrice = process.env.GAS_PRICE) {
+    const GAS_LIMIT = 100000
     // deposit ETH to a contract address
     const contract = new ethers.Contract(tokenAddress, abi.KovanWETHAbi, wallet)
-    return await contract.deposit({value: amount})
+    return await contract.deposit(
+      { value: amount,
+        gasPrice: gasPrice*1e9,
+        gasLimit: GAS_LIMIT
+      }      
+    )
   }
 }

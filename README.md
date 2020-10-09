@@ -85,8 +85,8 @@ http://localhost:5000/ethereum/allowances
 # approve a contract to allow transferring tokens to it
 http://localhost:5000/ethereum/approve
 
-# send testnet ETH to a faucet to get testnet WETH
-http://localhost:5000/ethereum/faucet
+# send testnet ETH to WETH contract to get testnet WETH
+http://localhost:5000/ethereum/deposit
 
 
 # BALANCER

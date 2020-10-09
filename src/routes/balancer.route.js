@@ -42,14 +42,17 @@ router.get('/trade', async (req, res) => {
   const privateKey = "0x" + process.env.ETH_PRIVATE_KEY // replace by passing this in as param
   const wallet = new ethers.Wallet(privateKey, balancer.provider)
 
-  // params: tokenIn (required), tokenOut (required), amount (required), maxPrice (optional)
+  // params: tokenIn (required), tokenOut (required), amount (required), maxPrice (optional), gasPrice (optional)
   const tokenIn = req.query.tokenIn
   const tokenOut = req.query.tokenOut
   const amount =  new BigNumber(parseInt(req.query.amount*1e18))
-  const amountString = (parseInt(req.query.amount*1e18)).toString()
   let maxPrice
   if (req.query.maxPrice) {
     maxPrice = parseFloat(req.query.maxPrice)
+  }
+  let gasPrice
+  if (req.query.gasPrice) {
+    gasPrice = parseFloat(req.query.gasPrice)
   }
 
   // fetch the optimal pool mix from balancer-sor and pass them to exchange-proxy
@@ -66,7 +69,8 @@ router.get('/trade', async (req, res) => {
       swaps, 
       balancer.erc20Tokens[tokenIn], 
       balancer.erc20Tokens[tokenOut],
-      amountString,
+      amount.toString(),
+      gasPrice,
     )
 
     // submit response

@@ -70,14 +70,18 @@ export default class Balancer {
     return { swaps, expectedOut }
   }
 
-  async batchSwapExactIn (wallet, swaps, tokenIn, tokenOut, amount) {
+  async batchSwapExactIn (wallet, swaps, tokenIn, tokenOut, amount, gasPrice = process.env.GAS_PRICE) {
+    const GAS_LIMIT = 1200000
     const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
     const tx = await contract.batchSwapExactIn(
       swaps,
       tokenIn,
       tokenOut,
       amount, 
-      0,
+      0, {
+        gasPrice: gasPrice*1e9,
+        gasLimit: GAS_LIMIT
+      }
     )
     return tx
   }
