@@ -12,16 +12,16 @@ const balancer = new Balancer('kovan')
 router.get('/price', async (req, res) => {
   const initTime = Date.now()
 
-  // params: tokenIn (required), tokenOut (required), side (required), amount (required)
-  const tokenIn = req.query.tokenIn
-  const tokenOut = req.query.tokenOut
+  // params: base (required), quote (required), side (required), amount (required)
+  const base = req.query.base
+  const quote = req.query.quote
   const amount =  new BigNumber(parseInt(req.query.amount*1e18))
   const side = req.query.side
 
   // fetch the optimal pool mix from balancer-sor
   const { swaps, expectedOut } = await balancer.getSwaps(
-    balancer.erc20Tokens[tokenIn], 
-    balancer.erc20Tokens[tokenOut], 
+    balancer.erc20Tokens[base], 
+    balancer.erc20Tokens[quote], 
     amount,
     side,
   )
@@ -30,8 +30,8 @@ router.get('/price', async (req, res) => {
     network: balancer.network,
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
-    tokenIn: tokenIn,
-    tokenOut: tokenOut,
+    base: base,
+    quote: quote,
     amount: parseFloat(req.query.amount),
     expectedOut: parseInt(expectedOut)/1e18,
     price: amount / expectedOut,
@@ -44,9 +44,9 @@ router.get('/trade', async (req, res) => {
   const privateKey = "0x" + process.env.ETH_PRIVATE_KEY // replace by passing this in as param
   const wallet = new ethers.Wallet(privateKey, balancer.provider)
 
-  // params: tokenIn (required), tokenOut (required), amount (required), side (required), maxPrice (optional), gasPrice (optional)
-  const tokenIn = req.query.tokenIn
-  const tokenOut = req.query.tokenOut
+  // params: base (required), quote (required), amount (required), side (required), maxPrice (optional), gasPrice (optional)
+  const base = req.query.base
+  const quote = req.query.quote
   const amount =  new BigNumber(parseInt(req.query.amount*1e18))
   const side = req.query.side
   let maxPrice
@@ -60,8 +60,8 @@ router.get('/trade', async (req, res) => {
 
   // fetch the optimal pool mix from balancer-sor and pass them to exchange-proxy
   const { swaps, expectedOut } = await balancer.getSwaps(
-    balancer.erc20Tokens[tokenIn], 
-    balancer.erc20Tokens[tokenOut], 
+    balancer.erc20Tokens[base], 
+    balancer.erc20Tokens[quote], 
     amount,
     side,
   )
@@ -74,8 +74,17 @@ router.get('/trade', async (req, res) => {
       txHash = await balancer.batchSwapExactIn(
         wallet, 
         swaps, 
-        balancer.erc20Tokens[tokenIn], 
-        balancer.erc20Tokens[tokenOut],
+        balancer.erc20Tokens[base], 
+        balancer.erc20Tokens[quote],
+        amount.toString(),
+        gasPrice,
+      )
+    } else {
+      txHash = await balancer.batchSwapExactOut(
+        wallet, 
+        swaps, 
+        balancer.erc20Tokens[base], 
+        balancer.erc20Tokens[quote],
         amount.toString(),
         gasPrice,
       )
@@ -86,8 +95,8 @@ router.get('/trade', async (req, res) => {
       network: balancer.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      tokenIn: tokenIn,
-      tokenOut: tokenOut,
+      base: base,
+      quote: quote,
       amount: parseFloat(req.query.amount),
       expectedOut: expectedOut/1e18,
       price: price,

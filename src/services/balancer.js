@@ -53,6 +53,15 @@ export default class Balancer {
         0                     // costOutputToken: BigNumber
       )
       swapsFormatted = sor.formatSwapsExactAmountIn(sorSwaps, MAX_UINT, 0)  
+    } else {
+      sorSwaps = sor.smartOrderRouter(
+        poolData,             // balancers: Pool[]
+        'swapExactOut',       // swapType: string
+        new BigNumber('0'),   // targetInputAmount: BigNumber
+        new BigNumber('4'),   // maxBalancers: number
+        amount                // costOutputToken: BigNumber
+      )
+      swapsFormatted = sor.formatSwapsExactAmountIn(sorSwaps, MAX_UINT, 0)  
     }
 
     // Create correct swap format for new proxy
@@ -82,6 +91,23 @@ export default class Balancer {
       tokenOut,
       amount, 
       0, {
+        gasPrice: gasPrice*1e9,
+        gasLimit: GAS_LIMIT
+      }
+    )
+    return tx
+  }
+
+  async batchSwapExactOut (wallet, swaps, tokenIn, tokenOut, amount, gasPrice = process.env.GAS_PRICE) {
+    const GAS_LIMIT = 1200000
+    const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
+    const tx = await contract.batchSwapExactIn(
+      swaps,
+      tokenIn,
+      tokenOut,
+      MAX_UINT, 
+      {
+        value: amount,
         gasPrice: gasPrice*1e9,
         gasLimit: GAS_LIMIT
       }
