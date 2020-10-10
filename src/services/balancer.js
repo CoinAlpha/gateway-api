@@ -27,7 +27,7 @@ export default class Balancer {
     }
   }
 
-  async getSwaps (tokenIn, tokenOut, amount) {
+  async getSwaps (tokenIn, tokenOut, amount, side) {
 
     // Fetch all the pools that contain the tokens provided
     const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
@@ -43,14 +43,17 @@ export default class Balancer {
     } else {
       poolData = await sor.parsePoolData(pools.pools, tokenIn, tokenOut)
     }
-    const sorSwaps = sor.smartOrderRouter(
-      poolData,             // balancers: Pool[]
-      'swapExactIn',        // swapType: string
-      amount,               // targetInputAmount: BigNumber
-      new BigNumber('4'),   // maxBalancers: number
-      0                     // costOutputToken: BigNumber
-    )
-    const swapsFormatted = sor.formatSwapsExactAmountIn(sorSwaps, MAX_UINT, 0)
+    let sorSwaps, swapsFormatted
+    if (side === 'sell') {
+      sorSwaps = sor.smartOrderRouter(
+        poolData,             // balancers: Pool[]
+        'swapExactIn',        // swapType: string
+        amount,               // targetInputAmount: BigNumber
+        new BigNumber('4'),   // maxBalancers: number
+        0                     // costOutputToken: BigNumber
+      )
+      swapsFormatted = sor.formatSwapsExactAmountIn(sorSwaps, MAX_UINT, 0)  
+    }
 
     // Create correct swap format for new proxy
     let swaps = [];
