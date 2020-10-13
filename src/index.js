@@ -1,7 +1,6 @@
-#!/usr/bin/env node
-
 // absolute imports
-import http from 'http';
+import https from 'https';
+import fs from 'fs';
 import debug from 'debug';
 import dotenv from 'dotenv';
 
@@ -17,11 +16,21 @@ if (result.error) {
 
 const env = process.env.NODE_ENV;
 const port = process.env.PORT;
+const passphrase = process.env.CERT_PASSPHRASE
 
 // set app environment
 app.set('env', env)
 
-const server = http.createServer(app)
+// set rejectUnauthorized to 'false' for self-signed CA cert
+const options = {
+  key: fs.readFileSync('./certs/server-private-key.pem', { encoding: 'utf-8' }),
+  cert: fs.readFileSync('./certs/server-public-key.pem', { encoding: 'utf-8' }),
+  // passphrase: passphrase,
+  requestCert: true,
+  rejectUnauthorized: false
+};
+
+const server = https.createServer(options, app)
 
 // event listener for "error" event
 const onError = error => {
@@ -36,11 +45,9 @@ const onError = error => {
     case 'EACCES':
       console.error(bind + ' requires elevated privileges')
       process.exit(1)
-      break
     case 'EADDRINUSE':
       console.error(bind + ' is already in use')
       process.exit(1)
-      break
     default:
       throw error
   }

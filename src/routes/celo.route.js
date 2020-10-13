@@ -41,11 +41,15 @@ router.get('/status', (req, res) => {
     debug('err_message', err_message)
   })
 
-  nodeSync.on( 'close', code => {
+  nodeSync.on('close', code => {
+    if (out_message.length > 1) {
+      // add additional messaging to error if available
+      Array.prototype.push.apply(err_message, out_message)
+    }
     if (code === 0) {
       res.status(200).json({
-        synced: out_message[0].toLowerCase() === 'true',
-        message: err_message.join('')
+        synced: out_message[out_message.length - 1].toLowerCase() === 'true',
+        message: err_message.join('\n')
       })
     } else {
       res.status(401).json({

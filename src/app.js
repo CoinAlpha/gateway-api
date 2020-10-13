@@ -2,6 +2,7 @@ import bodyParser from 'body-parser'
 import express from 'express'
 import helmet from 'helmet'
 import httpStatus from 'http-status-codes'
+// import ipfilter from 'express-ipfilter'
 
 // Routes
 import apiRoutes from './routes/index.route'
@@ -18,10 +19,11 @@ const app = express();
 // https://www.npmjs.com/package/helmet
 app.use(helmet());
 
-// whitelist local ips
+// whitelist localhost for local dev ip filtering only.
+// docker instance local ip will be different than 127.0.0.1
 // ipv6 format for locahost
 // const ipWhitelist = ['::ffff:127.0.0.1', '::ffff:1', 'fe80::1', '::1']
-// app.use(ipFilter(ipWhitelist, { mode: 'allow' }))
+// app.use(ipfilter.IpFilter(ipWhitelist, { mode: 'allow' }))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 

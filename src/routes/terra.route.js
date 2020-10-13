@@ -31,8 +31,7 @@ const getTerraSymbol = (denom) => {
   return symbol
 }
 
-const denom_unit_multiplier = BigNumber('1e+6')
-
+const denomUnitMultiplier = BigNumber('1e+6')
 
 // load environment config
 const network = 'terra'
@@ -43,23 +42,23 @@ const chain = process.env.TERRA_CHAIN;
  * Connect to network
  */
 const connect = () => {
-  let terra = new LCDClient({
+  const terra = new LCDClient({
     URL: lcdUrl,
     chainID: chain,
   })
 
-  terra.market.parameters().catch((err) => {
-    throw new Error('Connection error')
-  })
+  // terra.market.parameters().catch((err) => {
+  //   throw new Error('Connection error')
+  // })
 
   // To use LocalTerra
   // const terra = new LCDClient({
   //   URL: 'http://localhost:1317',
   //   chainID: 'localterra'
   // })
+  debug('terra lcdclient', terra)
   return terra
 }
-
 
 router.use((req, res, next) => {
   debug('terra route:', Date.now())
@@ -100,7 +99,7 @@ router.get('/price', async (req, res) => {
   const tradingPair = paramData.trading_pair
   const tradeType = paramData.trade_type
   const requestAmount = paramData.amount
-  const amount = parseFloat(requestAmount) * denom_unit_multiplier
+  const amount = parseFloat(requestAmount) * denomUnitMultiplier
   debug('params', req.params)
   debug('paramData', paramData)
 
@@ -130,13 +129,13 @@ router.get('/price', async (req, res) => {
 
     const offerCoin = new Coin(baseDenom, amount);
     await terra.market.swapRate(offerCoin, quoteDenom).then(swapCoin => {
-      price = Number(swapCoin.amount)/denom_unit_multiplier
+      price = Number(swapCoin.amount) / denomUnitMultiplier
     }).catch((err) => {
       hbUtils.reportConnectionError(res, err)
     })
   }
 
-  let result = Object.assign(paramData, {
+  const result = Object.assign(paramData, {
     price: price,
     timestamp: initTime,
     latency: hbUtils.latency(initTime, Date.now())
@@ -155,13 +154,13 @@ router.get('/balance', async (req, res) => {
 
   const terra = connect()
 
-  let balance = {}
+  const balance = {}
 
   await terra.bank.balance(address).then(bal => {
     bal.toArray().forEach((x) => {
       const item = x.toData()
       const denom = item.denom
-      const amount = item.amount/denom_unit_multiplier
+      const amount = item.amount / denomUnitMultiplier
       const symbol = getTerraSymbol(denom)
       balance[symbol] = amount
     })

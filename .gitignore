@@ -16,3 +16,7 @@ node_modules/
 
 # debug logs
 npm-debug.log
+
+# distribution files
+dist/
+

@@ -1,16 +1,20 @@
-FROM node:14.4.0
+FROM node:10.22.0
 
 # app directory
 WORKDIR /usr/src/app
 
-# install dependancies
+# copy package files
 COPY package*.json ./
+COPY yarn.lock ./
 
+# install dependancies
 RUN yarn install
 
 # copy pwd file to container
 COPY . .
 
+# set port
 EXPOSE 5000
 
-CMD [ "node", "index.js" ]
+# execute command
+CMD ["yarn", "run", "dev"]
