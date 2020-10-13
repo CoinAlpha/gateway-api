@@ -92,10 +92,12 @@ http://localhost:5000/ethereum/deposit
 # BALANCER
 
 # get price and pools for a trade
-http://localhost:5000/balancer/price
+http://localhost:5000/balancer/buy-price
+http://localhost:5000/balancer/sell-price
 
 # execute trade
-http://localhost:5000/balancer/trade
+http://localhost:5000/balancer/buy
+http://localhost:5000/balancer/sell
 
 
 ```

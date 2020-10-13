@@ -27,7 +27,7 @@ export default class Balancer {
     }
   }
 
-  async getSwaps (tokenIn, tokenOut, amount, side) {
+  async priceSwapIn (tokenIn, tokenOut, tokenInAmount) {
 
     // Fetch all the pools that contain the tokens provided
     const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
@@ -35,34 +35,27 @@ export default class Balancer {
       console.log('No pools contain the tokens provided');
       return;
     }
+    console.log('Pools Retrieved.');
     
-    // Parse the pools and pass them to smart order outer to get the swaps needed
     let poolData
     if (this.network === 'mainnet') {
       poolData = await sor.parsePoolDataOnChain(pools.pools, tokenIn, tokenOut, MULTI, this.provider)
     } else {
       poolData = await sor.parsePoolData(pools.pools, tokenIn, tokenOut)
     }
-    let sorSwaps, swapsFormatted
-    if (side === 'sell') {
-      sorSwaps = sor.smartOrderRouter(
-        poolData,             // balancers: Pool[]
-        'swapExactIn',        // swapType: string
-        amount,               // targetInputAmount: BigNumber
-        new BigNumber('4'),   // maxBalancers: number
-        0                     // costOutputToken: BigNumber
-      )
-      swapsFormatted = sor.formatSwapsExactAmountIn(sorSwaps, MAX_UINT, 0)  
-    } else {
-      sorSwaps = sor.smartOrderRouter(
-        poolData,             // balancers: Pool[]
-        'swapExactOut',       // swapType: string
-        new BigNumber('0'),   // targetInputAmount: BigNumber
-        new BigNumber('4'),   // maxBalancers: number
-        amount                // costOutputToken: BigNumber
-      )
-      swapsFormatted = sor.formatSwapsExactAmountIn(sorSwaps, MAX_UINT, 0)  
-    }
+
+    // Parse the pools and pass them to smart order outer to get the swaps needed
+    const sorSwaps = sor.smartOrderRouter(
+      poolData,             // balancers: Pool[]
+      'swapExactIn',        // swapType: string
+      tokenInAmount,        // targetInputAmount: BigNumber
+      new BigNumber('4'),   // maxBalancers: number
+      0                     // costOutputToken: BigNumber
+    )
+
+    const swapsFormatted = sor.formatSwapsExactAmountIn(sorSwaps, MAX_UINT, 0)
+    const expectedOut = sor.calcTotalOutput(swapsFormatted, poolData)
+    console.log(`Expected Out: ${expectedOut.toString()} (${tokenOut})`);
 
     // Create correct swap format for new proxy
     let swaps = [];
@@ -77,41 +70,87 @@ export default class Balancer {
         };
         swaps.push(swap);
     }
-
-    const expectedOut = sor.calcTotalOutput(swapsFormatted, poolData)
     return { swaps, expectedOut }
   }
 
-  async batchSwapExactIn (wallet, swaps, tokenIn, tokenOut, amount, gasPrice = process.env.GAS_PRICE) {
+  async priceSwapOut (tokenIn, tokenOut, tokenOutAmount) {
+
+    // Fetch all the pools that contain the tokens provided
+    const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
+    if(pools.pools.length === 0) {
+      console.log('No pools contain the tokens provided');
+      return;
+    }
+    console.log('Pools Retrieved.');
+    
+    let poolData
+    if (this.network === 'mainnet') {
+      poolData = await sor.parsePoolDataOnChain(pools.pools, tokenIn, tokenOut, MULTI, this.provider)
+    } else {
+      poolData = await sor.parsePoolData(pools.pools, tokenIn, tokenOut)
+    }
+
+    // Parse the pools and pass them to smart order outer to get the swaps needed
+    const sorSwaps = sor.smartOrderRouter(
+      poolData,             // balancers: Pool[]
+      'swapExactOut',       // swapType: string
+      tokenOutAmount,       // targetInputAmount: BigNumber
+      new BigNumber('4'),   // maxBalancers: number
+      0                     // costOutputToken: BigNumber
+    )
+    const swapsFormatted = sor.formatSwapsExactAmountOut(sorSwaps, MAX_UINT, MAX_UINT)
+    const expectedIn = sor.calcTotalInput(swapsFormatted, poolData)
+    console.log(`Expected In: ${expectedIn.toString()} (${tokenIn})`);
+
+    // Create correct swap format for new proxy
+    let swaps = [];
+    for (let i = 0; i < swapsFormatted.length; i++) {
+        let swap = {
+            pool: swapsFormatted[i].pool,
+            tokenIn: tokenIn,
+            tokenOut: tokenOut,
+            swapAmount: swapsFormatted[i].tokenOutParam,
+            limitReturnAmount: swapsFormatted[i].tokenInParam,
+            maxPrice: swapsFormatted[i].maxPrice.toString(),
+        };
+        swaps.push(swap);
+    }
+    return { swaps, expectedIn }
+  }
+
+  async swapExactIn (wallet, swaps, tokenIn, tokenOut, amountOut, gasPrice = process.env.GAS_PRICE) {
     const GAS_LIMIT = 1200000
     const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
     const tx = await contract.batchSwapExactIn(
       swaps,
       tokenIn,
       tokenOut,
-      amount, 
+      amountOut, 
       0, {
         gasPrice: gasPrice*1e9,
         gasLimit: GAS_LIMIT
       }
     )
-    return tx
+    console.log(`Tx Hash: ${tx.hash}`);
+    const txObj = await tx.wait()
+    return txObj
   }
 
-  async batchSwapExactOut (wallet, swaps, tokenIn, tokenOut, amount, gasPrice = process.env.GAS_PRICE) {
+  async swapExactOut (wallet, swaps, tokenIn, tokenOut, expectedIn, gasPrice = process.env.GAS_PRICE) {
     const GAS_LIMIT = 1200000
     const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
-    const tx = await contract.batchSwapExactIn(
+    const tx = await contract.batchSwapExactOut(
       swaps,
       tokenIn,
       tokenOut,
-      MAX_UINT, 
+      expectedIn,
       {
-        value: amount,
-        gasPrice: gasPrice*1e9,
-        gasLimit: GAS_LIMIT
+        gasPrice: 10000000000,
+        gasLimit: 12000000
       }
     )
-    return tx
+    console.log(`Tx Hash: ${tx.hash}`)
+    const txObj = await tx.wait()
+    return txObj
   }
 }
