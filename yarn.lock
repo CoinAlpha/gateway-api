@@ -1222,14 +1222,14 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@terra-money/terra.js@^0.4.19-beta.1":
-  version "0.4.19-beta.1"
-  resolved "https://registry.yarnpkg.com/@terra-money/terra.js/-/terra.js-0.4.19-beta.1.tgz#2b85e2c508041d1b874da9304c9e3553ce766358"
-  integrity sha512-ipaOIi5XJUJyLyv+o04fupytJrh4bgd7BwU+FDhrIWjT0s4UHJWgYI9iqYonKbiy1gTw0t/8y80XRXuQ47pUqw==
+"@terra-money/terra.js@^0.5.8":
+  version "0.5.8"
+  resolved "https://registry.yarnpkg.com/@terra-money/terra.js/-/terra.js-0.5.8.tgz#effd51631c596e67b782819dca924241d1903597"
+  integrity sha512-a+WqEgnxCIz0hCW/EhqF47TublEqPX/NdL5xNwve3sNFTjK7AqHcpVUS79hubimPy9HlDDZCSCF8YAXXJ7xfCQ==
   dependencies:
     axios "^0.20.0"
     bech32 "^1.1.4"
-    bip32 "^2.0.5"
+    bip32 "^2.0.6"
     bip39 "^3.0.2"
     crypto-js "3.3.0"
     decimal.js "^10.2.0"
@@ -1446,10 +1446,10 @@ bindings@^1.3.0:
   dependencies:
     file-uri-to-path "1.0.0"
 
-bip32@^2.0.5:
-  version "2.0.5"
-  resolved "https://registry.yarnpkg.com/bip32/-/bip32-2.0.5.tgz#e3808a9e97a880dbafd0f5f09ca4a1e14ee275d2"
-  integrity sha512-zVY4VvJV+b2fS0/dcap/5XLlpqtgwyN8oRkuGgAS1uLOeEp0Yo6Tw2yUTozTtlrMJO3G8n4g/KX/XGFHW6Pq3g==
+bip32@^2.0.6:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/bip32/-/bip32-2.0.6.tgz#6a81d9f98c4cd57d05150c60d8f9e75121635134"
+  integrity sha512-HpV5OMLLGTjSVblmrtYRfFFKuQB+GArM0+XP8HGWfJ5vxYBqo+DesvJwOdC2WJ3bCkZShGf0QIfoIpeomVzVdA==
   dependencies:
     "@types/node" "10.12.18"
     bs58check "^2.1.1"

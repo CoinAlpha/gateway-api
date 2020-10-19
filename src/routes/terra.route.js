@@ -1,17 +1,12 @@
 'use strict'
 
-const express = require('express');
+import express from 'express'
+import BigNumber from 'bignumber.js'
+import { LCDClient, MnemonicKey, Coin, MsgSwap } from '@terra-money/terra.js'
+import { getParamData, getSymbols, latency, reportConnectionError } from '../services/utils';
+
 const router = express.Router();
-const BigNumber = require('bignumber.js');
 const debug = require('debug')('router')
-
-const LCDClient = require('@terra-money/terra.js').LCDClient
-const Coin = require('@terra-money/terra.js').Coin
-// const MsgSend = require('@terra-money/terra.js').MsgSend
-const MnemonicKey = require('@terra-money/terra.js').MnemonicKey
-// Terra.js includes Dec and Int, which represent decimal numbers and integer numbers, in a Cosmos-SDK compatible way.
-
-const hbUtils = require('../services/utils')
 
 const TerraTokens = {
   LUNA: { denom: 'uluna' },
@@ -31,8 +26,17 @@ const getTerraSymbol = (denom) => {
   return symbol
 }
 
-const denom_unit_multiplier = BigNumber('1e+6')
+const denomUnitMultiplier = BigNumber('1e+6')
 
+const getTxAttributes = (attributes) => {
+  let attrib = {}
+  console.log(attributes)
+  attributes.forEach((item) => {
+    console.log(item)
+    attrib[item.key] = item.value
+  })
+  return attrib
+}
 
 // load environment config
 const network = 'terra'
@@ -43,23 +47,17 @@ const chain = process.env.TERRA_CHAIN;
  * Connect to network
  */
 const connect = () => {
-  let terra = new LCDClient({
+  const terra = new LCDClient({
     URL: lcdUrl,
     chainID: chain,
   })
 
-  terra.market.parameters().catch((err) => {
+  terra.market.parameters().catch(() => {
     throw new Error('Connection error')
   })
 
-  // To use LocalTerra
-  // const terra = new LCDClient({
-  //   URL: 'http://localhost:1317',
-  //   chainID: 'localterra'
-  // })
   return terra
 }
-
 
 router.use((req, res, next) => {
   debug('terra route:', Date.now())
@@ -77,7 +75,7 @@ router.get('/status', async (req, res) => {
   const terra = connect()
 
   const marketParams = await terra.market.parameters().catch((err) => {
-    hbUtils.reportConnectionError(res, err)
+    reportConnectionError(res, err)
   })
 
   res.status(200).json({
@@ -96,20 +94,19 @@ router.get('/price', async (req, res) => {
   const initTime = Date.now()
   const keyFormat = ['trading_pair', 'trade_type', 'amount']
 
-  const paramData = hbUtils.getParamData(req.query, keyFormat)
+  const paramData = getParamData(req.query, keyFormat)
   const tradingPair = paramData.trading_pair
-  const tradeType = paramData.trade_type
   const requestAmount = paramData.amount
-  const amount = parseFloat(requestAmount) * denom_unit_multiplier
+  const amount = parseFloat(requestAmount) * denomUnitMultiplier
   debug('params', req.params)
   debug('paramData', paramData)
 
   const terra = connect()
   const exchangeRates = await terra.oracle.exchangeRates().catch((err) => {
-    hbUtils.reportConnectionError(res, err)
+    reportConnectionError(res, err)
   });
 
-  const symbols = hbUtils.getSymbols(tradingPair)
+  const symbols = getSymbols(tradingPair)
   const symbolsKeys = Object.keys(symbols)
   let price
 
@@ -125,21 +122,21 @@ router.get('/price', async (req, res) => {
     price = exchangeRates.get(targetSymbol) * amount
   } else {
     // get the current swap rate
-    let baseDenom = TerraTokens[symbols.base].denom
-    let quoteDenom = TerraTokens[symbols.quote].denom
+    const baseDenom = TerraTokens[symbols.base].denom
+    const quoteDenom = TerraTokens[symbols.quote].denom
 
     const offerCoin = new Coin(baseDenom, amount);
     await terra.market.swapRate(offerCoin, quoteDenom).then(swapCoin => {
-      price = Number(swapCoin.amount)/denom_unit_multiplier
+      price = Number(swapCoin.amount) / denomUnitMultiplier
     }).catch((err) => {
-      hbUtils.reportConnectionError(res, err)
+      reportConnectionError(res, err)
     })
   }
 
-  let result = Object.assign(paramData, {
+  const result = Object.assign(paramData, {
     price: price,
     timestamp: initTime,
-    latency: hbUtils.latency(initTime, Date.now())
+    latency: latency(initTime, Date.now())
   })
   res.status(200).json(result)
 })
@@ -149,28 +146,43 @@ router.get('/balance', async (req, res) => {
     GET: /balance?address=0x87A4...b120
   */
   const keyFormat = ['address']
-  const paramData = hbUtils.getParamData(req.query, keyFormat)
+  const paramData = getParamData(req.query, keyFormat)
   const address = paramData.address
   debug(paramData)
 
   const terra = connect()
 
   let balance = {}
+  let txSuccess, message
 
-  await terra.bank.balance(address).then(bal => {
-    bal.toArray().forEach((x) => {
-      const item = x.toData()
-      const denom = item.denom
-      const amount = item.amount/denom_unit_multiplier
-      const symbol = getTerraSymbol(denom)
-      balance[symbol] = amount
+  try {
+    await terra.bank.balance(address).then(bal => {
+      bal.toArray().forEach((x) => {
+        const item = x.toData()
+        const denom = item.denom
+        const amount = item.amount / denomUnitMultiplier
+        const symbol = getTerraSymbol(denom)
+        balance[symbol] = amount
+      })
     })
-  })
+  } catch (err) {
+    txSuccess = false
+    const isAxiosError = err.isAxiosError
+    if (isAxiosError) {
+      const status = err.response.status
+      const statusText = err.response.statusText
+      message = { error: statusText, status: status, data: err.response.data }
+    } else {
+      message = err.status
+    }
+  }
 
   res.status(200).json({
+    success: txSuccess,
     address: address,
     balance: balance,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    message: message
   })
 })
 
@@ -178,21 +190,18 @@ router.post('/trade', async (req, res) => {
   /*
       POST: /trade
       data: {
-        "trading_pair":CELO-CUSD
+        "trading_pair":SDT-KRT
         "trade_type": "buy"
         "amount": "1.01"
-        "price": "2.179"
         "address": "0x...123"
         "secret": "mysupersecret"
       }
   */
-
-  const keyFormat = ['trading_pair', 'trade_type', 'amount', 'price', 'address', 'secret']
-  const paramData = hbUtils.getParamData(req.body, keyFormat)
+  const keyFormat = ['trading_pair', 'trade_type', 'amount', 'address', 'secret']
+  const paramData = getParamData(req.body, keyFormat)
+  const tradeType = paramData.tradeType
   const secret = paramData.secret
   debug(paramData)
-
-  let accountInfo, coin
 
   const terra = connect()
   const mk = new MnemonicKey({
@@ -201,11 +210,69 @@ router.post('/trade', async (req, res) => {
   const wallet = terra.wallet(mk);
   const address = wallet.key.accAddress
 
+  // get the current swap rate
+  const symbols = getSymbols(paramData.trading_pair)
+  debug('symbols', symbols)
+  const baseDenom = TerraTokens[symbols.base].denom
+  const quoteDenom = TerraTokens[symbols.quote].denom
+
+  let offerDenom, swapDenom, swapAmount
+  swapAmount = paramData.amount * denomUnitMultiplier
+  if (tradeType === 'sell') {
+    offerDenom = baseDenom
+    swapDenom = quoteDenom
+  } else {
+    offerDenom = quoteDenom
+    swapDenom = baseDenom
+  }
+
+  const offerCoin = new Coin(offerDenom, swapAmount);
+  debug('base', offerDenom, 'quote', swapDenom)
+
+  // Create and Sign Transaction
+  const swap = new MsgSwap(address, offerCoin, swapDenom);
+  const memo = 'tx: 0802...1520'
+
+  let txSuccess, txAttributes, message
+
+  try {
+    const tx = await wallet.createAndSignTx({
+      msgs: [swap],
+      memo: memo
+    }).then(tx => terra.tx.broadcast(tx)).then(result => {
+      debug(`TX hash: ${result.txhash}`);
+      txSuccess = true
+      const txHash = result.txhash
+      const events = JSON.parse(result.raw_log)[0].events
+      console.log(events)
+      const swap = events.find(obj => {
+        return obj.type === 'swap'
+      })
+      txAttributes = getTxAttributes(swap.attributes)
+
+      message = {
+        txHash: txHash
+      }
+    })
+  } catch (err) {
+    txSuccess = false
+    const isAxiosError = err.isAxiosError
+    if (isAxiosError) {
+      const status = err.response.status
+      const statusText = err.response.statusText
+      message = { error: statusText, status: status, data: err.response.data }
+    } else {
+      message = err.status
+    }
+  }
+
   res.status(200).json({
-    _status: 'WIP',
-    address: address,
-    // balance: walletBalances,
-    timestamp: Date.now()
+    success: txSuccess,
+    timestamp: Date.now(),
+    buy: txAttributes.swap_coin,
+    sell: txAttributes.offer,
+    fee: txAttributes.swap_fee,
+    message: message
   })
 })
 

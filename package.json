@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@balancer-labs/sor": "^0.3.3",
-    "@terra-money/terra.js": "^0.4.19-beta.1",
+    "@terra-money/terra.js": "^0.5.8",
     "bignumber.js": "^9.0.0",
     "body-parser": "^1.19.0",
     "capture-console": "^1.0.1",

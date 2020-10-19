@@ -71,9 +71,6 @@ http://localhost:5000/api/status
 http://localhost:5000/celo/status
 http://localhost:5001/celo/price?trading_pair=CELO-CUSD&trade_type=sell&amount=1.123
 
-http://localhost:5000/terra/status
-http://localhost:5001/celo/price?trading_pair=UST-KRT&trade_type=sell&amount=1.123
-
 # ETHEREUM
 
 # get ETH and ERC-20 tokens balances in the user's wallet
@@ -98,6 +95,27 @@ http://localhost:5000/balancer/sell-price
 # execute trade
 http://localhost:5000/balancer/buy
 http://localhost:5000/balancer/sell
+
+
+# TERRA
+
+http://localhost:5000/terra/status
+
+# get balance for address
+GET http://localhost:5000/terra/balance?address=terra1ayw...83y
+
+# get price for token swap
+GET http://localhost:5000/terra/price?trading_pair=UST-SDT&trade_type=buy&amount=1
+
+# execute trade
+POST http://localhost:5000/terra/trade
+Request Body
+  trading_pair: "SDT-KRT"
+  trade_type: "buy"
+  amount: "1"
+  address: "terra1ayw...83y"
+  secret: "24 word seeds ..."
+
 
 
 ```
