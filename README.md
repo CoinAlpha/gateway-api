@@ -64,26 +64,25 @@ yarn run dev
 yarn run start
 
 # API
-http://localhost:5000/
-http://localhost:5000/api/status
+http://localhost:5000/api
 
 # Protocol Endpoints
-http://localhost:5000/celo/status
+http://localhost:5000/celo
 http://localhost:5001/celo/price?trading_pair=CELO-CUSD&trade_type=sell&amount=1.123
 
 # ETHEREUM
 
 # get ETH and ERC-20 tokens balances in the user's wallet
-http://localhost:5000/ethereum/balances
+http://localhost:5000/eth/balances
 
 # get ERC-20 allowances for a contract address
-http://localhost:5000/ethereum/allowances
+http://localhost:5000/eth/allowances
 
 # approve a contract to allow transferring tokens to it
-http://localhost:5000/ethereum/approve
+http://localhost:5000/eth/approve
 
 # send testnet ETH to WETH contract to get testnet WETH
-http://localhost:5000/ethereum/deposit
+http://localhost:5000/eth/deposit
 
 
 # BALANCER
@@ -99,7 +98,7 @@ http://localhost:5000/balancer/sell
 
 # TERRA
 
-http://localhost:5000/terra/status
+http://localhost:5000/terra
 
 # get balance for address
 GET http://localhost:5000/terra/balance?address=terra1ayw...83y
@@ -117,6 +116,30 @@ Request Body
   secret: "24 word seeds ..."
 
 
+```
+
+### SSL
+
+SSL is setup for HTTPS traffic to Gateway running at localhost. To run Gateway as standalone API server, use the following script to generate the SSL certs.
+
+```bash
+$ ssl-scripts.sh
+
+# Test endpoint
+curl --insecure --key ./certs/client_key.pem --cert ./certs/client_cert.pem https://localhost:5000/api
 
 ```
 
+Test endpoint on Python
+```python
+url = 'https://localhost:5000/api'
+
+certServer = realpath(join(__file__, join("./certs/server_cert.pem")))
+cacerts = (realpath(join(__file__, join("./certs/client_cert.pem"))),
+            realpath(join(__file__, join("./certs/client_key.pem"))))
+
+response = requests.get(url, verify=certServer, cert=cacerts)
+
+result = response.json()
+print(result)
+```
