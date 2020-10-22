@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
 // absolute imports
-import http from 'http';
-import debug from 'debug';
-import dotenv from 'dotenv';
+import http from 'http'
+import https from 'https'
+import debug from 'debug'
+import dotenv from 'dotenv'
+import fs from 'fs'
 
 // relative imports
 import app from './app'
@@ -21,7 +23,18 @@ const port = process.env.PORT;
 // set app environment
 app.set('env', env)
 
-const server = http.createServer(app)
+const options = {
+  key: fs.readFileSync('./certs/server_key.pem', { encoding: 'utf-8' }),
+  cert: fs.readFileSync('./certs/server_cert.pem', { encoding: 'utf-8' }),
+  // request client certificate from user
+  requestCert: true,
+  // accept requests with no valid certificate (self-signed)
+  rejectUnauthorized: false,
+  // use same server cert created with own key for self-signed
+  ca: [fs.readFileSync('./certs/server_cert.pem', { encoding: 'utf-8' })]
+};
+
+const server = https.createServer(options, app)
 
 // event listener for "error" event
 const onError = error => {

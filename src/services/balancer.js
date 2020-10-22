@@ -28,15 +28,14 @@ export default class Balancer {
   }
 
   async priceSwapIn (tokenIn, tokenOut, tokenInAmount) {
-
     // Fetch all the pools that contain the tokens provided
     const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
-    if(pools.pools.length === 0) {
+    if (pools.pools.length === 0) {
       console.log('No pools contain the tokens provided');
       return;
     }
     console.log('Pools Retrieved.');
-    
+
     let poolData
     if (this.network === 'mainnet') {
       poolData = await sor.parsePoolDataOnChain(pools.pools, tokenIn, tokenOut, MULTI, this.provider)
@@ -60,29 +59,28 @@ export default class Balancer {
     // Create correct swap format for new proxy
     let swaps = [];
     for (let i = 0; i < swapsFormatted.length; i++) {
-        let swap = {
-            pool: swapsFormatted[i].pool,
-            tokenIn: tokenIn,
-            tokenOut: tokenOut,
-            swapAmount: swapsFormatted[i].tokenInParam,
-            limitReturnAmount: swapsFormatted[i].tokenOutParam,
-            maxPrice: swapsFormatted[i].maxPrice.toString(),
-        };
-        swaps.push(swap);
+      let swap = {
+        pool: swapsFormatted[i].pool,
+        tokenIn: tokenIn,
+        tokenOut: tokenOut,
+        swapAmount: swapsFormatted[i].tokenInParam,
+        limitReturnAmount: swapsFormatted[i].tokenOutParam,
+        maxPrice: swapsFormatted[i].maxPrice.toString(),
+      };
+      swaps.push(swap);
     }
     return { swaps, expectedOut }
   }
 
   async priceSwapOut (tokenIn, tokenOut, tokenOutAmount) {
-
     // Fetch all the pools that contain the tokens provided
     const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
-    if(pools.pools.length === 0) {
+    if (pools.pools.length === 0) {
       console.log('No pools contain the tokens provided');
       return;
     }
     console.log('Pools Retrieved.');
-    
+
     let poolData
     if (this.network === 'mainnet') {
       poolData = await sor.parsePoolDataOnChain(pools.pools, tokenIn, tokenOut, MULTI, this.provider)
@@ -105,29 +103,30 @@ export default class Balancer {
     // Create correct swap format for new proxy
     let swaps = [];
     for (let i = 0; i < swapsFormatted.length; i++) {
-        let swap = {
-            pool: swapsFormatted[i].pool,
-            tokenIn: tokenIn,
-            tokenOut: tokenOut,
-            swapAmount: swapsFormatted[i].tokenOutParam,
-            limitReturnAmount: swapsFormatted[i].tokenInParam,
-            maxPrice: swapsFormatted[i].maxPrice.toString(),
-        };
-        swaps.push(swap);
+      let swap = {
+        pool: swapsFormatted[i].pool,
+        tokenIn: tokenIn,
+        tokenOut: tokenOut,
+        swapAmount: swapsFormatted[i].tokenOutParam,
+        limitReturnAmount: swapsFormatted[i].tokenInParam,
+        maxPrice: swapsFormatted[i].maxPrice.toString(),
+      };
+      swaps.push(swap);
     }
     return { swaps, expectedIn }
   }
 
-  async swapExactIn (wallet, swaps, tokenIn, tokenOut, amountOut, gasPrice = process.env.GAS_PRICE) {
+  async swapExactIn (wallet, swaps, tokenIn, tokenOut, amountOut, gasPrice) {
     const GAS_LIMIT = 1200000
     const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
     const tx = await contract.batchSwapExactIn(
       swaps,
       tokenIn,
       tokenOut,
-      amountOut, 
-      0, {
-        gasPrice: gasPrice*1e9,
+      amountOut,
+      0,
+      {
+        gasPrice: gasPrice * 1e9,
         gasLimit: GAS_LIMIT
       }
     )
@@ -136,7 +135,7 @@ export default class Balancer {
     return txObj
   }
 
-  async swapExactOut (wallet, swaps, tokenIn, tokenOut, expectedIn, gasPrice = process.env.GAS_PRICE) {
+  async swapExactOut (wallet, swaps, tokenIn, tokenOut, expectedIn, gasPrice) {
     const GAS_LIMIT = 1200000
     const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
     const tx = await contract.batchSwapExactOut(
@@ -145,8 +144,8 @@ export default class Balancer {
       tokenOut,
       expectedIn,
       {
-        gasPrice: 10000000000,
-        gasLimit: 12000000
+        gasPrice: gasPrice * 1e9,
+        gasLimit: GAS_LIMIT
       }
     )
     console.log(`Tx Hash: ${tx.hash}`)

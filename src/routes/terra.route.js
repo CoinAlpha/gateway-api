@@ -3,7 +3,7 @@
 import express from 'express'
 import BigNumber from 'bignumber.js'
 import { LCDClient, MnemonicKey, Coin, MsgSwap } from '@terra-money/terra.js'
-import { getParamData, getSymbols, latency, reportConnectionError } from '../services/utils';
+import { getParamData, getSymbols, latency, reportConnectionError, statusMessages } from '../services/utils';
 
 const router = express.Router();
 const debug = require('debug')('router')
@@ -60,17 +60,19 @@ const connect = () => {
 }
 
 router.use((req, res, next) => {
-  debug('terra route:', Date.now())
-  next()
+  const cert = req.connection.getPeerCertificate()
+  if (req.client.authorized) {
+    next()
+  } else if (cert.subject) {
+    res.status(403).send({ error: statusMessages.ssl_cert_invalid })
+  } else {
+    res.status(401).send({ error: statusMessages.ssl_cert_required })
+  }
 })
 
-router.get('/', (req, res) => {
-  res.status(200).send(network)
-})
-
-router.get('/status', async (req, res) => {
+router.get('/', async (req, res) => {
   /*
-    GET /status
+    GET /
   */
   const terra = connect()
 

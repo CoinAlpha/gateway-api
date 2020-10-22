@@ -2,112 +2,170 @@ import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import express from 'express';
 
-import { latency } from '../services/utils';
+import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
 import Ethereum from '../services/eth';
 
 const router = express.Router()
 const eth = new Ethereum('kovan')
 
-router.get('/balances', async (req, res) => {
+router.post('/balances', async (req, res) => {
+  /*
+      POST: /balances
+      x-www-form-urlencoded: {
+        privateKey:{{privateKey}}
+      }
+  */
   const initTime = Date.now()
-  const privateKey = "0x" + process.env.ETH_PRIVATE_KEY // replace by passing this in as param
+  const paramData = getParamData(req.body)
+  const privateKey = '0x' + paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, eth.provider)
 
   const balances = {}
   balances.ETH = await eth.getETHBalance(wallet, privateKey)
-  Promise.all(
-    Object.keys(eth.erc20Tokens).map(async (key) =>
-      balances[key] = await eth.getERC20Balance(wallet, eth.erc20Tokens[key])
-    )).then(() => {
-    res.status(200).json({
-      network: eth.network,
-      timestamp: initTime,
-      latency: latency(initTime, Date.now()),
-      balances: balances
-    })
-  })
-})
-
-router.get('/allowances', async (req, res) => {
-  const initTime = Date.now()
-  const privateKey = "0x" + process.env.ETH_PRIVATE_KEY // replace by passing this in as param
-  const wallet = new ethers.Wallet(privateKey, eth.provider)
-
-  // params: spender (required)
-  const spender = req.query.spender
-
-  const approvals = {}
-  Promise.all(
-    Object.keys(eth.erc20Tokens).map(async (key) =>
-    approvals[key] = await eth.getERC20Allowance(wallet, spender, eth.erc20Tokens[key])
-    )).then(() => {
+  try {
+    Promise.all(
+      Object.keys(eth.erc20Tokens).map(async (key) =>
+        balances[key] = await eth.getERC20Balance(wallet, eth.erc20Tokens[key])
+      )).then(() => {
       res.status(200).json({
         network: eth.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        spender: spender,
-        approvals: approvals,
+        balances: balances
       })
-    }
-  )
+    })
+  } catch (err) {
+    res.status(500).json({
+      error: statusMessages.operation_error,
+      message: err
+    })
+  }
 })
 
-router.get('/approve', async (req, res) => {
+router.post('/allowances', async (req, res) => {
+  /*
+      POST: /allowances
+      x-www-form-urlencoded: {
+        spender:{{address}}
+        privateKey:{{privateKey}}
+      }
+  */
   const initTime = Date.now()
-  const privateKey = "0x" + process.env.ETH_PRIVATE_KEY // replace by passing this in as param
+  // params: spender (required)
+  const paramData = getParamData(req.body)
+  const privateKey = '0x' + paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, eth.provider)
+  const spender = paramData.spender
 
-  // params: symbol (required), spender (required), amount (optional), gasPrice (optional)
-  const symbol = req.query.symbol
-  const spender = req.query.spender
+  const approvals = {}
+  try {
+    Promise.all(
+      Object.keys(eth.erc20Tokens).map(async (key) =>
+      approvals[key] = await eth.getERC20Allowance(wallet, spender, eth.erc20Tokens[key])
+      )).then(() => {
+        res.status(200).json({
+          network: eth.network,
+          timestamp: initTime,
+          latency: latency(initTime, Date.now()),
+          spender: spender,
+          approvals: approvals,
+        })
+      }
+    )
+  } catch (err) {
+    res.status(500).json({
+      error: statusMessages.operation_error,
+      message: err
+    })
+  }
+})
+
+router.post('/approve', async (req, res) => {
+  /*
+      POST: /approve
+      x-www-form-urlencoded: {
+        symbol:WETH
+        spender:{{address}}
+        privateKey:{{privateKey}}
+      }
+  */
+  const initTime = Date.now()
+  // params: privateKey (required), symbol (required), spender (required), amount (optional), gasPrice (optional)
+  const paramData = getParamData(req.body)
+  const privateKey = '0x' + paramData.privateKey
+  const wallet = new ethers.Wallet(privateKey, eth.provider)
+  const symbol = paramData.symbol
+  const spender = paramData.spender
   let amount
-  req.query.amount  ? amount = ethers.utils.parseEther(req.query.amount)
+  paramData.amount  ? amount = ethers.utils.parseEther(paramData.amount)
                     : amount = ethers.utils.parseEther('1000000000') // approve for 1 billion units if no amount specified
   const tokenAddress = eth.erc20Tokens[symbol]
   let gasPrice
-  if (req.query.gasPrice) {
-    gasPrice = parseFloat(req.query.gasPrice)
+  if (paramData.gasPrice) {
+    gasPrice = parseFloat(paramData.gasPrice)
   }
 
-  // call approve function
-  const approval = await eth.approveERC20(wallet, spender, tokenAddress, amount, gasPrice)
+  try {
+    // call approve function
+    const approval = await eth.approveERC20(wallet, spender, tokenAddress, amount, gasPrice)
 
-  // submit response
-  res.status(200).json({
-    network: eth.network,
-    timestamp: initTime,
-    latency: latency(initTime, Date.now()),
-    symbol: symbol,
-    spender: spender,
-    amount: amount,
-    approval: approval,
-  })
+    // submit response
+    res.status(200).json({
+      network: eth.network,
+      timestamp: initTime,
+      latency: latency(initTime, Date.now()),
+      symbol: symbol,
+      spender: spender,
+      amount: amount,
+      approval: approval,
+    })
+  } catch (err) {
+    res.status(500).json({
+      error: statusMessages.operation_error,
+      message: err
+    })
+  }
 })
 
 // Faucet to get test tokens
-router.get('/get-weth', async (req, res) => {
+router.post('/get-weth', async (req, res) => {
+  /*
+      POST: /get-weth
+      x-www-form-urlencoded: {
+        gasPrice:{gasPrice}
+        amount:{{amount}}
+        privateKey:{{privateKey}}
+      }
+  */
   const initTime = Date.now()
-  const privateKey = `0x${process.env.ETH_PRIVATE_KEY}` // replace by passing this in as param
+  // params: primaryKey (required), amount (required), gasPrice (optional)
+  const paramData = getParamData(req.body)
+  const privateKey = '0x' + paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, eth.provider)
-
-  // params: amount (required), gasPrice (optional)
+  const amount = ethers.utils.parseEther(paramData.amount)
   const tokenAddress = eth.erc20Tokens['WETH']
-  const amount = ethers.utils.parseEther(req.query.amount)
   let gasPrice
-  if (req.query.gasPrice) {
-    gasPrice = parseFloat(req.query.gasPrice)
+  if (paramData.gasPrice) {
+    gasPrice = parseFloat(paramData.gasPrice)
   }
-                  
-  // call deposit function
-  const response = await eth.deposit(wallet, tokenAddress, amount, gasPrice)
 
-  // submit response
-  res.status(200).json({
-    network: eth.network,
-    timestamp: initTime,
-    amount: parseFloat(req.query.amount),
-    result: response
-  })
+  try {
+    // call deposit function
+    const response = await eth.deposit(wallet, tokenAddress, amount, gasPrice)
+
+    // submit response
+    res.status(200).json({
+      network: eth.network,
+      timestamp: initTime,
+      amount: parseFloat(req.query.amount),
+      result: response
+    })
+  } catch (err) {
+    res.status(500).json({
+      error: statusMessages.operation_error,
+      message: err
+    })
+  }
 
   // When Balancer gives us the faucet ABI, we can use this faucet to get all Kovan tokens
   // const contract = new ethers.Contract(abi.KovanFaucetAddress, abi.KovanFaucetAbi, provider)

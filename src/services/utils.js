@@ -4,6 +4,12 @@
 const lodash = require('lodash')
 const debug = require('debug')('router')
 
+export const statusMessages = {
+  ssl_cert_required: 'SSL Certificate required',
+  ssl_cert_invalid: 'Invalid SSL Certificate',
+  operation_error: 'Operation Error',
+}
+
 export const latency = (startTime, endTime) => parseFloat((endTime - startTime) / 1000)
 
 export const isValidParams = (params) => {
@@ -17,21 +23,24 @@ export const isValidParams = (params) => {
 }
 
 export const isValidData = (data, format) => {
-  if (typeof data !== 'undefined' && Object.keys(data).length !== 0 && lodash.isEqual(Object.keys(data), format)) {
+  if (typeof data !== 'undefined' && Object.keys(data).length !== 0 && lodash.isEqual(Object.keys(data).sort(), format.sort())) {
     return true
   }
   return false
 }
 
-export const getParamData = (data, format) => {
-  debug(data, format)
+export const getParamData = (data, format = null) => {
   const dataObject = {}
-  if (isValidData(data, format)) {
-    format.forEach((key, index) => {
+  if (format !== null) {
+    if (isValidData(data, format)) {
+      format.forEach((key, index) => {
+        dataObject[key] = data[key]
+      })
+    }
+  } else {
+    Object.keys(data).forEach((key, index) => {
       dataObject[key] = data[key]
     })
-  } else {
-    throw new Error('Invalid input param data')
   }
   return dataObject
 }
