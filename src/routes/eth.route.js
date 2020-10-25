@@ -7,6 +7,7 @@ import Ethereum from '../services/eth';
 
 const router = express.Router()
 const eth = new Ethereum('kovan')
+const debug = require('debug')('router')
 
 router.post('/balances', async (req, res) => {
   /*
@@ -157,7 +158,7 @@ router.post('/get-weth', async (req, res) => {
     res.status(200).json({
       network: eth.network,
       timestamp: initTime,
-      amount: parseFloat(req.query.amount),
+      amount: parseFloat(amount),
       result: response
     })
   } catch (err) {

@@ -8,6 +8,7 @@ const proxyArtifact = require('../static/ExchangeProxy.json');
 // constants
 const MAX_UINT = ethers.constants.MaxUint256;
 const MULTI = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441';
+const GAS_LIMIT = 1200000
 
 export default class Balancer {
   constructor (network = 'kovan') {
@@ -116,15 +117,14 @@ export default class Balancer {
     return { swaps, expectedIn }
   }
 
-  async swapExactIn (wallet, swaps, tokenIn, tokenOut, amountOut, gasPrice) {
-    const GAS_LIMIT = 1200000
+  async swapExactIn (wallet, swaps, tokenIn, tokenOut, amountIn, minAmountOut, gasPrice) {
     const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
     const tx = await contract.batchSwapExactIn(
       swaps,
       tokenIn,
       tokenOut,
-      amountOut,
-      0,
+      amountIn,
+      minAmountOut,
       {
         gasPrice: gasPrice * 1e9,
         gasLimit: GAS_LIMIT
@@ -136,7 +136,6 @@ export default class Balancer {
   }
 
   async swapExactOut (wallet, swaps, tokenIn, tokenOut, expectedIn, gasPrice) {
-    const GAS_LIMIT = 1200000
     const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
     const tx = await contract.batchSwapExactOut(
       swaps,
