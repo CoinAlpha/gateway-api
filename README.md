@@ -64,56 +64,35 @@ yarn run dev
 yarn run start
 
 # API
-http://localhost:5000/api
+https://localhost:5000/api
 
 # Protocol Endpoints
-http://localhost:5000/celo
-http://localhost:5001/celo/price?trading_pair=CELO-CUSD&trade_type=sell&amount=1.123
+All endpoint require POST request with data
 
 # ETHEREUM
 
 # get ETH and ERC-20 tokens balances in the user's wallet
-http://localhost:5000/eth/balances
+https://localhost:5000/eth/balances
 
 # get ERC-20 allowances for a contract address
-http://localhost:5000/eth/allowances
+https://localhost:5000/eth/allowances
 
 # approve a contract to allow transferring tokens to it
-http://localhost:5000/eth/approve
+https://localhost:5000/eth/approve
 
 # send testnet ETH to WETH contract to get testnet WETH
-http://localhost:5000/eth/deposit
+https://localhost:5000/eth/deposit
 
 
 # BALANCER
 
 # get price and pools for a trade
-http://localhost:5000/balancer/buy-price
-http://localhost:5000/balancer/sell-price
+https://localhost:5000/balancer/buy-price
+https://localhost:5000/balancer/sell-price
 
 # execute trade
-http://localhost:5000/balancer/buy
-http://localhost:5000/balancer/sell
-
-
-# TERRA
-
-http://localhost:5000/terra
-
-# get balance for address
-GET http://localhost:5000/terra/balance?address=terra1ayw...83y
-
-# get price for token swap
-GET http://localhost:5000/terra/price?trading_pair=UST-SDT&trade_type=buy&amount=1
-
-# execute trade
-POST http://localhost:5000/terra/trade
-Request Body
-  trading_pair: "SDT-KRT"
-  trade_type: "buy"
-  amount: "1"
-  address: "terra1ayw...83y"
-  secret: "24 word seeds ..."
+https://localhost:5000/balancer/buy
+https://localhost:5000/balancer/sell
 
 
 ```
@@ -145,7 +124,7 @@ def test_get_api_status(self):
 
     result = response.json()
     print('result', result)
-    
+
     self.assertTrue('status' in result.keys() and result['status'] == 'ok', f"Gateway API {url} not ready")
 
 ```

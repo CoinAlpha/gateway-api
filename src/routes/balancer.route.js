@@ -26,9 +26,9 @@ router.use((req, res, next) => {
   }
 })
 
-router.get('/', async (req, res) => {
+router.post('/', async (req, res) => {
   /*
-    GET /
+    POST /
   */
   res.status(200).json({
     network: balancer.network,
@@ -38,13 +38,18 @@ router.get('/', async (req, res) => {
   })
 })
 
-router.get('/sell-price', async (req, res) => {
+router.post('/sell-price', async (req, res) => {
   /*
-    GET: /sell-price?quote=DAI&base=WETH&amount=1
+    POST: /sell-price
+      x-www-form-urlencoded: {
+        "quote":"DAI"
+        "base":"WETH"
+        "amount":0.1
+      }
   */
   const initTime = Date.now()
   // params: base (required), quote (required), amount (required)
-  const paramData = getParamData(req.query)
+  const paramData = getParamData(req.body)
   const base = paramData.base
   const quote = paramData.quote
   const amount = new BigNumber(parseInt(paramData.amount * denomMultiplier))
@@ -76,13 +81,18 @@ router.get('/sell-price', async (req, res) => {
   }
 })
 
-router.get('/buy-price', async (req, res) => {
+router.post('/buy-price', async (req, res) => {
   /*
-    GET: /buy-price?quote=DAI&base=WETH&amount=1
+    POST: /buy-price
+      x-www-form-urlencoded: {
+        "quote":"DAI"
+        "base":"WETH"
+        "amount":0.1
+      }
   */
   const initTime = Date.now()
   // params: base (required), quote (required), amount (required)
-  const paramData = getParamData(req.query)
+  const paramData = getParamData(req.body)
   const base = paramData.base
   const quote = paramData.quote
   const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))

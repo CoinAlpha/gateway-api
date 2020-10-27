@@ -47,7 +47,8 @@ echo "note: restart node server to load new certs"
 echo
 
 # test after restarting node server
-# curl -s --insecure --key ../certs/client_key.pem --cert ../certs/client_cert.pem https://localhost:5000/api
-# curl -s --insecure --key ../certs/client_key.pem --cert ../certs/client_cert.pem https://localhost:5000/terra
-# curl -s --insecure --key ../certs/client_key.pem --cert ../certs/client_cert.pem https://localhost:5000/balancer
+# use -v to see details in verbose mode
+# curl --insecure --key ../certs/client_key.pem --cert ../certs/client_cert.pem https://localhost:5000/api
+# curl --insecure --key ../certs/client_key.pem --cert ../certs/client_cert.pem https://localhost:5000/terra
+# curl --insecure --key ../certs/client_key.pem --cert ../certs/client_cert.pem https://localhost:5000/balancer
 
