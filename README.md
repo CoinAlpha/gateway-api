@@ -118,9 +118,9 @@ Request Body
 
 ```
 
-### SSL
+### SSL Test
 
-SSL is setup for HTTPS traffic to Gateway running at localhost. To run Gateway as standalone API server, use the following script to generate the SSL certs.
+SSL is setup for HTTPS traffic to Gateway running at localhost. To run Gateway as standalone API server, use the following test script to generate the SSL certs.
 
 ```bash
 $ ssl-scripts.sh
@@ -132,14 +132,20 @@ curl --insecure --key ./certs/client_key.pem --cert ./certs/client_cert.pem http
 
 Test endpoint on Python
 ```python
-url = 'https://localhost:5000/api'
 
-certServer = realpath(join(__file__, join("./certs/server_cert.pem")))
-cacerts = (realpath(join(__file__, join("./certs/client_cert.pem"))),
-            realpath(join(__file__, join("./certs/client_key.pem"))))
+# update the locaiton path of the pem files
 
-response = requests.get(url, verify=certServer, cert=cacerts)
+def test_get_api_status(self):
+    url = 'https://localhost:5000/api'
 
-result = response.json()
-print(result)
+    ca_certs = realpath(join(__file__, join("../../certs/ca_cert.pem")))
+    client_certs = (realpath(join(__file__, join("../../certs/client_cert.pem"))),
+                realpath(join(__file__, join("../../certs/client_key.pem"))))
+    response = requests.get(url, verify=ca_certs, cert=client_certs)
+
+    result = response.json()
+    print('result', result)
+    
+    self.assertTrue('status' in result.keys() and result['status'] == 'ok', f"Gateway API {url} not ready")
+
 ```
