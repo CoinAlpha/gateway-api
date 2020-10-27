@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 // absolute imports
-import http from 'http'
 import https from 'https'
 import debug from 'debug'
 import dotenv from 'dotenv'
@@ -19,6 +18,7 @@ if (result.error) {
 
 const env = process.env.NODE_ENV;
 const port = process.env.PORT;
+const certPassphrase = process.env.CERT_PASSPHRASE
 
 // set app environment
 app.set('env', env)
@@ -28,10 +28,11 @@ const options = {
   cert: fs.readFileSync('./certs/server_cert.pem', { encoding: 'utf-8' }),
   // request client certificate from user
   requestCert: true,
-  // accept requests with no valid certificate (self-signed)
-  rejectUnauthorized: false,
-  // use same server cert created with own key for self-signed
-  ca: [fs.readFileSync('./certs/server_cert.pem', { encoding: 'utf-8' })]
+  // reject requests with no valid certificate
+  rejectUnauthorized: true,
+  // use ca cert created with own key for self-signed
+  ca: [fs.readFileSync('./certs/ca_cert.pem', { encoding: 'utf-8' })],
+  passphrase: certPassphrase
 };
 
 const server = https.createServer(options, app)
