@@ -12,6 +12,9 @@ RUN yarn install
 # copy pwd file to container
 COPY . .
 
+# create empty env file
+RUN touch .env
+
 EXPOSE 5000
 
-CMD ["yarn", "run", "dev"]
+CMD ["yarn", "run", "start"]

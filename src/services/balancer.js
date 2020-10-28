@@ -4,6 +4,7 @@ const sor = require('@balancer-labs/sor')
 const BigNumber = require('bignumber.js')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/ExchangeProxy.json')
+const debug = require('debug')('router')
 
 // constants
 const MAX_UINT = ethers.constants.MaxUint256;
@@ -55,7 +56,7 @@ export default class Balancer {
 
     const swapsFormatted = sor.formatSwapsExactAmountIn(sorSwaps, MAX_UINT, 0)
     const expectedOut = sor.calcTotalOutput(swapsFormatted, poolData)
-    console.log(`Expected Out: ${expectedOut.toString()} (${tokenOut})`);
+    debug(`Expected Out: ${expectedOut.toString()} (${tokenOut})`);
 
     // Create correct swap format for new proxy
     let swaps = [];
@@ -99,7 +100,7 @@ export default class Balancer {
     )
     const swapsFormatted = sor.formatSwapsExactAmountOut(sorSwaps, MAX_UINT, MAX_UINT)
     const expectedIn = sor.calcTotalInput(swapsFormatted, poolData)
-    console.log(`Expected In: ${expectedIn.toString()} (${tokenIn})`);
+    debug(`Expected In: ${expectedIn.toString()} (${tokenIn})`);
 
     // Create correct swap format for new proxy
     let swaps = [];
@@ -130,7 +131,7 @@ export default class Balancer {
         gasLimit: GAS_LIMIT
       }
     )
-    console.log(`Tx Hash: ${tx.hash}`);
+    debug(`Tx Hash: ${tx.hash}`);
     const txObj = await tx.wait()
     return txObj
   }
@@ -147,7 +148,7 @@ export default class Balancer {
         gasLimit: GAS_LIMIT
       }
     )
-    console.log(`Tx Hash: ${tx.hash}`)
+    debug(`Tx Hash: ${tx.hash}`)
     const txObj = await tx.wait()
     return txObj
   }

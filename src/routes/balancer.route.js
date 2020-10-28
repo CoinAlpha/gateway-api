@@ -179,7 +179,7 @@ router.post('/sell', async (req, res) => {
     )
 
     const price = amount / expectedOut
-    console.log(`Price: ${price.toString()}`)
+    debug(`Price: ${price.toString()}`)
     if (!maxPrice || price >= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const txObj = await balancer.swapExactIn(
@@ -259,7 +259,7 @@ router.post('/buy', async (req, res) => {
     )
 
     const price = amount / expectedIn
-    console.log(`Price: ${price.toString()}`)
+    debug(`Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const txObj = await balancer.swapExactOut(
