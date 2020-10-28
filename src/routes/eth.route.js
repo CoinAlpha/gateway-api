@@ -6,7 +6,7 @@ import { getParamData, latency, reportConnectionError, statusMessages } from '..
 import Ethereum from '../services/eth';
 
 const router = express.Router()
-const eth = new Ethereum('kovan')
+const eth = new Ethereum(process.env.BALANCER_NETWORK)
 const debug = require('debug')('router')
 
 router.post('/balances', async (req, res) => {

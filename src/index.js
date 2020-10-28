@@ -16,10 +16,9 @@ if (result.error) {
   process.exit(1);
 }
 
-const env = process.env.NODE_ENV;
-const port = process.env.PORT;
+const env = process.env.NODE_ENV
+const port = process.env.PORT
 const certPassphrase = process.env.CERT_PASSPHRASE
-const ethereumRpcUrl = process.env.ETHEREUM_RPC_URL
 
 // set app environment
 app.set('env', env)

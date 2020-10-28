@@ -8,6 +8,7 @@ export const statusMessages = {
   ssl_cert_required: 'SSL Certificate required',
   ssl_cert_invalid: 'Invalid SSL Certificate',
   operation_error: 'Operation Error',
+  no_pool_available: 'No Pool Available',
 }
 
 export const latency = (startTime, endTime) => parseFloat((endTime - startTime) / 1000)

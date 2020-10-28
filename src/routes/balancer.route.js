@@ -9,7 +9,7 @@ require('dotenv').config()
 const debug = require('debug')('router')
 
 const router = express.Router()
-const balancer = new Balancer('kovan')
+const balancer = new Balancer(process.env.BALANCER_NETWORK)
 
 const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Swap price exceeds maxPrice'
@@ -62,17 +62,24 @@ router.post('/sell-price', async (req, res) => {
       amount,
     )
 
-    res.status(200).json({
-      network: balancer.network,
-      timestamp: initTime,
-      latency: latency(initTime, Date.now()),
-      base: base,
-      quote: quote,
-      amount: parseFloat(paramData.amount),
-      expectedOut: parseInt(expectedOut) / denomMultiplier,
-      price: amount / expectedOut,
-      swaps: swaps,
-    })
+    if (swaps != null && expectedOut != null) {
+      res.status(200).json({
+        network: balancer.network,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        base: base,
+        quote: quote,
+        amount: parseFloat(paramData.amount),
+        expectedOut: parseInt(expectedOut) / denomMultiplier,
+        price: amount / expectedOut,
+        swaps: swaps,
+      })
+    } else { // no pool available
+      res.status(200).json({
+        error: statusMessages.no_pool_available,
+        message: ''
+      })
+    }
   } catch (err) {
     res.status(500).json({
       error: statusMessages.operation_error,
@@ -104,18 +111,24 @@ router.post('/buy-price', async (req, res) => {
       balancer.erc20Tokens[base],     // tokenOut is base asset
       amount,
     )
-
-    res.status(200).json({
-      network: balancer.network,
-      timestamp: initTime,
-      latency: latency(initTime, Date.now()),
-      base: base,
-      quote: quote,
-      amount: parseFloat(paramData.amount),
-      expectedIn: parseInt(expectedIn) / denomMultiplier,
-      price: amount / expectedIn,
-      swaps: swaps,
-    })
+    if (swaps != null && expectedIn != null) {
+      res.status(200).json({
+        network: balancer.network,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        base: base,
+        quote: quote,
+        amount: parseFloat(paramData.amount),
+        expectedIn: parseInt(expectedIn) / denomMultiplier,
+        price: amount / expectedIn,
+        swaps: swaps,
+      })
+    } else { // no pool available
+      res.status(200).json({
+        error: statusMessages.no_pool_available,
+        message: ''
+      })
+    }
   } catch (err) {
     res.status(500).json({
       error: statusMessages.operation_error,
@@ -166,7 +179,7 @@ router.post('/sell', async (req, res) => {
     )
 
     const price = amount / expectedOut
-    console.log(`Price: ${price.toString()}`)
+    debug(`Price: ${price.toString()}`)
     if (!maxPrice || price >= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const txObj = await balancer.swapExactIn(
@@ -246,7 +259,7 @@ router.post('/buy', async (req, res) => {
     )
 
     const price = amount / expectedIn
-    console.log(`Price: ${price.toString()}`)
+    debug(`Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const txObj = await balancer.swapExactOut(

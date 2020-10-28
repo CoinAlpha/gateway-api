@@ -6,8 +6,8 @@ const abi = require('../static/abi')
 export default class Ethereum {
   constructor (network = 'kovan') {
     // network defaults to kovan
-    const providerUrl = `https://${network}.infura.io/v3/${process.env.INFURA_API_KEY}`
-    this.network = network
+    const providerUrl = process.env.ETHEREUM_RPC_URL
+    this.network = process.env.BALANCER_NETWORK
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
 
     if (network === 'kovan') {
