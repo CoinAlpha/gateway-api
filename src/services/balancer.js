@@ -1,9 +1,9 @@
-require('dotenv').config() // needed to configure REACT_APP_SUBGRAPH_URL used by @balancer-labs/sor
+require('dotenv').config() // needed to configure SUBGRAPH_URL used by @balancer-labs/sor
 const fs = require('fs');
 const sor = require('@balancer-labs/sor')
 const BigNumber = require('bignumber.js')
 const ethers = require('ethers')
-const proxyArtifact = require('../static/ExchangeProxy.json');
+const proxyArtifact = require('../static/ExchangeProxy.json')
 
 // constants
 const MAX_UINT = ethers.constants.MaxUint256;
@@ -13,8 +13,8 @@ const GAS_LIMIT = 1200000
 export default class Balancer {
   constructor (network = 'kovan') {
     // network defaults to kovan
-    const providerUrl = `https://${network}.infura.io/v3/${process.env.INFURA_API_KEY}`
-    this.network = network
+    const providerUrl = process.env.ETHEREUM_RPC_URL
+    this.network = process.env.BALANCER_NETWORK
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
 
     if (network === 'kovan') {
@@ -33,7 +33,7 @@ export default class Balancer {
     const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
     if (pools.pools.length === 0) {
       console.log('No pools contain the tokens provided');
-      return;
+      return {};
     }
     console.log('Pools Retrieved.');
 
@@ -78,7 +78,7 @@ export default class Balancer {
     const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
     if (pools.pools.length === 0) {
       console.log('No pools contain the tokens provided');
-      return;
+      return {};
     }
     console.log('Pools Retrieved.');
 
@@ -124,7 +124,7 @@ export default class Balancer {
       tokenIn,
       tokenOut,
       amountIn,
-      minAmountOut,
+      0,
       {
         gasPrice: gasPrice * 1e9,
         gasLimit: GAS_LIMIT
