@@ -9,6 +9,7 @@ import Balancer from '../services/balancer';
 const router = express.Router()
 const eth = new Ethereum(process.env.BALANCER_NETWORK)
 const balancer = new Balancer(process.env.BALANCER_NETWORK)
+const seperator = ','
 
 const debug = require('debug')('router')
 
@@ -17,19 +18,25 @@ router.post('/balances', async (req, res) => {
       POST: /balances
       x-www-form-urlencoded: {
         privateKey:{{privateKey}}
+        tokenAddress:{{tokenAddress}}
       }
   */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = '0x' + paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, eth.provider)
+  let tokenAddressList
+  if (paramData.tokenAddress) {
+    tokenAddressList = paramData.tokenAddress.split(seperator)
+  }
+  debug(tokenAddressList)
 
   const balances = {}
   balances.ETH = await eth.getETHBalance(wallet, privateKey)
   try {
     Promise.all(
-      Object.keys(eth.erc20Tokens).map(async (key) =>
-        balances[key] = await eth.getERC20Balance(wallet, eth.erc20Tokens[key])
+      tokenAddressList.map(async (key) =>
+        balances[key] = await eth.getERC20Balance(wallet, key)
       )).then(() => {
       res.status(200).json({
         network: eth.network,
@@ -51,6 +58,7 @@ router.post('/allowances', async (req, res) => {
       POST: /allowances
       x-www-form-urlencoded: {
         privateKey:{{privateKey}}
+        tokenAddress:{{tokenAddress}}
       }
   */
   const initTime = Date.now()
@@ -58,12 +66,17 @@ router.post('/allowances', async (req, res) => {
   const privateKey = '0x' + paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, eth.provider)
   const spender = balancer.exchangeProxy
+  let tokenAddressList
+  if (paramData.tokenAddress) {
+    tokenAddressList = paramData.tokenAddress.split(seperator)
+  }
+  debug(tokenAddressList)
 
   const approvals = {}
   try {
     Promise.all(
-      Object.keys(eth.erc20Tokens).map(async (key) =>
-      approvals[key] = await eth.getERC20Allowance(wallet, spender, eth.erc20Tokens[key])
+      tokenAddressList.map(async (key) =>
+      approvals[key] = await eth.getERC20Allowance(wallet, spender, key)
       )).then(() => {
       res.status(200).json({
         network: eth.network,
@@ -86,21 +99,20 @@ router.post('/approve', async (req, res) => {
   /*
       POST: /approve
       x-www-form-urlencoded: {
-        symbol:WETH
+        tokenAddress:"0x....."
         privateKey:{{privateKey}}
       }
   */
   const initTime = Date.now()
-  // params: privateKey (required), symbol (required), amount (optional), gasPrice (required)
+  // params: privateKey (required), tokenAddress (required), amount (optional), gasPrice (required)
   const paramData = getParamData(req.body)
   const privateKey = '0x' + paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, eth.provider)
-  const symbol = paramData.symbol
+  const tokenAddress = paramData.tokenAddress
   const spender = balancer.exchangeProxy
   let amount
   paramData.amount  ? amount = ethers.utils.parseEther(paramData.amount)
                     : amount = ethers.utils.parseEther('1000000000') // approve for 1 billion units if no amount specified
-  const tokenAddress = eth.erc20Tokens[symbol]
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
@@ -115,7 +127,7 @@ router.post('/approve', async (req, res) => {
       network: eth.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      symbol: symbol,
+      tokenAddress: tokenAddress,
       spender: spender,
       amount: amount,
       approval: approval,

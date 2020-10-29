@@ -42,23 +42,23 @@ router.post('/sell-price', async (req, res) => {
   /*
     POST: /sell-price
       x-www-form-urlencoded: {
-        "quote":"DAI"
-        "base":"WETH"
+        "quote":"0x....."
+        "base":"0x....."
         "amount":0.1
       }
   */
   const initTime = Date.now()
   // params: base (required), quote (required), amount (required)
   const paramData = getParamData(req.body)
-  const base = paramData.base
-  const quote = paramData.quote
+  const baseTokenAddress = paramData.base
+  const quoteTokenAddress = paramData.quote
   const amount = new BigNumber(parseInt(paramData.amount * denomMultiplier))
 
   try {
     // fetch the optimal pool mix from balancer-sor
     const { swaps, expectedOut } = await balancer.priceSwapIn(
-      balancer.erc20Tokens[base],     // tokenIn is base asset
-      balancer.erc20Tokens[quote],    // tokenOut is quote asset
+      baseTokenAddress,     // tokenIn is base asset
+      quoteTokenAddress,    // tokenOut is quote asset
       amount,
     )
 
@@ -67,8 +67,8 @@ router.post('/sell-price', async (req, res) => {
         network: balancer.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        base: base,
-        quote: quote,
+        base: baseTokenAddress,
+        quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
         expectedOut: parseInt(expectedOut) / denomMultiplier,
         price: amount / expectedOut,
@@ -92,23 +92,23 @@ router.post('/buy-price', async (req, res) => {
   /*
     POST: /buy-price
       x-www-form-urlencoded: {
-        "quote":"DAI"
-        "base":"WETH"
+        "quote":"0x....."
+        "base":"0x....."
         "amount":0.1
       }
   */
   const initTime = Date.now()
   // params: base (required), quote (required), amount (required)
   const paramData = getParamData(req.body)
-  const base = paramData.base
-  const quote = paramData.quote
+  const baseTokenAddress = paramData.base
+  const quoteTokenAddress = paramData.quote
   const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
 
   try {
     // fetch the optimal pool mix from balancer-sor
     const { swaps, expectedIn } = await balancer.priceSwapOut(
-      balancer.erc20Tokens[quote],    // tokenIn is quote asset
-      balancer.erc20Tokens[base],     // tokenOut is base asset
+      quoteTokenAddress,    // tokenIn is quote asset
+      baseTokenAddress,     // tokenOut is base asset
       amount,
     )
     if (swaps != null && expectedIn != null) {
@@ -116,8 +116,8 @@ router.post('/buy-price', async (req, res) => {
         network: balancer.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        base: base,
-        quote: quote,
+        base: baseTokenAddress,
+        quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
         expectedIn: parseInt(expectedIn) / denomMultiplier,
         price: amount / expectedIn,
@@ -141,8 +141,8 @@ router.post('/sell', async (req, res) => {
   /*
       POST: /sell
       x-www-form-urlencoded: {
-        "quote":"DAI"
-        "base":"WETH"
+        "quote":"0x....."
+        "base":"0x....."
         "amount":0.1
         "minPrice":1
         "gasPrice":10
@@ -154,8 +154,8 @@ router.post('/sell', async (req, res) => {
   const paramData = getParamData(req.body)
   const privateKey = '0x' + paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, balancer.provider)
-  const base = paramData.base
-  const quote = paramData.quote
+  const baseTokenAddress = paramData.base
+  const quoteTokenAddress = paramData.quote
   const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
 
   let maxPrice
@@ -173,8 +173,8 @@ router.post('/sell', async (req, res) => {
   try {
     // fetch the optimal pool mix from balancer-sor
     const { swaps, expectedOut } = await balancer.priceSwapIn(
-      balancer.erc20Tokens[base],     // tokenIn is base asset
-      balancer.erc20Tokens[quote],    // tokenOut is quote asset
+      baseTokenAddress,     // tokenIn is base asset
+      quoteTokenAddress,    // tokenOut is quote asset
       amount,
     )
 
@@ -185,8 +185,8 @@ router.post('/sell', async (req, res) => {
       const txObj = await balancer.swapExactIn(
         wallet,
         swaps,
-        balancer.erc20Tokens[base],   // tokenIn is base asset
-        balancer.erc20Tokens[quote],  // tokenOut is quote asset
+        baseTokenAddress,   // tokenIn is base asset
+        quoteTokenAddress,  // tokenOut is quote asset
         amount.toString(),
         parseInt(expectedOut) / denomMultiplier,
         gasPrice,
@@ -197,8 +197,8 @@ router.post('/sell', async (req, res) => {
         network: balancer.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        base: base,
-        quote: quote,
+        baseTokenAddress,
+        quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
         expectedOut: expectedOut / denomMultiplier,
         price: price,
@@ -224,8 +224,8 @@ router.post('/buy', async (req, res) => {
   /*
       POST: /buy
       x-www-form-urlencoded: {
-        "quote":"DAI"
-        "base":"WETH"
+        "quote":"0x....."
+        "base":"0x....."
         "amount":0.1
         "maxPrice":1
         "gasPrice":10
@@ -237,8 +237,8 @@ router.post('/buy', async (req, res) => {
   const paramData = getParamData(req.body)
   const privateKey = '0x' + paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, balancer.provider)
-  const base = paramData.base
-  const quote = paramData.quote
+  const baseTokenAddress = paramData.base
+  const quoteTokenAddress = paramData.quote
   const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
 
   let maxPrice
@@ -253,8 +253,8 @@ router.post('/buy', async (req, res) => {
   try {
     // fetch the optimal pool mix from balancer-sor
     const { swaps, expectedIn } = await balancer.priceSwapOut(
-      balancer.erc20Tokens[quote],    // tokenIn is quote asset
-      balancer.erc20Tokens[base],     // tokenOut is base asset
+      quoteTokenAddress,    // tokenIn is quote asset
+      baseTokenAddress,     // tokenOut is base asset
       amount,
     )
 
@@ -265,8 +265,8 @@ router.post('/buy', async (req, res) => {
       const txObj = await balancer.swapExactOut(
         wallet,
         swaps,
-        balancer.erc20Tokens[quote],   // tokenIn is quote asset
-        balancer.erc20Tokens[base],    // tokenOut is base asset
+        quoteTokenAddress,   // tokenIn is quote asset
+        baseTokenAddress,    // tokenOut is base asset
         expectedIn.toString(),
         gasPrice,
       )
@@ -276,8 +276,8 @@ router.post('/buy', async (req, res) => {
         network: balancer.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        base: base,
-        quote: quote,
+        base: baseTokenAddress,
+        quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
         expectedIn: expectedIn / denomMultiplier,
         price: price,
