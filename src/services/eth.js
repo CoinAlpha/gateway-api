@@ -13,7 +13,7 @@ export default class Ethereum {
     if (network === 'kovan') {
       this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
     } else if (network === 'mainnet') {
-      this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens.json'))
+      this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_hummingbot.json'))
     } else {
       throw Error(`Invalid network ${network}`)
     }

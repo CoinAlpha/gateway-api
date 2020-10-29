@@ -286,7 +286,7 @@ router.post('/buy', async (req, res) => {
       })
     } else {
       res.status(200).json({
-        warning: swapMoreThanMaxPriceError,
+        error: swapMoreThanMaxPriceError,
         message: `Swap price ${price} exceeds maxPrice ${maxPrice}`
       })
       debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
