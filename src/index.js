@@ -30,7 +30,6 @@ if ((typeof certPath === 'undefined' && certPath == null) || certPath === '') {
 
 // set app environment
 app.set('env', env)
-
 const options = {
   key: fs.readFileSync(certPath.concat('/server_key.pem'), { encoding: 'utf-8' }),
   cert: fs.readFileSync(certPath.concat('/server_cert.pem'), { encoding: 'utf-8' }),

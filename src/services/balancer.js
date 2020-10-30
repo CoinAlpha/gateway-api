@@ -1,4 +1,4 @@
-require('dotenv').config() // needed to configure SUBGRAPH_URL used by @balancer-labs/sor
+require('dotenv').config() // needed to configure REACT_APP_SUBGRAPH_URL used by @balancer-labs/sor
 const fs = require('fs');
 const sor = require('@balancer-labs/sor')
 const BigNumber = require('bignumber.js')
@@ -17,13 +17,14 @@ export default class Balancer {
     const providerUrl = process.env.ETHEREUM_RPC_URL
     this.network = process.env.BALANCER_NETWORK
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
+    this.exchangeProxy = process.env.EXCHANGE_PROXY
 
     if (network === 'kovan') {
-      this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
-      this.exchangeProxy = '0x4e67bf5bD28Dd4b570FBAFe11D0633eCbA2754Ec'
+      // this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
+      // this.exchangeProxy = '0x4e67bf5bD28Dd4b570FBAFe11D0633eCbA2754Ec'
     } else if (network === 'mainnet') {
-      this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens.json'))
-      this.exchangeProxy = '0x6317C5e82A06E1d8bf200d21F4510Ac2c038AC81'
+      // this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens.json'))
+      // this.exchangeProxy = '0x3E66B66Fd1d0b02fDa6C811Da9E0547970DB2f21'
     } else {
       throw Error(`Invalid network ${network}`)
     }

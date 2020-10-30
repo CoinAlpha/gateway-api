@@ -23,7 +23,7 @@ router.post('/balances', async (req, res) => {
   */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
-  const privateKey = '0x' + paramData.privateKey
+  const privateKey = paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, eth.provider)
   let tokenAddressList
   if (paramData.tokenAddress) {
@@ -63,7 +63,7 @@ router.post('/allowances', async (req, res) => {
   */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
-  const privateKey = '0x' + paramData.privateKey
+  const privateKey = paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, eth.provider)
   const spender = balancer.exchangeProxy
   let tokenAddressList
@@ -106,7 +106,7 @@ router.post('/approve', async (req, res) => {
   const initTime = Date.now()
   // params: privateKey (required), tokenAddress (required), amount (optional), gasPrice (required)
   const paramData = getParamData(req.body)
-  const privateKey = '0x' + paramData.privateKey
+  const privateKey = paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, eth.provider)
   const tokenAddress = paramData.tokenAddress
   const spender = balancer.exchangeProxy
@@ -153,7 +153,7 @@ router.post('/get-weth', async (req, res) => {
   const initTime = Date.now()
   // params: primaryKey (required), amount (required), gasPrice (optional)
   const paramData = getParamData(req.body)
-  const privateKey = '0x' + paramData.privateKey
+  const privateKey = paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, eth.provider)
   const amount = ethers.utils.parseEther(paramData.amount)
   const tokenAddress = eth.erc20Tokens['WETH']

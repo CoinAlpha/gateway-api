@@ -33,6 +33,8 @@ router.post('/', async (req, res) => {
   res.status(200).json({
     network: balancer.network,
     provider: balancer.provider.connection.url,
+    exchangeProxy: balancer.exchangeProxy,
+    subgraphUrl: process.env.REACT_APP_SUBGRAPH_URL,
     connection: true,
     timestamp: Date.now(),
   })
@@ -152,7 +154,7 @@ router.post('/sell', async (req, res) => {
   const initTime = Date.now()
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body)
-  const privateKey = '0x' + paramData.privateKey
+  const privateKey = paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, balancer.provider)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
@@ -235,7 +237,7 @@ router.post('/buy', async (req, res) => {
   const initTime = Date.now()
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body)
-  const privateKey = '0x' + paramData.privateKey
+  const privateKey = paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, balancer.provider)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
