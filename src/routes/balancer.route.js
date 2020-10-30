@@ -197,7 +197,7 @@ router.post('/sell', async (req, res) => {
         network: balancer.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        baseTokenAddress,
+        base: baseTokenAddress,
         quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
         expectedOut: expectedOut / denomMultiplier,
