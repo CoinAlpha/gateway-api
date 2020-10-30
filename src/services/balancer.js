@@ -34,10 +34,10 @@ export default class Balancer {
     // Fetch all the pools that contain the tokens provided
     const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
     if (pools.pools.length === 0) {
-      console.log('No pools contain the tokens provided');
+      console.log('No pools contain the tokens provided', this.network);
       return {};
     }
-    console.log('Pools Retrieved.');
+    console.log('Pools Retrieved.', this.network);
 
     let poolData
     if (this.network === 'mainnet') {
@@ -79,10 +79,10 @@ export default class Balancer {
     // Fetch all the pools that contain the tokens provided
     const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
     if (pools.pools.length === 0) {
-      console.log('No pools contain the tokens provided');
+      console.log('No pools contain the tokens provided', this.network);
       return {};
     }
-    console.log('Pools Retrieved.');
+    console.log('Pools Retrieved.', this.network);
 
     let poolData
     if (this.network === 'mainnet') {
