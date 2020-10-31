@@ -204,7 +204,7 @@ router.post('/sell', async (req, res) => {
         amount: parseFloat(paramData.amount),
         expectedOut: expectedOut / denomMultiplier,
         price: price,
-        gasUsed: txObj.gasUsed,
+        gasUsed: parseInt(txObj.gasUsed),
         txHash: txObj.transactionHash,
         status: txObj.status,
       })
@@ -284,7 +284,7 @@ router.post('/buy', async (req, res) => {
         amount: parseFloat(paramData.amount),
         expectedIn: expectedIn / denomMultiplier,
         price: price,
-        gasUsed: txObj.gasUsed,
+        gasUsed: parseInt(txObj.gasUsed),
         txHash: txObj.transactionHash,
         status: txObj.status,
       })
