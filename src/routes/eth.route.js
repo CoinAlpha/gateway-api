@@ -18,7 +18,7 @@ router.post('/balances', async (req, res) => {
       POST: /balances
       x-www-form-urlencoded: {
         privateKey:{{privateKey}}
-        tokenAddress:{{tokenAddress}}
+        tokenAddressList:{{tokenAddressList}}
       }
   */
   const initTime = Date.now()
@@ -26,8 +26,8 @@ router.post('/balances', async (req, res) => {
   const privateKey = paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, eth.provider)
   let tokenAddressList
-  if (paramData.tokenAddress) {
-    tokenAddressList = paramData.tokenAddress.split(seperator)
+  if (paramData.tokenAddressList) {
+    tokenAddressList = paramData.tokenAddressList.split(seperator)
   }
   debug(tokenAddressList)
 
@@ -58,7 +58,7 @@ router.post('/allowances', async (req, res) => {
       POST: /allowances
       x-www-form-urlencoded: {
         privateKey:{{privateKey}}
-        tokenAddress:{{tokenAddress}}
+        tokenAddressList:{{tokenAddressList}}
       }
   */
   const initTime = Date.now()
@@ -67,8 +67,8 @@ router.post('/allowances', async (req, res) => {
   const wallet = new ethers.Wallet(privateKey, eth.provider)
   const spender = balancer.exchangeProxy
   let tokenAddressList
-  if (paramData.tokenAddress) {
-    tokenAddressList = paramData.tokenAddress.split(seperator)
+  if (paramData.tokenAddressList) {
+    tokenAddressList = paramData.tokenAddressList.split(seperator)
   }
   debug(tokenAddressList)
 
