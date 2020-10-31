@@ -129,8 +129,8 @@ router.post('/approve', async (req, res) => {
       latency: latency(initTime, Date.now()),
       tokenAddress: tokenAddress,
       spender: spender,
-      amount: amount,
-      approval: approval,
+      amount: amount / 1e18.toString(),
+      approval: approval
     })
   } catch (err) {
     res.status(500).json({
