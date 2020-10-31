@@ -1,3 +1,4 @@
+require('dotenv').config()
 const fs = require('fs');
 const ethers = require('ethers')
 const abi = require('../static/abi')
@@ -10,8 +11,10 @@ export default class Ethereum {
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
 
     if (network === 'kovan') {
-      // this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
+      // for kovan testing only
+      this.erc20KovanTokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
     } else if (network === 'mainnet') {
+      // contract list no longer maintained here. changed to accept contract address via request data
       // this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_hummingbot.json'))
     } else {
       throw Error(`Invalid network ${network}`)

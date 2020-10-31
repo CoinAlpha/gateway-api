@@ -156,7 +156,7 @@ router.post('/get-weth', async (req, res) => {
   const privateKey = paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, eth.provider)
   const amount = ethers.utils.parseEther(paramData.amount)
-  const tokenAddress = eth.erc20Tokens['WETH']
+  const tokenAddress = eth.erc20KovanTokens['WETH']
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
