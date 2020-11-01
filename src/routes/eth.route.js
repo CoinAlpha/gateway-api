@@ -24,7 +24,17 @@ router.post('/balances', async (req, res) => {
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
-  const wallet = new ethers.Wallet(privateKey, eth.provider)
+  let wallet
+  try {
+    wallet = new ethers.Wallet(privateKey, eth.provider)
+  } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+  }
   let tokenAddressList
   if (paramData.tokenAddressList) {
     tokenAddressList = paramData.tokenAddressList.split(seperator)
@@ -46,8 +56,10 @@ router.post('/balances', async (req, res) => {
       })
     })
   } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
-      error: statusMessages.operation_error,
+      error: reason,
       message: err
     })
   }
@@ -64,7 +76,17 @@ router.post('/allowances', async (req, res) => {
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
-  const wallet = new ethers.Wallet(privateKey, eth.provider)
+  let wallet
+  try {
+    wallet = new ethers.Wallet(privateKey, eth.provider)
+  } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+  }
   const spender = balancer.exchangeProxy
   let tokenAddressList
   if (paramData.tokenAddressList) {
@@ -88,8 +110,10 @@ router.post('/allowances', async (req, res) => {
     }
     )
   } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
-      error: statusMessages.operation_error,
+      error: reason,
       message: err
     })
   }
@@ -107,7 +131,17 @@ router.post('/approve', async (req, res) => {
   // params: privateKey (required), tokenAddress (required), amount (optional), gasPrice (required)
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
-  const wallet = new ethers.Wallet(privateKey, eth.provider)
+  let wallet
+  try {
+    wallet = new ethers.Wallet(privateKey, eth.provider)
+  } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+  }
   const tokenAddress = paramData.tokenAddress
   const spender = balancer.exchangeProxy
   let amount
@@ -133,8 +167,10 @@ router.post('/approve', async (req, res) => {
       approval: approval
     })
   } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
-      error: statusMessages.operation_error,
+      error: reason,
       message: err
     })
   }
@@ -154,7 +190,17 @@ router.post('/get-weth', async (req, res) => {
   // params: primaryKey (required), amount (required), gasPrice (optional)
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
-  const wallet = new ethers.Wallet(privateKey, eth.provider)
+  let wallet
+  try {
+    wallet = new ethers.Wallet(privateKey, eth.provider)
+  } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+  }
   const amount = ethers.utils.parseEther(paramData.amount)
   const tokenAddress = eth.erc20KovanTokens['WETH']
   let gasPrice
@@ -174,8 +220,10 @@ router.post('/get-weth', async (req, res) => {
       result: response
     })
   } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
-      error: statusMessages.operation_error,
+      error: reason,
       message: err
     })
   }

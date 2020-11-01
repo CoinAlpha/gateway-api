@@ -4,12 +4,14 @@ import express from 'express';
 
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
 import Balancer from '../services/balancer';
+import Ethereum from '../services/eth';
 
 require('dotenv').config()
 const debug = require('debug')('router')
 
 const router = express.Router()
 const balancer = new Balancer(process.env.BALANCER_NETWORK)
+const eth = new Ethereum(process.env.BALANCER_NETWORK)
 
 const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Swap price exceeds maxPrice'
@@ -83,8 +85,10 @@ router.post('/sell-price', async (req, res) => {
       })
     }
   } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
-      error: statusMessages.operation_error,
+      error: reason,
       message: err
     })
   }
@@ -132,8 +136,10 @@ router.post('/buy-price', async (req, res) => {
       })
     }
   } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
-      error: statusMessages.operation_error,
+      error: reason,
       message: err
     })
   }
@@ -216,8 +222,10 @@ router.post('/sell', async (req, res) => {
       debug(`Swap price ${price} lower than maxPrice ${maxPrice}`)
     }
   } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
-      error: statusMessages.operation_error,
+      error: reason,
       message: err
     })
   }
@@ -296,8 +304,10 @@ router.post('/buy', async (req, res) => {
       debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
     }
   } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
-      error: statusMessages.operation_error,
+      error: reason,
       message: err
     })
   }
