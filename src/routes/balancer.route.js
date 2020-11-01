@@ -73,7 +73,7 @@ router.post('/sell-price', async (req, res) => {
         quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
         expectedOut: parseInt(expectedOut) / denomMultiplier,
-        price: amount / expectedOut,
+        price: expectedOut / amount,
         swaps: swaps,
       })
     } else { // no pool available
@@ -122,7 +122,7 @@ router.post('/buy-price', async (req, res) => {
         quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
         expectedIn: parseInt(expectedIn) / denomMultiplier,
-        price: amount / expectedIn,
+        price: expectedIn / amount,
         swaps: swaps,
       })
     } else { // no pool available
@@ -180,7 +180,7 @@ router.post('/sell', async (req, res) => {
       amount,
     )
 
-    const price = amount / expectedOut
+    const price = expectedOut / amount 
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price >= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
@@ -261,7 +261,7 @@ router.post('/buy', async (req, res) => {
       amount,
     )
 
-    const price = amount / expectedIn
+    const price = expectedIn / amount
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
