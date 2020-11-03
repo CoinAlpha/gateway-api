@@ -161,10 +161,13 @@ router.post('/sell', async (req, res) => {
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
-  const wallet = new ethers.Wallet(privateKey, balancer.provider)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const requestAmount = paramData.amount
+  const amount =  new BigNumber(parseInt(requestAmount * denomMultiplier))
+  const wallet = new ethers.Wallet(privateKey, balancer.provider)
+  // update wallet balance to prevent subsequent trade using old on-chain balances.
+  const walletBalance = await eth.getERC20Balance(wallet, baseTokenAddress)
 
   let maxPrice
   if (paramData.maxPrice) {
@@ -185,6 +188,15 @@ router.post('/sell', async (req, res) => {
       quoteTokenAddress,    // tokenOut is quote asset
       amount,
     )
+
+    // check if wallet has enough balance to sell
+    if (parseFloat(requestAmount) > walletBalance) {
+      res.status(500).json({
+        error: 'Insufficient wallet balance',
+        message: ['wallet balance:', walletBalance, 'request amount:', requestAmount].join(' ')
+      })
+      return
+    }
 
     const price = expectedOut / amount 
     debug(`Price: ${price.toString()}`)
@@ -247,10 +259,13 @@ router.post('/buy', async (req, res) => {
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
-  const wallet = new ethers.Wallet(privateKey, balancer.provider)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const requestAmount = paramData.amount
+  const amount =  new BigNumber(parseInt(requestAmount * denomMultiplier))
+  const wallet = new ethers.Wallet(privateKey, balancer.provider)
+  // update wallet balance to prevent subsequent trade using old on-chain balances.
+  const walletBalance = await eth.getERC20Balance(wallet, quoteTokenAddress)
 
   let maxPrice
   if (paramData.maxPrice) {
@@ -268,6 +283,16 @@ router.post('/buy', async (req, res) => {
       baseTokenAddress,     // tokenOut is base asset
       amount,
     )
+
+    const costAmount = parseFloat(expectedIn) / denomMultiplier
+    // check if wallet has enough balance to buy
+    if (costAmount > walletBalance) {
+      res.status(500).json({
+        error: 'Insufficient wallet balance',
+        message: ['wallet balance:', walletBalance, 'cost amount:', costAmount].join(' ')
+      })
+      return
+    }
 
     const price = expectedIn / amount
     debug(`Price: ${price.toString()}`)
