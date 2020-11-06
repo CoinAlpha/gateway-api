@@ -34,6 +34,7 @@ router.post('/balances', async (req, res) => {
       error: reason,
       message: err
     })
+    return
   }
   let tokenAddressList
   if (paramData.tokenAddressList) {
@@ -86,6 +87,7 @@ router.post('/allowances', async (req, res) => {
       error: reason,
       message: err
     })
+    return
   }
   const spender = balancer.exchangeProxy
   let tokenAddressList
@@ -125,6 +127,7 @@ router.post('/approve', async (req, res) => {
       x-www-form-urlencoded: {
         tokenAddress:"0x....."
         privateKey:{{privateKey}}
+        amount:{{amount}}
       }
   */
   const initTime = Date.now()
@@ -141,6 +144,7 @@ router.post('/approve', async (req, res) => {
       error: reason,
       message: err
     })
+    return
   }
   const tokenAddress = paramData.tokenAddress
   const spender = balancer.exchangeProxy
@@ -200,6 +204,7 @@ router.post('/get-weth', async (req, res) => {
       error: reason,
       message: err
     })
+    return
   }
   const amount = ethers.utils.parseEther(paramData.amount)
   const tokenAddress = eth.erc20KovanTokens['WETH']
