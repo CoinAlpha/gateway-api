@@ -64,15 +64,21 @@ export default class Ethereum {
   // approve a spender to transfer tokens from a wallet address
   async approveERC20 (wallet, spender, tokenAddress, amount, gasPrice = process.env.GAS_PRICE) {
     const GAS_LIMIT = 100000
-    // instantiate a contract and pass in wallet, which act on behalf of that signer
-    const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, wallet)
-    return await contract.approve(
-      spender,
-      amount, {
-        gasPrice: gasPrice * 1e9,
-        gasLimit: GAS_LIMIT
-      }
-    )
+    try {
+      // instantiate a contract and pass in wallet, which act on behalf of that signer
+      const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, wallet)
+      return await contract.approve(
+        spender,
+        amount, {
+          gasPrice: gasPrice * 1e9,
+          gasLimit: GAS_LIMIT
+        }
+      )
+    } catch (err) {
+      let reason
+      err.reason ? reason = err.reason : reason = 'error approval'
+      return reason
+    }
   }
 
   async deposit (wallet, tokenAddress, amount, gasPrice = process.env.GAS_PRICE) {
