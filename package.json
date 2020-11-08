@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "description": "Hummingbot Gateway",
   "main": "index.js",
-  "license": "",
+  "license": "Apache 2",
+  "repository": "https://github.com/coinalpha/gateway-api",
   "scripts": {
     "start": "babel-node src/index.js",
     "dev": "nodemon --exec babel-node src/index.js",

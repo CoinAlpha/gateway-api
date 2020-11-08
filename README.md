@@ -1,130 +1,49 @@
-# Hummingbot Gateway
+![Hummingbot](https://i.ibb.co/X5zNkKw/blacklogo-with-text.png)
 
-## Express Middleware
+----
 
-NodeJS, Express middleware/REST API server that connects to protocol library. 
+Hummingbot Gateway is an open-source project that integrates cryptocurrency trading on both **centralized exchanges** and **decentralized protocols**. It allows users to run a client that executes customized, automated trading strategies for cryptocurrencies.
 
-This can be used as a common API server to handle transactions that requires custom or third party libraries. 
-
-## Development Requirements
-
-- NodeJS 
-  - Tested on Node v10.22.0
-  - https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
-
-  ```bash
-  # Using Homebrew MacOS:
-  brew install node
-
-  ```
-
-- Yarn (for node package installations)
-  - Tested on v1.22.5
-  - To install yarn:
-  ```bash
-  npm install yarn
-
-  ```
-
-- ExpressJS - Install through package.json
-
-[optional]
-To switch to specific Node version, you can use `n` to handle the version installation and switch easily.
-
-```bash
-# install n
-npm -g install n
-# list remote available node version
-n ls-remote
-# list locally installed node version
-n ls
-# install specific version (e.g. 10, 12.18.3, 14.11.0)
-n 10
-# use specific version, then select installed version
-n
+We created hummingbot to promote **decentralized market-making**: enabling members of the community to contribute to the liquidity and trading efficiency in cryptocurrency markets.
 
 
-## Setup
 
-```bash
+## Getting Started
 
-git clone <repo>
-cd <repo>
+### Learn more about Hummingbot
 
-# install npm packages
-yarn install
+- [Website](https://hummingbot.io)
+- [Documentation](https://docs.hummingbot.io)
+- [FAQs](https://docs.hummingbot.io/faq/)
 
-# setup config
-cp .env.example .env
+### Install Hummingbot
 
-# run dev mode with hot reload on code changes
-yarn run dev
+- [Quickstart guide](https://docs.hummingbot.io/quickstart/)
+- [All installation options](https://docs.hummingbot.io/installation/)
+- [Installation scripts](./installation/)
 
-# Run prod mode
-yarn run start
+### Get support
+- Chat with our support team on [Discord](https://discord.hummingbot.io)
+- Email us at support@hummingbot.io
 
-# API
-https://localhost:5000/api
+### Chat with other traders
+- Join our community on [Discord](https://discord.coinalpha.com) or [Reddit](https://www.reddit.com/r/Hummingbot/)
+- Follow Hummingbot on [Twitter](https://twitter.com/hummingbot_io)
 
-# Protocol Endpoints
-All endpoint require POST request with data
+## Contributions
 
-# ETHEREUM
+We welcome contributions from the community:
+- **Code and documentation contributions** via [pull requests](https://github.com/CoinAlpha/gateway-api/pulls)
+- **Bug reports and feature requests** through [Github issues](https://github.com/CoinAlpha/gateway-api/issues)
+- When contributing, please review the [contributing guidelines](CONTRIBUTING.md)
 
-# get ETH and ERC-20 tokens balances in the user's wallet
-https://localhost:5000/eth/balances
+## About us
 
-# get ERC-20 allowances for a contract address
-https://localhost:5000/eth/allowances
+Hummingbot Gateway was created and is maintained by CoinAlpha, Inc. We are [a global team of engineers and traders](https://hummingbot.io/about/).
 
-# approve a contract to allow transferring tokens to it
-https://localhost:5000/eth/approve
+- **General**: contact us at [dev@hummingbot.io](mailto:dev@hummingbot.io) or join our [Discord server](https://discord.hummingbot.io).
+- **Business inquiries**: contact us at [partnerships@hummingbot.io](mailto:partnerships@hummingbot.io).
 
-# send testnet ETH to WETH contract to get testnet WETH
-https://localhost:5000/eth/deposit
+## Legal
 
-
-# BALANCER
-
-# get price and pools for a trade
-https://localhost:5000/balancer/buy-price
-https://localhost:5000/balancer/sell-price
-
-# execute trade
-https://localhost:5000/balancer/buy
-https://localhost:5000/balancer/sell
-
-
-```
-
-### SSL Test
-
-SSL is setup for HTTPS traffic to Gateway running at localhost. To run Gateway as standalone API server, use the following test script to generate the SSL certs.
-
-```bash
-$ ssl-scripts.sh
-
-# Test endpoint
-curl --insecure --key ./certs/client_key.pem --cert ./certs/client_cert.pem https://localhost:5000/api
-
-```
-
-Test endpoint on Python
-```python
-
-# update the locaiton path of the pem files
-
-def test_get_api_status(self):
-    url = 'https://localhost:5000/api'
-
-    ca_certs = realpath(join(__file__, join("../../certs/ca_cert.pem")))
-    client_certs = (realpath(join(__file__, join("../../certs/client_cert.pem"))),
-                realpath(join(__file__, join("../../certs/client_key.pem"))))
-    response = requests.get(url, verify=ca_certs, cert=client_certs)
-
-    result = response.json()
-    print('result', result)
-
-    self.assertTrue('status' in result.keys() and result['status'] == 'ok', f"Gateway API {url} not ready")
-
-```
+- **License**: Hummingbot is licensed under [Apache 2.0](./LICENSE).
