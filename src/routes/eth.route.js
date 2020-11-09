@@ -55,7 +55,6 @@ router.post('/balances', async (req, res) => {
         network: eth.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        currentGasPrice: currentGasPrice,
         balances: balances
       })
     })

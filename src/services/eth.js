@@ -93,8 +93,6 @@ export default class Ethereum {
       this.provider.getGasPrice().then(function (gas) {
         // gasPrice is a BigNumber; convert it to a decimal string
         const gasPrice = gas.toString();
-        debug('gas obj', gas)
-        debug('Current gas price: ', gasPrice / 1e9)
         return gasPrice
       })
     } catch (err) {
