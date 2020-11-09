@@ -7,3 +7,6 @@ npm-debug.log
 *.env.*
 # except the example .env.example
 !.env.example
+
+# Gateway API files
+*.pem

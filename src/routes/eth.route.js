@@ -3,12 +3,14 @@ import { ethers } from 'ethers';
 import express from 'express';
 
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
+import { getConfig } from '../services/config';
 import Ethereum from '../services/eth';
 import Balancer from '../services/balancer';
 
 const router = express.Router()
-const eth = new Ethereum(process.env.BALANCER_NETWORK)
-const balancer = new Balancer(process.env.BALANCER_NETWORK)
+const envConfig = getConfig()
+const eth = new Ethereum(envConfig.balancer.BALANCER_NETWORK)
+const balancer = new Balancer(envConfig.balancer.BALANCER_NETWORK)
 const seperator = ','
 
 const debug = require('debug')('router')
@@ -24,9 +26,10 @@ router.post('/balances', async (req, res) => {
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
-  let wallet
+  let wallet, currentGasPrice
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
+    currentGasPrice = await eth.getCurrentGasPrice()
   } catch (err) {
     let reason
     err.reason ? reason = err.reason : reason = 'Error getting wallet'
@@ -53,6 +56,7 @@ router.post('/balances', async (req, res) => {
         network: eth.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
+        currentGasPrice: currentGasPrice,
         balances: balances
       })
     })

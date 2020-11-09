@@ -5,19 +5,21 @@ const BigNumber = require('bignumber.js')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/ExchangeProxy.json')
 const debug = require('debug')('router')
+const config = require('../services/config')
 
 // constants
+const ENV_CONFIG = config.getConfig()
 const MAX_UINT = ethers.constants.MaxUint256;
 const MULTI = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441';
-const GAS_LIMIT = 1200000
 
 export default class Balancer {
   constructor (network = 'kovan') {
     // network defaults to kovan
-    const providerUrl = process.env.ETHEREUM_RPC_URL
-    this.network = process.env.BALANCER_NETWORK
+    const providerUrl = ENV_CONFIG.ethereum.ETHEREUM_RPC_URL
+    this.network = ENV_CONFIG.balancer.BALANCER_NETWORK
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
-    this.exchangeProxy = process.env.EXCHANGE_PROXY
+    this.exchangeProxy = ENV_CONFIG.balancer.EXCHANGE_PROXY
+    this.gasLimit = ENV_CONFIG.balancer.GAS_LIMIT
 
     if (network === 'kovan') {
       // this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
@@ -129,7 +131,7 @@ export default class Balancer {
       0,
       {
         gasPrice: gasPrice * 1e9,
-        gasLimit: GAS_LIMIT
+        gasLimit: this.gasLimit
       }
     )
     debug(`Tx Hash: ${tx.hash}`);
