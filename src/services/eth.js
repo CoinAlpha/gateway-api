@@ -12,9 +12,10 @@ export default class Ethereum {
   constructor (network = 'kovan') {
     // network defaults to kovan
     const providerUrl = ENV_CONFIG.ethereum.ETHEREUM_RPC_URL
-    this.network = ENV_CONFIG.balancer.BALANCER_NETWORK
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
+    this.network = ENV_CONFIG.balancer.BALANCER_NETWORK
     this.gasLimit = ENV_CONFIG.balancer.GAS_LIMIT
+    this.approvalGasLimit = ENV_CONFIG.balancer.APPROVAL_GAS_LIMIT
 
     if (network === 'kovan') {
       // for kovan testing only
@@ -68,7 +69,7 @@ export default class Ethereum {
   }
 
   // approve a spender to transfer tokens from a wallet address
-  async approveERC20 (wallet, spender, tokenAddress, amount, gasPrice = ENV_CONFIG.balancer.GAS_PRICE, gasLimit = this.gasLimit) {
+  async approveERC20 (wallet, spender, tokenAddress, amount, gasPrice = this.gasPrice, gasLimit = this.approvalGasLimit) {
     try {
       // instantiate a contract and pass in wallet, which act on behalf of that signer
       const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, wallet)
@@ -103,7 +104,7 @@ export default class Ethereum {
     }
   }
 
-  async deposit (wallet, tokenAddress, amount, gasPrice = ENV_CONFIG.balancer.GAS_PRICE, gasLimit = this.gasLimit) {
+  async deposit (wallet, tokenAddress, amount, gasPrice = this.gasPrice, gasLimit = this.approvalGasLimit) {
     // deposit ETH to a contract address
     try {
       const contract = new ethers.Contract(tokenAddress, abi.KovanWETHAbi, wallet)

@@ -16,8 +16,8 @@ export default class Balancer {
   constructor (network = 'kovan') {
     // network defaults to kovan
     const providerUrl = ENV_CONFIG.ethereum.ETHEREUM_RPC_URL
-    this.network = ENV_CONFIG.balancer.BALANCER_NETWORK
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
+    this.network = ENV_CONFIG.balancer.BALANCER_NETWORK
     this.exchangeProxy = ENV_CONFIG.balancer.EXCHANGE_PROXY
     this.gasLimit = ENV_CONFIG.balancer.GAS_LIMIT
 

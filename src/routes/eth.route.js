@@ -26,10 +26,9 @@ router.post('/balances', async (req, res) => {
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
-  let wallet, currentGasPrice
+  let wallet
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
-    currentGasPrice = await eth.getCurrentGasPrice()
   } catch (err) {
     let reason
     err.reason ? reason = err.reason : reason = 'Error getting wallet'
