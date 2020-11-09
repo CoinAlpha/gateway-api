@@ -4,12 +4,14 @@ import express from 'express';
 
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
 import Balancer from '../services/balancer';
+import Ethereum from '../services/eth';
 
 require('dotenv').config()
 const debug = require('debug')('router')
 
 const router = express.Router()
 const balancer = new Balancer(process.env.BALANCER_NETWORK)
+const eth = new Ethereum(process.env.BALANCER_NETWORK)
 
 const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Swap price exceeds maxPrice'
@@ -73,7 +75,7 @@ router.post('/sell-price', async (req, res) => {
         quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
         expectedOut: parseInt(expectedOut) / denomMultiplier,
-        price: amount / expectedOut,
+        price: expectedOut / amount,
         swaps: swaps,
       })
     } else { // no pool available
@@ -83,8 +85,10 @@ router.post('/sell-price', async (req, res) => {
       })
     }
   } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
-      error: statusMessages.operation_error,
+      error: reason,
       message: err
     })
   }
@@ -122,7 +126,7 @@ router.post('/buy-price', async (req, res) => {
         quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
         expectedIn: parseInt(expectedIn) / denomMultiplier,
-        price: amount / expectedIn,
+        price: expectedIn / amount,
         swaps: swaps,
       })
     } else { // no pool available
@@ -132,8 +136,10 @@ router.post('/buy-price', async (req, res) => {
       })
     }
   } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
-      error: statusMessages.operation_error,
+      error: reason,
       message: err
     })
   }
@@ -180,7 +186,7 @@ router.post('/sell', async (req, res) => {
       amount,
     )
 
-    const price = amount / expectedOut
+    const price = expectedOut / amount 
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price >= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
@@ -204,7 +210,7 @@ router.post('/sell', async (req, res) => {
         amount: parseFloat(paramData.amount),
         expectedOut: expectedOut / denomMultiplier,
         price: price,
-        gasUsed: txObj.gasUsed,
+        gasUsed: parseInt(txObj.gasUsed),
         txHash: txObj.transactionHash,
         status: txObj.status,
       })
@@ -216,8 +222,10 @@ router.post('/sell', async (req, res) => {
       debug(`Swap price ${price} lower than maxPrice ${maxPrice}`)
     }
   } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
-      error: statusMessages.operation_error,
+      error: reason,
       message: err
     })
   }
@@ -261,7 +269,7 @@ router.post('/buy', async (req, res) => {
       amount,
     )
 
-    const price = amount / expectedIn
+    const price = expectedIn / amount
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
@@ -284,7 +292,7 @@ router.post('/buy', async (req, res) => {
         amount: parseFloat(paramData.amount),
         expectedIn: expectedIn / denomMultiplier,
         price: price,
-        gasUsed: txObj.gasUsed,
+        gasUsed: parseInt(txObj.gasUsed),
         txHash: txObj.transactionHash,
         status: txObj.status,
       })
@@ -296,8 +304,10 @@ router.post('/buy', async (req, res) => {
       debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
     }
   } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
-      error: statusMessages.operation_error,
+      error: reason,
       message: err
     })
   }

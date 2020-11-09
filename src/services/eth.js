@@ -11,8 +11,10 @@ export default class Ethereum {
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
 
     if (network === 'kovan') {
-      // this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
+      // for kovan testing only
+      this.erc20KovanTokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
     } else if (network === 'mainnet') {
+      // contract list no longer maintained here. changed to accept contract address via request data
       // this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_hummingbot.json'))
     } else {
       throw Error(`Invalid network ${network}`)
@@ -21,49 +23,79 @@ export default class Ethereum {
 
   // get ETH balance
   async getETHBalance (wallet) {
-    const balance = await wallet.getBalance()
-    return balance / 1e18.toString()
+    try {
+      const balance = await wallet.getBalance()
+      return balance / 1e18.toString()
+    } catch (err) {
+      let reason
+      err.reason ? reason = err.reason : reason = 'error ETH balance lookup'
+      return reason
+    }
   }
 
   // get ERC-20 token balance
   async getERC20Balance (wallet, tokenAddress) {
     // instantiate a contract and pass in provider for read-only access
     const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, this.provider)
-    const balance = await contract.balanceOf(wallet.address)
-    return balance / 1e18.toString()
+    try {
+      const balance = await contract.balanceOf(wallet.address)
+      return balance / 1e18.toString()
+    } catch (err) {
+      let reason
+      err.reason ? reason = err.reason : reason = 'error balance lookup'
+      return reason
+    }
   }
 
   // get ERC-20 token allowance
   async getERC20Allowance (wallet, spender, tokenAddress) {
     // instantiate a contract and pass in provider for read-only access
     const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, this.provider)
-    const allowance = await contract.allowance(wallet.address, spender)
-    return allowance/1e18.toString()
+    try {
+      const allowance = await contract.allowance(wallet.address, spender)
+      return allowance / 1e18.toString()
+    } catch (err) {
+      let reason
+      err.reason ? reason = err.reason : reason = 'error allowance lookup'
+      return reason
+    }
   }
 
   // approve a spender to transfer tokens from a wallet address
   async approveERC20 (wallet, spender, tokenAddress, amount, gasPrice = process.env.GAS_PRICE) {
     const GAS_LIMIT = 100000
-    // instantiate a contract and pass in wallet, which act on behalf of that signer
-    const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, wallet)
-    return await contract.approve(
-      spender, 
-      amount, {
-        gasPrice: gasPrice*1e9,
-        gasLimit: GAS_LIMIT
-      }
-    )
+    try {
+      // instantiate a contract and pass in wallet, which act on behalf of that signer
+      const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, wallet)
+      return await contract.approve(
+        spender,
+        amount, {
+          gasPrice: gasPrice * 1e9,
+          gasLimit: GAS_LIMIT
+        }
+      )
+    } catch (err) {
+      let reason
+      err.reason ? reason = err.reason : reason = 'error approval'
+      return reason
+    }
   }
 
   async deposit (wallet, tokenAddress, amount, gasPrice = process.env.GAS_PRICE) {
     const GAS_LIMIT = 100000
     // deposit ETH to a contract address
-    const contract = new ethers.Contract(tokenAddress, abi.KovanWETHAbi, wallet)
-    return await contract.deposit(
-      { value: amount,
-        gasPrice: gasPrice*1e9,
-        gasLimit: GAS_LIMIT
-      }      
-    )
+    try {
+      const contract = new ethers.Contract(tokenAddress, abi.KovanWETHAbi, wallet)
+      return await contract.deposit(
+        { value: amount,
+          gasPrice: gasPrice * 1e9,
+          gasLimit: GAS_LIMIT
+        }
+      )
+    } catch (err) {
+      let reason
+      err.reason ? reason = err.reason : reason = 'error deposit'
+      return reason
+    }
   }
 }

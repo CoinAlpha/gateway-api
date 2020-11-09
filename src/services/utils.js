@@ -2,7 +2,6 @@
   Hummingbot Utils
 */
 const lodash = require('lodash')
-const debug = require('debug')('router')
 
 export const statusMessages = {
   ssl_cert_required: 'SSL Certificate required',

@@ -1,4 +1,4 @@
-require('dotenv').config() // needed to configure REACT_APP_SUBGRAPH_URL used by @balancer-labs/sor
+require('dotenv').config() // DO NOT REMOVE. needed to configure REACT_APP_SUBGRAPH_URL used by @balancer-labs/sor
 const fs = require('fs');
 const sor = require('@balancer-labs/sor')
 const BigNumber = require('bignumber.js')
