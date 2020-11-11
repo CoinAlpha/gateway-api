@@ -3,6 +3,7 @@ import bodyParser from 'body-parser'
 import express from 'express'
 import helmet from 'helmet'
 import { statusMessages } from './services/utils';
+import { validateAccess } from './services/access';
 import { IpFilter } from 'express-ipfilter'
 
 // Routes
@@ -34,22 +35,17 @@ if (ipWhitelist) {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use(validateAccess)
+
 // mount all routes to this path
-app.use('/api', apiRoutes);
-app.use('/eth', ethRoutes);
-// app.use('/celo', celoRoutes);
-app.use('/terra', terraRoutes);
-app.use('/balancer', balancerRoutes);
+app.use('/api', validateAccess, apiRoutes);
+app.use('/eth', validateAccess, ethRoutes);
+// app.use('/celo', validateAccess, celoRoutes);
+app.use('/terra', validateAccess, terraRoutes);
+app.use('/balancer', validateAccess, balancerRoutes);
 
 app.get('/', (req, res, next) => {
-  const cert = req.connection.getPeerCertificate()
-  if (req.client.authorized) {
-    next()
-  } else if (cert.subject) {
-    res.status(403).send({ error: statusMessages.ssl_cert_invalid })
-  } else {
-    res.status(401).send({ error: statusMessages.ssl_cert_required })
-  }
+  res.send('ok')
 })
 
 /**

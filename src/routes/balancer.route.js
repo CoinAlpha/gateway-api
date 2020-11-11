@@ -18,17 +18,6 @@ const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Swap price exceeds maxPrice'
 const swapLessThanMaxPriceError = 'Swap price lower than maxPrice'
 
-router.use((req, res, next) => {
-  const cert = req.connection.getPeerCertificate()
-  if (req.client.authorized) {
-    next()
-  } else if (cert.subject) {
-    res.status(403).send({ error: statusMessages.ssl_cert_invalid })
-  } else {
-    res.status(401).send({ error: statusMessages.ssl_cert_required })
-  }
-})
-
 router.post('/', async (req, res) => {
   /*
     POST /

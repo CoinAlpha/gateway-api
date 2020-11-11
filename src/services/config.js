@@ -11,7 +11,8 @@ export const getConfig = () => {
       REACT_APP_SUBGRAPH_URL: process.env.REACT_APP_SUBGRAPH_URL,
       EXCHANGE_PROXY: process.env.EXCHANGE_PROXY,
       GAS_PRICE: parseInt(process.env.GAS_PRICE),
-      GAS_LIMIT: parseInt(process.env.GAS_LIMIT) || 1200000
+      GAS_LIMIT: parseInt(process.env.GAS_LIMIT) || 1200000,
+      APPROVAL_GAS_LIMIT: parseInt(process.env.APPROVAL_GAS_LIMIT) || 100000
     },
     ethereum: {
       ETHEREUM_RPC_URL: process.env.ETHEREUM_RPC_URL,

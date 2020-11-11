@@ -59,17 +59,6 @@ const connect = () => {
   return terra
 }
 
-router.use((req, res, next) => {
-  const cert = req.connection.getPeerCertificate()
-  if (req.client.authorized) {
-    next()
-  } else if (cert.subject) {
-    res.status(403).send({ error: statusMessages.ssl_cert_invalid })
-  } else {
-    res.status(401).send({ error: statusMessages.ssl_cert_required })
-  }
-})
-
 router.get('/', async (req, res) => {
   /*
     GET /
