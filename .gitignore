@@ -16,3 +16,13 @@ node_modules/
 
 # debug logs
 npm-debug.log
+
+# distribution files
+dist/
+
+# cert
+certs/
+*.pem
+*.srl
+*.key
+*.crt

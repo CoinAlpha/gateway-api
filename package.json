@@ -1,18 +1,19 @@
 {
   "name": "gateway-api",
   "version": "0.0.1",
-  "description": "Gateway API for protocol",
+  "description": "Hummingbot Gateway",
   "main": "index.js",
-  "license": "MIT",
+  "license": "Apache 2",
+  "repository": "https://github.com/coinalpha/gateway-api",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon --exec babel-node index.js",
-    "debug": "DEBUG=*router nodemon --exec babel-node index.js",
+    "start": "babel-node src/index.js",
+    "dev": "nodemon --exec babel-node src/index.js",
+    "debug": "DEBUG=*router nodemon --exec babel-node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@balancer-labs/sor": "^0.3.3",
-    "@terra-money/terra.js": "^0.4.19-beta.1",
+    "@terra-money/terra.js": "^0.5.8",
     "bignumber.js": "^9.0.0",
     "body-parser": "^1.19.0",
     "capture-console": "^1.0.1",
@@ -30,6 +31,13 @@
     "@babel/core": "^7.11.6",
     "@babel/node": "^7.10.5",
     "@babel/preset-env": "^7.11.5",
+    "eslint": "^7.10.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
     "nodemon": "^2.0.4"
-  }
+  },
+  "type": "module"
 }

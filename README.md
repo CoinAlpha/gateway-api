@@ -1,89 +1,48 @@
-# Hummingbot Gateway
+![Hummingbot](https://i.ibb.co/X5zNkKw/blacklogo-with-text.png)
 
-## Express Middleware
+----
 
-NodeJS, Express middleware/REST API server that connects to protocol library. 
+Hummingbot Gateway is an open-source project that integrates cryptocurrency trading on both **centralized exchanges** and **decentralized protocols**. It allows users to run a client that executes customized, automated trading strategies for cryptocurrencies.
 
-This can be used as a common API server to handle transactions that requires custom or third party libraries. 
-
-## Development Requirements
-
-- NodeJS 
-  - Tested on Node v10.22.0
-  - https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
-
-  ```bash
-  # Using Homebrew MacOS:
-  brew install node
-
-  ```
-
-- Yarn (for node package installations)
-  - Tested on v1.22.5
-  - To install yarn:
-  ```bash
-  npm install yarn
-
-  ```
-
-- ExpressJS - Install through package.json
-
-[optional]
-To switch to specific Node version, you can use `n` to handle the version installation and switch easily.
-
-```bash
-# install n
-npm -g install n
-# list remote available node version
-n ls-remote
-# list locally installed node version
-n ls
-# install specific version (e.g. 10, 12.18.3, 14.11.0)
-n 10
-# use specific version, then select installed version
-n
+We created hummingbot to promote **decentralized market-making**: enabling members of the community to contribute to the liquidity and trading efficiency in cryptocurrency markets.
 
 
-## Setup
 
-```bash
+## Getting Started
 
-git clone <repo>
-cd <repo>
+### Learn more about Hummingbot
 
-# install npm packages
-yarn install
+- [Website](https://hummingbot.io)
+- [Documentation](https://docs.hummingbot.io)
+- [FAQs](https://docs.hummingbot.io/faq/)
 
-# setup config
-cp .env.example .env
+### Install Hummingbot
 
-# run dev mode with hot reload on code changes
-yarn run dev
+- [Quickstart guide](https://docs.hummingbot.io/quickstart/)
+- [All installation options](https://docs.hummingbot.io/installation/overview/)
 
-# Run prod mode
-yarn run start
+### Get support
+- Chat with our support team on [Discord](https://discord.hummingbot.io)
+- Email us at support@hummingbot.io
 
-# API
-http://localhost:5000/
-http://localhost:5000/api/status
+### Chat with other traders
+- Join our community on [Discord](https://discord.coinalpha.com) or [Reddit](https://www.reddit.com/r/Hummingbot/)
+- Follow Hummingbot on [Twitter](https://twitter.com/hummingbot_io)
 
-# Protocol Endpoints
-http://localhost:5000/celo/status
-http://localhost:5001/celo/price?trading_pair=CELO-CUSD&trade_type=sell&amount=1.123
+## Contributions
 
-http://localhost:5000/terra/status
-http://localhost:5001/celo/price?trading_pair=UST-KRT&trade_type=sell&amount=1.123
+We welcome contributions from the community:
+- **Code and documentation contributions** via [pull requests](https://github.com/CoinAlpha/gateway-api/pulls)
+- **Bug reports and feature requests** through [Github issues](https://github.com/CoinAlpha/gateway-api/issues)
+- When contributing, please review the [contributing guidelines](CONTRIBUTING.md)
 
-http://localhost:5000/ethereum/get_balances
-http://localhost:5000/ethereum/faucet
+## About us
 
-http://localhost:5000/balancer/get_swaps
+Hummingbot Gateway was created and is maintained by CoinAlpha, Inc. We are [a global team of engineers and traders](https://hummingbot.io/about/).
 
-# To do
-http://localhost:5000/balancer/get_quote_price
-http://localhost:5000/balancer/get_order_price
-http://localhost:5000/balancer/buy
-http://localhost:5000/balancer/sell
+- **General**: contact us at [dev@hummingbot.io](mailto:dev@hummingbot.io) or join our [Discord server](https://discord.hummingbot.io).
+- **Business inquiries**: contact us at [partnerships@hummingbot.io](mailto:partnerships@hummingbot.io).
 
-```
+## Legal
 
+- **License**: Hummingbot is licensed under [Apache 2.0](./LICENSE).
