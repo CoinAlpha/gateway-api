@@ -11,8 +11,8 @@ import Balancer from '../services/balancer';
 const debug = require('debug')('router')
 
 const router = express.Router()
-const envConfig = getConfig()
-const balancer = new Balancer(envConfig.balancer.BALANCER_NETWORK)
+const ENV_CONFIG = getConfig()
+const balancer = new Balancer(ENV_CONFIG.BALANCER.NETWORK)
 
 const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Swap price exceeds maxPrice'
@@ -26,8 +26,8 @@ router.post('/', async (req, res) => {
     network: balancer.network,
     provider: balancer.provider.connection.url,
     exchangeProxy: balancer.exchangeProxy,
-    subgraphUrl: envConfig.balancer.REACT_APP_SUBGRAPH_URL,
-    gasLimit: envConfig.balancer.GAS_LIMIT,
+    subgraphUrl: balancer.subgraphUrl,
+    gasLimit: balancer.gasLimit,
     connection: true,
     timestamp: Date.now(),
   })

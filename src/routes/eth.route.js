@@ -9,8 +9,8 @@ import Balancer from '../services/balancer';
 
 const router = express.Router()
 const envConfig = getConfig()
-const eth = new Ethereum(envConfig.balancer.BALANCER_NETWORK)
-const balancer = new Balancer(envConfig.balancer.BALANCER_NETWORK)
+const eth = new Ethereum(envConfig.BALANCER.NETWORK)
+const balancer = new Balancer(envConfig.BALANCER.NETWORK)
 const seperator = ','
 
 const debug = require('debug')('router')

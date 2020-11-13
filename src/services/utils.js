@@ -8,6 +8,7 @@ export const statusMessages = {
   ssl_cert_invalid: 'Invalid SSL Certificate',
   operation_error: 'Operation Error',
   no_pool_available: 'No Pool Available',
+  invalid_token_symbol: 'Invalid Token Symbol',
 }
 
 export const latency = (startTime, endTime) => parseFloat((endTime - startTime) / 1000)
@@ -43,6 +44,11 @@ export const getParamData = (data, format = null) => {
     })
   }
   return dataObject
+}
+
+export const splitParamData = (param, separator = ',') => {
+  const dataArray = param.split(separator)
+  return dataArray
 }
 
 export const getSymbols = (tradingPair) => {

@@ -11,11 +11,11 @@ const ENV_CONFIG = config.getConfig()
 export default class Ethereum {
   constructor (network = 'kovan') {
     // network defaults to kovan
-    const providerUrl = ENV_CONFIG.ethereum.ETHEREUM_RPC_URL
+    const providerUrl = ENV_CONFIG.ETHEREUM.RPC_URL
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
-    this.network = ENV_CONFIG.balancer.BALANCER_NETWORK
-    this.gasLimit = ENV_CONFIG.balancer.GAS_LIMIT
-    this.approvalGasLimit = ENV_CONFIG.balancer.APPROVAL_GAS_LIMIT
+    this.network = ENV_CONFIG.BALANCER.NETWORK
+    this.gasLimit = ENV_CONFIG.BALANCER.GAS_LIMIT
+    this.approvalGasLimit = ENV_CONFIG.BALANCER.APPROVAL_GAS_LIMIT
 
     if (network === 'kovan') {
       // for kovan testing only

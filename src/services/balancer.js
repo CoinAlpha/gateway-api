@@ -15,11 +15,12 @@ const MULTI = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441';
 export default class Balancer {
   constructor (network = 'kovan') {
     // network defaults to kovan
-    const providerUrl = ENV_CONFIG.ethereum.ETHEREUM_RPC_URL
+    const providerUrl = ENV_CONFIG.ETHEREUM.RPC_URL
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
-    this.network = ENV_CONFIG.balancer.BALANCER_NETWORK
-    this.exchangeProxy = ENV_CONFIG.balancer.EXCHANGE_PROXY
-    this.gasLimit = ENV_CONFIG.balancer.GAS_LIMIT
+    this.network = ENV_CONFIG.BALANCER.NETWORK
+    this.subgraphUrl = ENV_CONFIG.BALANCER.REACT_APP_SUBGRAPH_URL
+    this.exchangeProxy = ENV_CONFIG.BALANCER.EXCHANGE_PROXY
+    this.gasLimit = ENV_CONFIG.BALANCER.GAS_LIMIT
 
     if (network === 'kovan') {
       // this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
