@@ -173,7 +173,7 @@ router.post('/trade', async (req, res) => {
         "quote":"KRT"
         "trade_type":"buy" or "sell"
         "amount":1
-        "seeds": "mysupersecret"
+        "secret": "mysupersecret"
       }
   */
   const initTime = Date.now()
@@ -183,11 +183,11 @@ router.post('/trade', async (req, res) => {
   const quoteToken = paramData.quote
   const tradeType = paramData.trade_type
   const amount = parseFloat(paramData.amount)
-  const seeds = paramData.seeds
+  const secret = paramData.secret
   // debug(paramData)
 
   const mk = new MnemonicKey({
-    mnemonic: seeds,
+    mnemonic: secret,
   });
   const wallet = terra.lcd.wallet(mk);
   const address = wallet.key.accAddress
