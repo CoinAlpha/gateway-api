@@ -118,14 +118,8 @@ router.post('/price', async (req, res) => {
         quote: quoteToken,
         amount: amount,
         tradeType: tradeType,
-        price: {
-          amount: exchangeRate.price.amount,
-          token: exchangeRate.price.token
-        },
-        cost: {
-          amount: exchangeRate.cost.amount,
-          token: exchangeRate.cost.token
-        }
+        price: exchangeRate.price.amount,
+        cost: exchangeRate.cost.amount
         // swapIn: exchangeRate.swapIn,
         // swapOut: exchangeRate.swapOut,
         // tobinTax: terra.tobinTax,
