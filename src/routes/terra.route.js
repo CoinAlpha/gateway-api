@@ -118,10 +118,18 @@ router.post('/price', async (req, res) => {
         quote: quoteToken,
         amount: amount,
         tradeType: tradeType,
-        swapIn: exchangeRate.swapIn,
-        swapOut: exchangeRate.swapOut,
-        tobinTax: terra.tobinTax,
-        minSpread: terra.minSpread
+        price: {
+          amount: exchangeRate.price.amount,
+          token: exchangeRate.price.token
+        },
+        cost: {
+          amount: exchangeRate.cost.amount,
+          token: exchangeRate.cost.token
+        }
+        // swapIn: exchangeRate.swapIn,
+        // swapOut: exchangeRate.swapOut,
+        // tobinTax: terra.tobinTax,
+        // minSpread: terra.minSpread
       }
     )
   } catch (err) {
@@ -160,12 +168,14 @@ router.post('/trade', async (req, res) => {
   const quoteToken = paramData.quote
   const tradeType = paramData.trade_type
   const amount = parseFloat(paramData.amount)
+  const gasPrice = parseFloat(paramData.gas_price) || null
+  const gasAdjustment = paramData.gas_adjustment || null
   const secret = paramData.secret
 
   let tokenSwaps
 
   try {
-    await terra.swapTokens(baseToken, quoteToken, amount, tradeType, secret).then((swap) => {
+    await terra.swapTokens(baseToken, quoteToken, amount, tradeType, gasPrice, gasAdjustment, secret).then((swap) => {
       tokenSwaps = swap
     }).catch((err) => {
       reportConnectionError(res, err)
@@ -178,7 +188,8 @@ router.post('/trade', async (req, res) => {
       base: baseToken,
       tradeType: tradeType,
       quote: quoteToken,
-      amount: amount
+      amount: amount,
+      // gasPrice: gasPrice
     }
     debug('tokenSwaps', tokenSwaps)
     Object.assign(swapResult, tokenSwaps);
