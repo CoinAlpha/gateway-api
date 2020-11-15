@@ -122,7 +122,7 @@ export default class Terra {
   // get Terra Swap Rate
   async getSwapRate (baseToken, quoteToken, amount, tradeType) {
     try {
-      let exchangeRate, offerDenom, swapDenom, cost
+      let exchangeRate, offerDenom, swapDenom, cost, offer
       let swaps = {}
 
       if (tradeType.toLowerCase() === 'sell') {
@@ -132,6 +132,7 @@ export default class Terra {
 
         const offerCoin = new Coin(offerDenom, amount * DENOM_UNIT);
         await this.lcd.market.swapRate(offerCoin, swapDenom).then(swapCoin => {
+          offer = { amount: amount }
           exchangeRate = {
             amount: (swapCoin.amount / DENOM_UNIT) / amount,
             token: quoteToken
@@ -156,12 +157,14 @@ export default class Terra {
             amount: amount * exchangeRate.amount,
             token: quoteToken
           }
+          offer = { amount: cost.amount }
         })
       }
 
+      swaps.offer = offer
       swaps.price = exchangeRate
       swaps.cost = cost
-      debug('swaps', swaps)
+      // debug('swaps', swaps)
       return swaps
     } catch (err) {
       let reason
@@ -210,7 +213,7 @@ export default class Terra {
         swaps = rate
       })
 
-      const offerAmount = parseInt(swaps.cost.amount * DENOM_UNIT)
+      const offerAmount = parseInt(swaps.offer.amount * DENOM_UNIT)
 
       const offerCoin = new Coin(offerDenom, offerAmount)
       debug('offerCoin', offerCoin, offerAmount)
@@ -218,7 +221,7 @@ export default class Terra {
       const msgSwap = new MsgSwap(address, offerCoin, swapDenom);
       const memo = lcd.config.chainID.toLowerCase().includes('columbus') ? '' : TESTNET_MEMO
 
-      debug('msgSwap', msgSwap)
+      // debug('msgSwap', msgSwap)
       let txOptions
       if (gasPrice !== null && gasPrice !== null) { // ignore gasAdjustment when gasPrice is not set
         txOptions = {
@@ -270,26 +273,15 @@ export default class Terra {
         const ask = Coin.fromString(txAttributes.swap_coin)
         const fee = Coin.fromString(txAttributes.swap_fee)
 
-        debug('txAttributes', txAttributes)
+        // debug('txAttributes', txAttributes)
 
-        if (tradeType.toLowerCase() === 'sell') {
-          tokenSwap.expectedOut = {
-            amount: parseFloat(ask.amount) / DENOM_UNIT,
-            token: TERRA_TOKENS[ask.denom].symbol
-          }
-          tokenSwap.price =  {
-            amount: parseFloat(offer.amount) / DENOM_UNIT,
-            token: TERRA_TOKENS[offer.denom].symbol
-          }
-        } else {
-          tokenSwap.expectedIn = {
-            amount: parseFloat(ask.amount) / DENOM_UNIT,
-            token: TERRA_TOKENS[ask.denom].symbol
-          }
-          tokenSwap.price =  {
-            amount: parseFloat(offer.amount) / DENOM_UNIT,
-            token: TERRA_TOKENS[offer.denom].symbol
-          }
+        tokenSwap.expectedIn =  {
+          amount: parseFloat(offer.amount) / DENOM_UNIT,
+          token: TERRA_TOKENS[offer.denom].symbol
+        }
+        tokenSwap.expectedOut = {
+          amount: parseFloat(ask.amount) / DENOM_UNIT,
+          token: TERRA_TOKENS[ask.denom].symbol
         }
         tokenSwap.fee = {
           amount: parseFloat(fee.amount) / DENOM_UNIT,

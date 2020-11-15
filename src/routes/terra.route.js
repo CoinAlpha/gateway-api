@@ -107,7 +107,7 @@ router.post('/price', async (req, res) => {
       reportConnectionError(res, err)
     })
 
-    debug('exchangeRate', exchangeRate)
+    // debug('exchangeRate', exchangeRate)
 
     res.status(200).json(
       {
@@ -120,10 +120,6 @@ router.post('/price', async (req, res) => {
         tradeType: tradeType,
         price: exchangeRate.price.amount,
         cost: exchangeRate.cost.amount
-        // swapIn: exchangeRate.swapIn,
-        // swapOut: exchangeRate.swapOut,
-        // tobinTax: terra.tobinTax,
-        // minSpread: terra.minSpread
       }
     )
   } catch (err) {
@@ -185,7 +181,7 @@ router.post('/trade', async (req, res) => {
       amount: amount,
       // gasPrice: gasPrice
     }
-    debug('tokenSwaps', tokenSwaps)
+    // debug('tokenSwaps', tokenSwaps)
     Object.assign(swapResult, tokenSwaps);
     res.status(200).json(
       swapResult
