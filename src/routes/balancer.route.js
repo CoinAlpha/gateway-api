@@ -16,6 +16,7 @@ const eth = new Ethereum(process.env.BALANCER_NETWORK)
 const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Swap price exceeds maxPrice'
 const swapLessThanMaxPriceError = 'Swap price lower than maxPrice'
+const separator = ','
 
 router.use((req, res, next) => {
   const cert = req.connection.getPeerCertificate()
@@ -303,6 +304,119 @@ router.post('/buy', async (req, res) => {
       })
       debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
     }
+  } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+  }
+})
+
+router.post('/allowances', async (req, res) => {
+  /*
+      POST: /allowances
+      x-www-form-urlencoded: {
+        privateKey:{{privateKey}}
+        tokenAddressList:{{tokenAddressList}}
+      }
+  */
+  const initTime = Date.now()
+  const paramData = getParamData(req.body)
+  const privateKey = paramData.privateKey
+  let wallet
+  try {
+    wallet = new ethers.Wallet(privateKey, eth.provider)
+  } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+    return
+  }
+  let tokenAddressList
+  if (paramData.tokenAddressList) {
+    tokenAddressList = paramData.tokenAddressList.split(separator)
+  }
+  debug(tokenAddressList)
+  const spender = balancer.exchangeProxy
+
+  const approvals = {}
+  try {
+    Promise.all(
+      tokenAddressList.map(async (key) =>
+      approvals[key] = await eth.getERC20Allowance(wallet, spender, key)
+      )).then(() => {
+      res.status(200).json({
+        network: eth.network,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        spender: spender,
+        approvals: approvals,
+      })
+    }
+    )
+  } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+  }
+})
+
+router.post('/approve', async (req, res) => {
+  /*
+      POST: /approve
+      x-www-form-urlencoded: {
+        privateKey:{{privateKey}}
+        tokenAddress:"0x....."
+        amount:{{amount}}
+      }
+  */
+  const initTime = Date.now()
+  const paramData = getParamData(req.body)
+  const privateKey = paramData.privateKey
+  let wallet
+  try {
+    wallet = new ethers.Wallet(privateKey, eth.provider)
+  } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+    return
+  }
+  const tokenAddress = paramData.tokenAddress
+  const spender = balancer.exchangeProxy
+  let amount
+  paramData.amount  ? amount = ethers.utils.parseEther(paramData.amount)
+                    : amount = ethers.utils.parseEther('1000000000') // approve for 1 billion units if no amount specified
+  let gasPrice
+  if (paramData.gasPrice) {
+    gasPrice = parseFloat(paramData.gasPrice)
+  }
+
+  try {
+    // call approve function
+    const approval = await eth.approveERC20(wallet, spender, tokenAddress, amount, gasPrice)
+
+    // submit response
+    res.status(200).json({
+      network: eth.network,
+      timestamp: initTime,
+      latency: latency(initTime, Date.now()),
+      tokenAddress: tokenAddress,
+      spender: spender,
+      amount: amount / 1e18.toString(),
+      approval: approval
+    })
   } catch (err) {
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
