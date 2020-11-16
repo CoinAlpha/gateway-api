@@ -11,6 +11,7 @@ import balancerRoutes from './routes/balancer.route'
 // import celoRoutes from './routes/celo.route'
 import ethRoutes from './routes/eth.route'
 import terraRoutes from './routes/terra.route'
+import uniswapRoutes from './routes/uniswap.route'
 
 // terminate if environment not found
 const result = dotenv.config();
@@ -40,6 +41,7 @@ app.use('/eth', ethRoutes);
 // app.use('/celo', celoRoutes);
 app.use('/terra', terraRoutes);
 app.use('/balancer', balancerRoutes);
+app.use('/uniswap', uniswapRoutes);
 
 app.get('/', (req, res, next) => {
   const cert = req.connection.getPeerCertificate()
