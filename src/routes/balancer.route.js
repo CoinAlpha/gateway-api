@@ -186,7 +186,7 @@ router.post('/sell', async (req, res) => {
       amount,
     )
 
-    const price = expectedOut / amount 
+    const price = expectedOut / amount
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price >= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
