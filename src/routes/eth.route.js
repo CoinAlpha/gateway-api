@@ -5,8 +5,10 @@ import { getParamData, latency, reportConnectionError, statusMessages } from '..
 import Ethereum from '../services/eth';
 
 const router = express.Router()
-const eth = new Ethereum(process.env.BALANCER_NETWORK)
+const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 const separator = ','
+const spenders = { balancer: process.env.EXCHANGE_PROXY,
+                  uniswap: process.env.UNISWAP_ROUTER }
 
 const debug = require('debug')('router')
 
@@ -69,12 +71,13 @@ router.post('/allowances', async (req, res) => {
       x-www-form-urlencoded: {
         privateKey:{{privateKey}}
         tokenAddressList:{{tokenAddressList}}
-        spenderAddress:"0x....." 
+        spenderAddress:"0x....."
       }
   */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
+  const spender = spenders[paramData.connector]
   let wallet
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
@@ -91,8 +94,6 @@ router.post('/allowances', async (req, res) => {
   if (paramData.tokenAddressList) {
     tokenAddressList = paramData.tokenAddressList.split(separator)
   }
-  debug(tokenAddressList)
-  const spender = paramData.spenderAddress
 
   const approvals = {}
   try {
@@ -125,13 +126,14 @@ router.post('/approve', async (req, res) => {
       x-www-form-urlencoded: {
         privateKey:{{privateKey}}
         tokenAddress:"0x....."
-        spenderAddress:"0x....." 
+        spenderAddress:"0x....."
         amount:{{amount}}
       }
   */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
+  const spender = spenders[paramData.connector]
   let wallet
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
@@ -145,10 +147,11 @@ router.post('/approve', async (req, res) => {
     return
   }
   const tokenAddress = paramData.tokenAddress
-  const spender = paramData.spenderAddress
-  let amount
-  paramData.amount  ? amount = ethers.utils.parseEther(paramData.amount)
-                    : amount = ethers.utils.parseEther('1000000000') // approve for 1 billion units if no amount specified
+  let amount, decimals
+  paramData.decimals ? decimals = paramData.decimals
+                     : decimals = 18
+  paramData.amount  ? amount = ethers.utils.parseUnits(paramData.amount, decimals)
+                    : amount = ethers.utils.parseUnits('1000000000', decimals) // approve for 1 billion units if no amount specified
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
