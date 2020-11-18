@@ -20,7 +20,6 @@ const env = process.env.NODE_ENV
 const port = process.env.PORT
 const certPassphrase = process.env.CERT_PASSPHRASE
 const balancerNetwork = process.env.BALANCER_NETWORK
-const uniswapNetwork = process.env.UNISWAP_NETWORK
 let certPath = process.env.CERT_PATH
 
 if ((typeof certPath === 'undefined' && certPath == null) || certPath === '') {
@@ -80,4 +79,4 @@ server.listen(port)
 server.on('error', onError)
 server.on('listening', onListening)
 
-console.log('server: gateway-api | port:', port, '| balancer-network:', balancerNetwork, '| uniswap-network:', uniswapNetwork);
+console.log('server: gateway-api | port:', port, '| balancer-network:', balancerNetwork);

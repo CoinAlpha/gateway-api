@@ -10,6 +10,8 @@ const router = express.Router()
 const eth = new Ethereum(process.env.BALANCER_NETWORK)
 const balancer = new Balancer(process.env.BALANCER_NETWORK)
 const seperator = ','
+const spenders = { balancer: process.env.EXCHANGE_PROXY,
+                  uniswap: process.env.UNISWAP_ROUTER }
 
 const debug = require('debug')('router')
 
@@ -77,6 +79,7 @@ router.post('/allowances', async (req, res) => {
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
+  const spender = spenders[paramData.connector]
   let wallet
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
@@ -89,7 +92,6 @@ router.post('/allowances', async (req, res) => {
     })
     return
   }
-  const spender = balancer.exchangeProxy
   let tokenAddressList
   if (paramData.tokenAddressList) {
     tokenAddressList = paramData.tokenAddressList.split(seperator)
@@ -134,6 +136,7 @@ router.post('/approve', async (req, res) => {
   // params: privateKey (required), tokenAddress (required), amount (optional), gasPrice (required)
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
+  const spender = spenders[paramData.connector]
   let wallet
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
@@ -147,10 +150,11 @@ router.post('/approve', async (req, res) => {
     return
   }
   const tokenAddress = paramData.tokenAddress
-  const spender = balancer.exchangeProxy
-  let amount
-  paramData.amount  ? amount = ethers.utils.parseEther(paramData.amount)
-                    : amount = ethers.utils.parseEther('1000000000') // approve for 1 billion units if no amount specified
+  let amount, decimals
+  paramData.decimals ? decimals = paramData.decimals
+                     : decimals = 18
+  paramData.amount  ? amount = ethers.utils.parseUnits(paramData.amount, decimals)
+                    : amount = ethers.utils.parseUnits('1000000000', decimals) // approve for 1 billion units if no amount specified
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)

@@ -5,15 +5,17 @@ const proxyArtifact = require('../static/uniswap_v2_router_abi.json')
 const debug = require('debug')('router')
 
 const GAS_LIMIT = 1200000  //120000000
+const TTL = 60
 
 export default class Uniswap {
   constructor (network = 'kovan') {
     // network defaults to KOVAN
     const providerUrl = process.env.ETHEREUM_RPC_URL
-    this.network = process.env.UNISWAP_NETWORK
+    this.network = process.env.ETHEREUM_CHAIN
     this.chainID = uni.ChainId.KOVAN
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
-    this.exchangeProxy = process.env.UNISWAP_PROXY
+    this.router = process.env.UNISWAP_ROUTER
+    this.allowedSlippage = new uni.Percent('0', '100')
 
     if (network === 'kovan') {
       this.chainID = uni.ChainId.KOVAN
@@ -47,15 +49,33 @@ export default class Uniswap {
     const tokenAmountIn = new uni.TokenAmount(tIn, amountIn)
     const result = uni.Router.swapCallParameters(
           uni.Trade.exactIn(route, tokenAmountIn),
-          { ttl: 50, recipient: wallet.address, allowedSlippage: new uni.Percent('1', '100') }
+          { ttl: TTL, recipient: wallet.address, allowedSlippage: this.allowedSlippage }
         )
 
-    const erc = new Ethereum(this.network)
-    const approval = await erc.approveERC20(wallet, this.exchangeProxy, tokenAddress, ethers.utils.parseUnits(tokenAmountIn.toExact(), tIn.decimals), gasPrice)
-    let confirmApproval = await approval.wait()  // Wait to ensure that approval transaction is mined
-    debug(`Approval Hash: ${approval.hash}`);
+    const contract = new ethers.Contract(this.router, proxyArtifact.abi, wallet)
+    const tx = await contract.[result.methodName](
+      ...result.args,
+      {
+        gasPrice: gasPrice * 1e9,
+        gasLimit: GAS_LIMIT,
+        value: result.value
+      }
+    )
 
-    const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
+    debug(`Tx Hash: ${tx.hash}`);
+    const txObj = await tx.wait()
+    return txObj
+  }
+
+  async swapExactOut (wallet, route, tokenAddress, amountOut, gasPrice) {
+    const tOut = await uni.Fetcher.fetchTokenData(this.chainID, tokenAddress)
+    const tokenAmountOut = new uni.TokenAmount(tOut, amountOut)
+    const result = uni.Router.swapCallParameters(
+          uni.Trade.exactOut(route, tokenAmountOut),
+          { ttl: TTL, recipient: wallet.address, allowedSlippage: this.allowedSlippage }
+        )
+
+    const contract = new ethers.Contract(this.router, proxyArtifact.abi, wallet)
     const tx = await contract.[result.methodName](
       ...result.args,
       {

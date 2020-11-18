@@ -10,8 +10,8 @@ require('dotenv').config()
 const debug = require('debug')('router')
 
 const router = express.Router()
-const uniswap = new Uniswap(process.env.UNISWAP_NETWORK)
-const eth = new Ethereum(process.env.UNISWAP_NETWORK)
+const uniswap = new Uniswap(process.env.ETHEREUM_CHAIN)
+const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 
 const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Swap price exceeds maxPrice'
@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
   res.status(200).json({
     network: uniswap.network,
     provider: uniswap.provider.connection.url,
-    exchangeProxy: uniswap.exchangeProxy,
+    exchangeProxy: uniswap.router,
     subgraphUrl: process.env.REACT_APP_SUBGRAPH_URL, // would most likely replace with uniswap's when working on the client connector
     connection: true,
     timestamp: Date.now(),
@@ -266,7 +266,7 @@ router.post('/buy', async (req, res) => {
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
-      const txObj = await uniswap.swapExactIn(
+      const txObj = await uniswap.swapExactOut(
         wallet,
         route,
         quoteTokenAddress,
