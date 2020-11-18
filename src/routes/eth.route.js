@@ -71,7 +71,7 @@ router.post('/allowances', async (req, res) => {
       x-www-form-urlencoded: {
         privateKey:{{privateKey}}
         tokenAddressList:{{tokenAddressList}}
-        spenderAddress:"0x....."
+        connector:{{connector_name}}"
       }
   */
   const initTime = Date.now()
@@ -126,7 +126,7 @@ router.post('/approve', async (req, res) => {
       x-www-form-urlencoded: {
         privateKey:{{privateKey}}
         tokenAddress:"0x....."
-        spenderAddress:"0x....."
+        connector:{{connector_name}}"
         amount:{{amount}}
       }
   */
