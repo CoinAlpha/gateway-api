@@ -1,15 +1,12 @@
-import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import express from 'express';
 
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
 import Ethereum from '../services/eth';
-import Balancer from '../services/balancer';
 
 const router = express.Router()
-const eth = new Ethereum(process.env.BALANCER_NETWORK)
-const balancer = new Balancer(process.env.BALANCER_NETWORK)
-const seperator = ','
+const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
+const separator = ','
 const spenders = { balancer: process.env.EXCHANGE_PROXY,
                   uniswap: process.env.UNISWAP_ROUTER }
 
@@ -40,7 +37,7 @@ router.post('/balances', async (req, res) => {
   }
   let tokenAddressList
   if (paramData.tokenAddressList) {
-    tokenAddressList = paramData.tokenAddressList.split(seperator)
+    tokenAddressList = paramData.tokenAddressList.split(separator)
   }
   debug(tokenAddressList)
 
@@ -74,6 +71,7 @@ router.post('/allowances', async (req, res) => {
       x-www-form-urlencoded: {
         privateKey:{{privateKey}}
         tokenAddressList:{{tokenAddressList}}
+        connector:{{connector_name}}
       }
   */
   const initTime = Date.now()
@@ -94,9 +92,8 @@ router.post('/allowances', async (req, res) => {
   }
   let tokenAddressList
   if (paramData.tokenAddressList) {
-    tokenAddressList = paramData.tokenAddressList.split(seperator)
+    tokenAddressList = paramData.tokenAddressList.split(separator)
   }
-  debug(tokenAddressList)
 
   const approvals = {}
   try {
@@ -127,13 +124,14 @@ router.post('/approve', async (req, res) => {
   /*
       POST: /approve
       x-www-form-urlencoded: {
-        tokenAddress:"0x....."
         privateKey:{{privateKey}}
+        tokenAddress:"0x....."
+        decimals: {{token_decimals}}
+        connector:{{connector_name}}
         amount:{{amount}}
       }
   */
   const initTime = Date.now()
-  // params: privateKey (required), tokenAddress (required), amount (optional), gasPrice (required)
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
   const spender = spenders[paramData.connector]
@@ -195,7 +193,6 @@ router.post('/get-weth', async (req, res) => {
       }
   */
   const initTime = Date.now()
-  // params: primaryKey (required), amount (required), gasPrice (optional)
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
   let wallet
@@ -236,16 +233,6 @@ router.post('/get-weth', async (req, res) => {
       message: err
     })
   }
-
-  // When Balancer gives us the faucet ABI, we can use this faucet to get all Kovan tokens
-  // const contract = new ethers.Contract(abi.KovanFaucetAddress, abi.KovanFaucetAbi, provider)
-  // contract.drip(wallet.address, tokenAddress).then((response) => {
-  //   res.status(200).json({
-  //     network: network,
-  //     timestamp: initTime,
-  //     result: response
-  //   })
-  // })
 })
 
 module.exports = router;
