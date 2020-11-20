@@ -7,8 +7,10 @@ import Ethereum from '../services/eth';
 const router = express.Router()
 const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 const separator = ','
-const spenders = { balancer: process.env.EXCHANGE_PROXY,
-                  uniswap: process.env.UNISWAP_ROUTER }
+const spenders = {
+  balancer: process.env.EXCHANGE_PROXY,
+  uniswap: process.env.UNISWAP_ROUTER
+}
 
 const debug = require('debug')('router')
 

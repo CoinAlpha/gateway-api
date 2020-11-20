@@ -4,18 +4,16 @@ import express from 'express';
 
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
 import Balancer from '../services/balancer';
-import Ethereum from '../services/eth';
 
 require('dotenv').config()
 const debug = require('debug')('router')
 
 const router = express.Router()
-const balancer = new Balancer(process.env.BALANCER_NETWORK)
-const eth = new Ethereum(process.env.BALANCER_NETWORK)
+const balancer = new Balancer(process.env.ETHEREUM_CHAIN)
 
 const denomMultiplier = 1e18
-const swapMoreThanMaxPriceError = 'Swap price exceeds maxPrice'
-const swapLessThanMaxPriceError = 'Swap price lower than maxPrice'
+const swapMoreThanMaxPriceError = 'Price too high'
+const swapLessThanMaxPriceError = 'Price too low'
 
 router.use((req, res, next) => {
   const cert = req.connection.getPeerCertificate()
@@ -49,6 +47,7 @@ router.post('/sell-price', async (req, res) => {
         "quote":"0x....."
         "base":"0x....."
         "amount":0.1
+        "swaps": 4 (optional)
       }
   */
   const initTime = Date.now()
@@ -57,6 +56,10 @@ router.post('/sell-price', async (req, res) => {
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
   const amount = new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  let maxSwaps
+  if (paramData.maxSwaps) {
+    maxSwaps = parseInt(paramData.maxSwaps)
+  }
 
   try {
     // fetch the optimal pool mix from balancer-sor
@@ -64,6 +67,7 @@ router.post('/sell-price', async (req, res) => {
       baseTokenAddress,     // tokenIn is base asset
       quoteTokenAddress,    // tokenOut is quote asset
       amount,
+      maxSwaps,
     )
 
     if (swaps != null && expectedOut != null) {
@@ -109,6 +113,10 @@ router.post('/buy-price', async (req, res) => {
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
   const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  let maxSwaps
+  if (paramData.maxSwaps) {
+    maxSwaps = parseInt(paramData.maxSwaps)
+  }
 
   try {
     // fetch the optimal pool mix from balancer-sor
@@ -116,6 +124,7 @@ router.post('/buy-price', async (req, res) => {
       quoteTokenAddress,    // tokenIn is quote asset
       baseTokenAddress,     // tokenOut is base asset
       amount,
+      maxSwaps,
     )
     if (swaps != null && expectedIn != null) {
       res.status(200).json({
@@ -174,6 +183,10 @@ router.post('/sell', async (req, res) => {
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
   }
+  let maxSwaps
+  if (paramData.maxSwaps) {
+    maxSwaps = parseInt(paramData.maxSwaps)
+  }
 
   const minAmountOut = maxPrice / amount * denomMultiplier
   debug('minAmountOut', minAmountOut)
@@ -184,6 +197,7 @@ router.post('/sell', async (req, res) => {
       baseTokenAddress,     // tokenIn is base asset
       quoteTokenAddress,    // tokenOut is quote asset
       amount,
+      maxSwaps,
     )
 
     const price = expectedOut / amount
@@ -199,6 +213,8 @@ router.post('/sell', async (req, res) => {
         parseInt(expectedOut) / denomMultiplier,
         gasPrice,
       )
+
+      debug(txObj)
 
       // submit response
       res.status(200).json({
@@ -260,6 +276,10 @@ router.post('/buy', async (req, res) => {
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
   }
+  let maxSwaps
+  if (paramData.maxSwaps) {
+    maxSwaps = parseInt(paramData.maxSwaps)
+  }
 
   try {
     // fetch the optimal pool mix from balancer-sor
@@ -267,6 +287,7 @@ router.post('/buy', async (req, res) => {
       quoteTokenAddress,    // tokenIn is quote asset
       baseTokenAddress,     // tokenOut is base asset
       amount,
+      maxSwaps,
     )
 
     const price = expectedIn / amount

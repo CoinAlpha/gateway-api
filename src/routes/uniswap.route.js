@@ -2,20 +2,18 @@ import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import express from 'express';
 
-import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
+import { getParamData, latency, statusMessages } from '../services/utils';
 import Uniswap from '../services/uniswap';
-import Ethereum from '../services/eth';
 
 require('dotenv').config()
 const debug = require('debug')('router')
 
 const router = express.Router()
 const uniswap = new Uniswap(process.env.ETHEREUM_CHAIN)
-const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 
 const denomMultiplier = 1e18
-const swapMoreThanMaxPriceError = 'Swap price exceeds maxPrice'
-const swapLessThanMaxPriceError = 'Swap price lower than maxPrice'
+const swapMoreThanMaxPriceError = 'Price too high'
+const swapLessThanMaxPriceError = 'Price too low'
 
 router.use((req, res, next) => {
   const cert = req.connection.getPeerCertificate()
@@ -35,8 +33,7 @@ router.post('/', async (req, res) => {
   res.status(200).json({
     network: uniswap.network,
     provider: uniswap.provider.connection.url,
-    exchangeProxy: uniswap.router,
-    subgraphUrl: process.env.REACT_APP_SUBGRAPH_URL, // would most likely replace with uniswap's when working on the client connector
+    uniswap_router: uniswap.router,
     connection: true,
     timestamp: Date.now(),
   })
