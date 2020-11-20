@@ -10,8 +10,8 @@ require('dotenv').config()
 const debug = require('debug')('router')
 
 const router = express.Router()
-const balancer = new Balancer(process.env.BALANCER_NETWORK)
-const eth = new Ethereum(process.env.BALANCER_NETWORK)
+const balancer = new Balancer(process.env.ETHEREUM_CHAIN)
+const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 
 const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Swap price exceeds maxPrice'

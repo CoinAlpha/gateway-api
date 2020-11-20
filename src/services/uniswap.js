@@ -12,7 +12,6 @@ export default class Uniswap {
     // network defaults to KOVAN
     const providerUrl = process.env.ETHEREUM_RPC_URL
     this.network = process.env.ETHEREUM_CHAIN
-    this.chainID = uni.ChainId.KOVAN
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
     this.router = process.env.UNISWAP_ROUTER
     this.allowedSlippage = new uni.Percent('0', '100')
@@ -32,14 +31,14 @@ export default class Uniswap {
       var tOut = await uni.Fetcher.fetchTokenData(this.chainID, tokenOut)
 
       try {
-      pair = await uni.Fetcher.fetchPairData(tIn, tOut)
-      route = new uni.Route([pair], tIn, tOut)
+        pair = await uni.Fetcher.fetchPairData(tIn, tOut)
+        route = new uni.Route([pair], tIn, tOut)
       }
-      catch(err){
-      console.log('Trying alternative/indirect route.')
-      pairOne = await uni.Fetcher.fetchPairData(tIn, uni.WETH[this.chainID])
-      pairTwo = await uni.Fetcher.fetchPairData(tOut, uni.WETH[this.chainID])
-      route = new uni.Route([pairOne, pairTwo], tIn, tOut)
+      catch(err) {
+        console.log('Trying alternative/indirect route.')
+        pairOne = await uni.Fetcher.fetchPairData(tIn, uni.WETH[this.chainID])
+        pairTwo = await uni.Fetcher.fetchPairData(tOut, uni.WETH[this.chainID])
+        route = new uni.Route([pairOne, pairTwo], tIn, tOut)
       }
       return route
   }
@@ -48,9 +47,13 @@ export default class Uniswap {
     const tIn = await uni.Fetcher.fetchTokenData(this.chainID, tokenAddress)
     const tokenAmountIn = new uni.TokenAmount(tIn, amountIn)
     const result = uni.Router.swapCallParameters(
-          uni.Trade.exactIn(route, tokenAmountIn),
-          { ttl: TTL, recipient: wallet.address, allowedSlippage: this.allowedSlippage }
-        )
+      uni.Trade.exactIn(route, tokenAmountIn),
+      { 
+        ttl: TTL,
+        recipient: wallet.address,
+        allowedSlippage: this.allowedSlippage
+      }
+    )
 
     const contract = new ethers.Contract(this.router, proxyArtifact.abi, wallet)
     const tx = await contract.[result.methodName](
@@ -71,9 +74,13 @@ export default class Uniswap {
     const tOut = await uni.Fetcher.fetchTokenData(this.chainID, tokenAddress)
     const tokenAmountOut = new uni.TokenAmount(tOut, amountOut)
     const result = uni.Router.swapCallParameters(
-          uni.Trade.exactOut(route, tokenAmountOut),
-          { ttl: TTL, recipient: wallet.address, allowedSlippage: this.allowedSlippage }
-        )
+      uni.Trade.exactOut(route, tokenAmountOut),
+      { 
+        ttl: TTL, 
+        recipient: wallet.address, 
+        allowedSlippage: this.allowedSlippage 
+      }
+    )
 
     const contract = new ethers.Contract(this.router, proxyArtifact.abi, wallet)
     const tx = await contract.[result.methodName](
