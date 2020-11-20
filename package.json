@@ -12,6 +12,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@uniswap/sdk": "^3.0.3",
     "@balancer-labs/sor": "^0.3.3",
     "@terra-money/terra.js": "^0.5.8",
     "bignumber.js": "^9.0.0",
