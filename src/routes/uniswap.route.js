@@ -269,7 +269,7 @@ router.post('/buy', async (req, res) => {
       const txObj = await uniswap.swapExactOut(
         wallet,
         route,
-        quoteTokenAddress,
+        baseTokenAddress,
         amount,
         gasPrice,
       )
