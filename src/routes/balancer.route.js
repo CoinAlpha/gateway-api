@@ -4,18 +4,16 @@ import express from 'express';
 
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
 import Balancer from '../services/balancer';
-import Ethereum from '../services/eth';
 
 require('dotenv').config()
 const debug = require('debug')('router')
 
 const router = express.Router()
 const balancer = new Balancer(process.env.ETHEREUM_CHAIN)
-const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 
 const denomMultiplier = 1e18
-const swapMoreThanMaxPriceError = 'Swap price exceeds maxPrice'
-const swapLessThanMaxPriceError = 'Swap price lower than maxPrice'
+const swapMoreThanMaxPriceError = 'Price too high'
+const swapLessThanMaxPriceError = 'Price too low'
 
 router.use((req, res, next) => {
   const cert = req.connection.getPeerCertificate()

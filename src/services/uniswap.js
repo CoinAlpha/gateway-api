@@ -1,27 +1,30 @@
-import Ethereum from '../services/eth';
 const uni = require('@uniswap/sdk')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/uniswap_v2_router_abi.json')
 const debug = require('debug')('router')
 
-const GAS_LIMIT = 1200000  //120000000
-const TTL = 60
+// constants
+const ROUTER = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
+const GAS_LIMIT = 1200000;
+const TTL = 60;
 
 export default class Uniswap {
-  constructor (network = 'kovan') {
-    // network defaults to KOVAN
+  constructor (network = 'mainnet') {
     const providerUrl = process.env.ETHEREUM_RPC_URL
     this.network = process.env.ETHEREUM_CHAIN
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
-    this.router = process.env.UNISWAP_ROUTER
+    this.router = ROUTER;
     this.allowedSlippage = new uni.Percent('0', '100')
 
-    if (network === 'kovan') {
-      this.chainID = uni.ChainId.KOVAN
-    } else if (network === 'mainnet') {
-      this.chainID = uni.ChainId.MAINNET
-    } else {
-      throw Error(`Invalid network ${network}`)
+    switch (network) {
+      case 'mainnet':
+        this.chainID = uni.ChainId.MAINNET;
+        break;
+      case 'kovan':
+        this.chainID = uni.ChainId.KOVAN;
+        break;
+      default:
+        throw Error(`Invalid network ${network}`)
     }
   }
 

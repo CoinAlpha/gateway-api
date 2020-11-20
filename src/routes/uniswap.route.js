@@ -12,8 +12,8 @@ const router = express.Router()
 const uniswap = new Uniswap(process.env.ETHEREUM_CHAIN)
 
 const denomMultiplier = 1e18
-const swapMoreThanMaxPriceError = 'Swap price exceeds maxPrice'
-const swapLessThanMaxPriceError = 'Swap price lower than maxPrice'
+const swapMoreThanMaxPriceError = 'Price too high'
+const swapLessThanMaxPriceError = 'Price too low'
 
 router.use((req, res, next) => {
   const cert = req.connection.getPeerCertificate()
