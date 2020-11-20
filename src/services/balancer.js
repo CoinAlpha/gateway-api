@@ -7,11 +7,11 @@ const debug = require('debug')('router')
 
 // constants
 const MULTI = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441';
-const EXCHANGE_PROXY = '0x4e67bf5bD28Dd4b570FBAFe11D0633eCbA2754Ec';
-const EXCHANGE_PROXY_KOVAN = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
+const EXCHANGE_PROXY = '0x3E66B66Fd1d0b02fDa6C811Da9E0547970DB2f21';
+const EXCHANGE_PROXY_KOVAN = '0x4e67bf5bD28Dd4b570FBAFe11D0633eCbA2754Ec';
 const MAX_UINT = ethers.constants.MaxUint256;
-const MAX_SWAPS = 2;
-const GAS_BASE = 100000;
+const MAX_SWAPS = 4;
+const GAS_BASE = 200000;
 const GAS_PER_SWAP = 100000;
 
 export default class Balancer {
@@ -32,7 +32,7 @@ export default class Balancer {
     }
   }
 
-  async priceSwapIn (tokenIn, tokenOut, tokenInAmount) {
+  async priceSwapIn (tokenIn, tokenOut, tokenInAmount, maxSwaps = MAX_SWAPS) {
     // Fetch all the pools that contain the tokens provided
     const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
     if (pools.pools.length === 0) {
@@ -53,7 +53,7 @@ export default class Balancer {
       poolData,                             // balancers: Pool[]
       'swapExactIn',                        // swapType: string
       tokenInAmount,                        // targetInputAmount: BigNumber
-      new BigNumber(MAX_SWAPS.toString()),  // maxBalancers: number
+      new BigNumber(maxSwaps.toString()),   // maxBalancers: number
       0                                     // costOutputToken: BigNumber
     )
 
@@ -77,7 +77,7 @@ export default class Balancer {
     return { swaps, expectedOut }
   }
 
-  async priceSwapOut (tokenIn, tokenOut, tokenOutAmount) {
+  async priceSwapOut (tokenIn, tokenOut, tokenOutAmount, maxSwaps = MAX_SWAPS) {
     // Fetch all the pools that contain the tokens provided
     const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
     if (pools.pools.length === 0) {
@@ -98,7 +98,7 @@ export default class Balancer {
       poolData,                             // balancers: Pool[]
       'swapExactOut',                       // swapType: string
       tokenOutAmount,                       // targetInputAmount: BigNumber
-      new BigNumber(MAX_SWAPS.toString()),  // maxBalancers: number
+      new BigNumber(maxSwaps.toString()),   // maxBalancers: number
       0                                     // costOutputToken: BigNumber
     )
     const swapsFormatted = sor.formatSwapsExactAmountOut(sorSwaps, MAX_UINT, MAX_UINT)
@@ -122,6 +122,7 @@ export default class Balancer {
   }
 
   async swapExactIn (wallet, swaps, tokenIn, tokenOut, amountIn, minAmountOut, gasPrice) {
+    debug(`Number of swaps: ${swaps.length}`);
     const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
     const tx = await contract.batchSwapExactIn(
       swaps,
@@ -131,7 +132,7 @@ export default class Balancer {
       0,
       {
         gasPrice: gasPrice * 1e9,
-        gasLimit: GAS_BASE + MAX_SWAPS * GAS_PER_SWAP,
+        gasLimit: GAS_BASE + swaps.length * GAS_PER_SWAP,
       }
     )
     debug(`Tx Hash: ${tx.hash}`);
@@ -140,6 +141,7 @@ export default class Balancer {
   }
 
   async swapExactOut (wallet, swaps, tokenIn, tokenOut, expectedIn, gasPrice) {
+    debug(`Number of swaps: ${swaps.length}`);
     const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
     const tx = await contract.batchSwapExactOut(
       swaps,
@@ -148,7 +150,7 @@ export default class Balancer {
       expectedIn,
       {
         gasPrice: gasPrice * 1e9,
-        gasLimit: GAS_BASE + MAX_SWAPS * GAS_PER_SWAP,
+        gasLimit: GAS_BASE + swaps.length * GAS_PER_SWAP,
       }
     )
     debug(`Tx Hash: ${tx.hash}`)
