@@ -1,12 +1,10 @@
 'use strict'
 
 import express from 'express'
-import { MnemonicKey, Coin, MsgSwap, isTxError } from '@terra-money/terra.js'
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
 import { getConfig } from '../services/config';
 
 import Terra from '../services/terra';
-import e from 'express';
 
 const debug = require('debug')('router')
 const router = express.Router();
@@ -119,7 +117,8 @@ router.post('/price', async (req, res) => {
         amount: amount,
         tradeType: tradeType,
         price: exchangeRate.price.amount,
-        cost: exchangeRate.cost.amount
+        cost: exchangeRate.cost.amount,
+        txFee: exchangeRate.txFee.amount,
       }
     )
   } catch (err) {

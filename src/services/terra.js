@@ -1,9 +1,10 @@
-import { LCDClient, Coin, MsgSwap, MnemonicKey, isTxError  } from '@terra-money/terra.js'
+import { LCDClient, Coin, MsgSwap, StdTx, StdFee, Dec, MnemonicKey, isTxError, Coins  } from '@terra-money/terra.js'
 import BigNumber from 'bignumber.js'
 
 require('dotenv').config()
 const debug = require('debug')('router')
 const config = require('../services/config')
+const dummyAccount = require('../static/terraTestAccount')
 
 // constants
 const ENV_CONFIG = config.getConfig()
@@ -15,10 +16,11 @@ const TERRA_TOKENS = {
   umnt: { symbol: 'MNT' },
 }
 const DENOM_UNIT = BigNumber('1e+6')
-const TOBIN_TAX = 0.25  // a Tobin Tax (set at 0.25%) for spot-converting Terra<>Terra swaps
-const MIN_SPREAD = 2.0  // a minimum spread (set at 2%) for Terra<>Luna swaps
+const TOBIN_TAX = 0.0025  // a Tobin Tax (set at 0.25%) for spot-converting Terra<>Terra swaps
+const MIN_SPREAD = 0.02  // a minimum spread (set at 2%) for Terra<>Luna swaps
+const GAS_PRICE = 0.02
 const GAS_ADJUSTMENT = 1.5
-const TESTNET_MEMO = '0xhb34'
+const MEMO = ENV_CONFIG.TERRA.MEMO
 
 export default class Terra {
   constructor () {
@@ -35,6 +37,9 @@ export default class Terra {
       this.lcd.market.parameters().catch(() => {
         throw new Error('Connection error')
       })
+      // set gas & fee
+      this.lcd.config.gasAdjustment = GAS_ADJUSTMENT
+      this.lcd.config.gasPrice = GAS_PRICE
     } catch (err) {
       throw Error(`Connection failed: ${this.network}`)
     }
@@ -47,6 +52,8 @@ export default class Terra {
         URL: this.lcdUrl,
         chainID: this.network,
       })
+      lcd.config.gasAdjustment = GAS_ADJUSTMENT
+      lcd.config.gasPrice = GAS_PRICE
       return lcd
     } catch (err) {
       let reason
@@ -119,10 +126,30 @@ export default class Terra {
     }
   }
 
+  async getTxFee () {
+    try {
+      const lunaFee = GAS_PRICE * GAS_ADJUSTMENT
+      let feeList = { uluna: lunaFee }
+      await this.lcd.oracle.exchangeRates().then(rates => {
+        Object.keys(rates._coins).forEach(key => {
+          feeList[key] = rates._coins[key].amount * lunaFee
+        })
+      })
+      debug('lunaFee', lunaFee, feeList)
+
+      return feeList
+    } catch (err) {
+      let reason
+      console.log(reason)
+      err.reason ? reason = err.reason : reason = 'error Terra exchange rate lookup'
+      return reason
+    }
+  }
+
   // get Terra Swap Rate
   async getSwapRate (baseToken, quoteToken, amount, tradeType) {
     try {
-      let exchangeRate, offerDenom, swapDenom, cost, offer
+      let exchangeRate, offerCoin, offerDenom, swapDenom, cost, costAmount, offer
       let swaps = {}
 
       if (tradeType.toLowerCase() === 'sell') {
@@ -130,15 +157,16 @@ export default class Terra {
         offerDenom = this.getTokenDenom(baseToken)
         swapDenom = this.getTokenDenom(quoteToken)
 
-        const offerCoin = new Coin(offerDenom, amount * DENOM_UNIT);
+        offerCoin = new Coin(offerDenom, amount * DENOM_UNIT);
         await this.lcd.market.swapRate(offerCoin, swapDenom).then(swapCoin => {
           offer = { amount: amount }
           exchangeRate = {
             amount: (swapCoin.amount / DENOM_UNIT) / amount,
             token: quoteToken
           }
+          costAmount = amount * exchangeRate.amount
           cost = {
-            amount: amount * exchangeRate.amount,
+            amount: costAmount,
             token: quoteToken
           }
         })
@@ -147,24 +175,32 @@ export default class Terra {
         offerDenom = this.getTokenDenom(quoteToken)
         swapDenom = this.getTokenDenom(baseToken)
 
-        const offerCoin = new Coin(offerDenom, 1 * DENOM_UNIT);
+        offerCoin = new Coin(offerDenom, 1 * DENOM_UNIT);
         await this.lcd.market.swapRate(offerCoin, swapDenom).then(swapCoin => {
           exchangeRate = {
-            amount: (amount / swapCoin.amount * DENOM_UNIT) / amount, // adjusted amount
+            amount: (amount / parseInt(swapCoin.amount) * DENOM_UNIT) / amount, // adjusted amount
             token: quoteToken
           }
+          costAmount = amount * exchangeRate.amount
           cost = {
-            amount: amount * exchangeRate.amount,
+            amount: costAmount,
             token: quoteToken
           }
           offer = { amount: cost.amount }
         })
       }
 
+      let txFee
+      await this.getTxFee().then(fee => {
+        // fee in quote
+        txFee = { amount: parseFloat(fee[this.getTokenDenom(quoteToken)]), token: quoteToken }
+      })
+
       swaps.offer = offer
       swaps.price = exchangeRate
       swaps.cost = cost
-      // debug('swaps', swaps)
+      swaps.txFee = txFee
+      debug('swaps', swaps)
       return swaps
     } catch (err) {
       let reason
@@ -213,13 +249,12 @@ export default class Terra {
         swaps = rate
       })
 
-      const offerAmount = parseInt(swaps.offer.amount * DENOM_UNIT)
-
+      const offerAmount = parseInt((swaps.offer.amount) * DENOM_UNIT)
       const offerCoin = new Coin(offerDenom, offerAmount)
       debug('offerCoin', offerCoin, offerAmount)
+
       // Create and Sign Transaction
       const msgSwap = new MsgSwap(address, offerCoin, swapDenom);
-      const memo = lcd.config.chainID.toLowerCase().includes('columbus') ? '' : TESTNET_MEMO
 
       // debug('msgSwap', msgSwap)
       let txOptions
@@ -227,29 +262,18 @@ export default class Terra {
         txOptions = {
           msgs: [msgSwap],
           gasPrices: { [offerDenom]: gasPrice },
-          gasAdjustment: gasAdjustment || GAS_ADJUSTMENT,
-          memo: memo
+          gasAdjustment: gasAdjustment,
+          memo: MEMO
         }
       } else {
         txOptions = {
           msgs: [msgSwap],
-          memo: memo
+          memo: MEMO
         }
       }
 
-      // const fee = await this.getEstimateFee(tx)
-      // const estimatedGas = fee.gas
-      // const estimatedFee = fee.amount._coins[offerDenom]
-      // const estimatedFeeDenom = estimatedFee.denom
-      // const estimatedFeeAmount = estimatedFee.amount * DENOM_UNIT
-      // debug('estimatedGas/estimatedFeeDenom/estimatedFeeAmount', estimatedGas, estimatedFee)
-      // debug(estimatedFeeDenom, estimatedFeeAmount)
-
-      // debug('offerDenom', offerDenom, 'gasPrice', gasPrice, 'gasAdjustment', gasAdjustment, 'options', txOptions)
-
       await wallet.createAndSignTx(txOptions).then(tx => lcd.tx.broadcast(tx)).then((txResult) => {
         swapResult = txResult
-        // debug('txResult', txResult)
 
         const swapSuccess = !isTxError(txResult)
         if (swapSuccess) {
@@ -259,10 +283,6 @@ export default class Terra {
           throw new Error(`encountered an error while running the transaction: ${txResult.code} ${txResult.codespace}`);
         }
 
-        // check for events from the first message
-        // debug('event first message', txResult.logs[0].eventsByType.store_code)
-
-        // debug('swapSuccess', swapSuccess)
         const txHash = txResult.txhash
         const events = JSON.parse(txResult.raw_log)[0].events
         const swap = events.find(obj => {
@@ -272,8 +292,6 @@ export default class Terra {
         const offer = Coin.fromString(txAttributes.offer)
         const ask = Coin.fromString(txAttributes.swap_coin)
         const fee = Coin.fromString(txAttributes.swap_fee)
-
-        // debug('txAttributes', txAttributes)
 
         tokenSwap.expectedIn =  {
           amount: parseFloat(offer.amount) / DENOM_UNIT,
@@ -287,16 +305,12 @@ export default class Terra {
           amount: parseFloat(fee.amount) / DENOM_UNIT,
           token: TERRA_TOKENS[fee.denom].symbol
         }
-        // tokenSwap.estimatedFee = {
-        //   amount: estimatedFeeAmount,
-        //   token:
-        // },
         tokenSwap.txHash = txHash
       })
       return tokenSwap
     } catch (err) {
       let reason
-      console.log(reason, typeof result)
+      console.log(err)
       err.reason ? reason = err.reason : reason = swapResult
       return { txSuccess: false, message: reason }
     }
