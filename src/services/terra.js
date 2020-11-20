@@ -4,7 +4,6 @@ import BigNumber from 'bignumber.js'
 require('dotenv').config()
 const debug = require('debug')('router')
 const config = require('../services/config')
-const dummyAccount = require('../static/terraTestAccount')
 
 // constants
 const ENV_CONFIG = config.getConfig()
