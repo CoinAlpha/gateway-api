@@ -131,3 +131,18 @@ def test_get_api_status(self):
     self.assertTrue('status' in result.keys() and result['status'] == 'ok', f"Gateway API {url} not ready")
 
 ```
+
+
+# Test script
+
+Require NPX to execute npm package binaries directly.
+
+```bash
+# install on global
+npm install -g npx
+```
+
+```bash
+# run unit test
+npx -p @babel/core -p @babel/node babel-node --presets @babel/preset-env test/api/test_hello.js
+```
