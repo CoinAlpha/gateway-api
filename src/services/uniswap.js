@@ -46,12 +46,28 @@ export default class Uniswap {
       return route
   }
 
-  async swapExactIn (wallet, route, tokenAddress, amountIn, gasPrice) {
-    const tIn = await uni.Fetcher.fetchTokenData(this.chainID, tokenAddress)
-    const tokenAmountIn = new uni.TokenAmount(tIn, amountIn)
+  async priceSwapIn (tokenIn, tokenOut, tokenInAmount) {
+    const tIn = await uni.Fetcher.fetchTokenData(this.chainID, tokenIn)
+    const tokenAmountIn = new uni.TokenAmount(tIn, tokenInAmount)
+    const route = await this.fetch_route(tokenIn, tokenOut)
+    const trade = uni.Trade.exactIn(route, tokenAmountIn)
+    const expectedOut = trade.minimumAmountOut(this.allowedSlippage)
+    return { trade, expectedOut }
+  }
+
+  async priceSwapOut (tokenIn, tokenOut, tokenOutAmount) {
+    const tOut = await uni.Fetcher.fetchTokenData(this.chainID, tokenOut)
+    const tokenAmountOut = new uni.TokenAmount(tOut, tokenOutAmount)
+    const route = await this.fetch_route(tokenIn, tokenOut)
+    const trade = uni.Trade.exactOut(route, tokenAmountOut)
+    const expectedIn = trade.maximumAmountIn(this.allowedSlippage)
+    return { trade, expectedIn }
+  }
+
+  async swapExactIn (wallet, trade, tokenAddress, gasPrice) {
     const result = uni.Router.swapCallParameters(
-      uni.Trade.exactIn(route, tokenAmountIn),
-      { 
+      trade,
+      {
         ttl: TTL,
         recipient: wallet.address,
         allowedSlippage: this.allowedSlippage
@@ -73,15 +89,13 @@ export default class Uniswap {
     return txObj
   }
 
-  async swapExactOut (wallet, route, tokenAddress, amountOut, gasPrice) {
-    const tOut = await uni.Fetcher.fetchTokenData(this.chainID, tokenAddress)
-    const tokenAmountOut = new uni.TokenAmount(tOut, amountOut)
+  async swapExactOut (wallet, trade, tokenAddress, gasPrice) {
     const result = uni.Router.swapCallParameters(
-      uni.Trade.exactOut(route, tokenAmountOut),
-      { 
-        ttl: TTL, 
-        recipient: wallet.address, 
-        allowedSlippage: this.allowedSlippage 
+      trade,
+      {
+        ttl: TTL,
+        recipient: wallet.address,
+        allowedSlippage: this.allowedSlippage
       }
     )
 
