@@ -1,4 +1,3 @@
-import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import express from 'express';
 
@@ -11,7 +10,6 @@ const debug = require('debug')('router')
 const router = express.Router()
 const uniswap = new Uniswap(process.env.ETHEREUM_CHAIN)
 
-const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
 
@@ -53,7 +51,7 @@ router.post('/sell-price', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount = new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const amount = paramData.amount
 
   try {
     // fetch the optimal pool mix from uniswap
@@ -70,7 +68,7 @@ router.post('/sell-price', async (req, res) => {
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
+        amount: amount,
         expectedOut: expectedOut.toSignificant(8),
         price: trade.executionPrice.toSignificant(8),
         swaps: trade,
@@ -105,7 +103,7 @@ router.post('/buy-price', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const amount = paramData.amount
 
   try {
     // fetch the optimal pool mix from uniswap
@@ -121,7 +119,7 @@ router.post('/buy-price', async (req, res) => {
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
+        amount: amount,
         expectedIn: expectedIn.toSignificant(8),
         price: trade.executionPrice.invert().toSignificant(8),
         swaps: trade,
@@ -162,7 +160,7 @@ router.post('/sell', async (req, res) => {
   const wallet = new ethers.Wallet(privateKey, uniswap.provider)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount = new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const amount = paramData.amount
 
   let maxPrice
   if (paramData.maxPrice) {
@@ -172,9 +170,6 @@ router.post('/sell', async (req, res) => {
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
   }
-
-  const minAmountOut = maxPrice / amount
-  debug('minAmountOut', minAmountOut)
 
   try {
     // fetch the optimal pool mix from uniswap
@@ -202,7 +197,7 @@ router.post('/sell', async (req, res) => {
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
+        amount: amount,
         expectedOut: expectedOut.toSignificant(8),
         price: price,
         gasUsed: parseInt(txObj.gasUsed),
@@ -245,7 +240,7 @@ router.post('/buy', async (req, res) => {
   const wallet = new ethers.Wallet(privateKey, uniswap.provider)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const amount = paramData.amount
 
   let maxPrice
   if (paramData.maxPrice) {
@@ -282,7 +277,7 @@ router.post('/buy', async (req, res) => {
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
+        amount: amount,
         expectedIn: expectedIn.toSignificant(8),
         price: price,
         gasUsed: parseInt(txObj.gasUsed),

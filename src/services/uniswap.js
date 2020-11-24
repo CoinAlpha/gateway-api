@@ -48,7 +48,7 @@ export default class Uniswap {
 
   async priceSwapIn (tokenIn, tokenOut, tokenInAmount) {
     const tIn = await uni.Fetcher.fetchTokenData(this.chainID, tokenIn)
-    const tokenAmountIn = new uni.TokenAmount(tIn, tokenInAmount)
+    const tokenAmountIn = new uni.TokenAmount(tIn, ethers.utils.parseUnits(tokenInAmount, tIn.decimals))
     const route = await this.fetch_route(tokenIn, tokenOut)
     const trade = uni.Trade.exactIn(route, tokenAmountIn)
     const expectedOut = trade.minimumAmountOut(this.allowedSlippage)
@@ -57,7 +57,7 @@ export default class Uniswap {
 
   async priceSwapOut (tokenIn, tokenOut, tokenOutAmount) {
     const tOut = await uni.Fetcher.fetchTokenData(this.chainID, tokenOut)
-    const tokenAmountOut = new uni.TokenAmount(tOut, tokenOutAmount)
+    const tokenAmountOut = new uni.TokenAmount(tOut, ethers.utils.parseUnits(tokenOutAmount, tOut.decimals))
     const route = await this.fetch_route(tokenIn, tokenOut)
     const trade = uni.Trade.exactOut(route, tokenAmountOut)
     const expectedIn = trade.maximumAmountIn(this.allowedSlippage)
