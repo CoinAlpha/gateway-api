@@ -5,7 +5,7 @@ const debug = require('debug')('router')
 
 // constants
 const ROUTER = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
-const GAS_LIMIT = 1200000;
+const GAS_LIMIT = 150000;
 const TTL = 60;
 
 export default class Uniswap {

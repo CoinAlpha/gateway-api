@@ -61,7 +61,7 @@ router.post('/sell-price', async (req, res) => {
       amount
     )
 
-    if (trade != null && expectedOut != null) {
+    if (trade !== null && expectedOut !== null) {
       res.status(200).json({
         network: uniswap.network,
         timestamp: initTime,
@@ -71,7 +71,7 @@ router.post('/sell-price', async (req, res) => {
         amount: amount,
         expectedOut: expectedOut.toSignificant(8),
         price: trade.executionPrice.toSignificant(8),
-        swaps: trade,
+        trade: trade,
       })
     } else { // no pool available
       res.status(200).json({
@@ -80,6 +80,7 @@ router.post('/sell-price', async (req, res) => {
       })
     }
   } catch (err) {
+    debug(err)
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -112,7 +113,7 @@ router.post('/buy-price', async (req, res) => {
       baseTokenAddress,     // tokenOut is base asset
       amount
     )
-    if (trade != null && expectedIn != null) {
+    if (trade !== null && expectedIn !== null) {
       res.status(200).json({
         network: uniswap.network,
         timestamp: initTime,
@@ -122,7 +123,7 @@ router.post('/buy-price', async (req, res) => {
         amount: amount,
         expectedIn: expectedIn.toSignificant(8),
         price: trade.executionPrice.invert().toSignificant(8),
-        swaps: trade,
+        trade: trade,
       })
     } else { // no pool available
       res.status(200).json({
@@ -131,7 +132,7 @@ router.post('/buy-price', async (req, res) => {
       })
     }
   } catch (err) {
-    console.log(err)
+    debug(err)
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
