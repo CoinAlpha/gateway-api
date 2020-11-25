@@ -47,7 +47,7 @@ router.post('/sell-price', async (req, res) => {
         "quote":"0x....."
         "base":"0x....."
         "amount":0.1
-        "swaps": 4 (optional)
+        "maxSwaps":4
       }
   */
   const initTime = Date.now()
@@ -105,6 +105,7 @@ router.post('/buy-price', async (req, res) => {
         "quote":"0x....."
         "base":"0x....."
         "amount":0.1
+        "maxSwaps":4
       }
   */
   const initTime = Date.now()
@@ -163,6 +164,7 @@ router.post('/sell', async (req, res) => {
         "amount":0.1
         "minPrice":1
         "gasPrice":10
+        "maxSwaps":4
         "privateKey":{{privateKey}}
       }
   */
@@ -214,8 +216,6 @@ router.post('/sell', async (req, res) => {
         gasPrice,
       )
 
-      debug(txObj)
-
       // submit response
       res.status(200).json({
         network: balancer.network,
@@ -256,6 +256,7 @@ router.post('/buy', async (req, res) => {
         "amount":0.1
         "maxPrice":1
         "gasPrice":10
+        "maxSwaps":4
         "privateKey":{{privateKey}}
       }
   */
