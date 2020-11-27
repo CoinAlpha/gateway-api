@@ -1,4 +1,3 @@
-import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import express from 'express';
 
@@ -11,7 +10,6 @@ const debug = require('debug')('router')
 const router = express.Router()
 const uniswap = new Uniswap(process.env.ETHEREUM_CHAIN)
 
-const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
 
@@ -53,25 +51,27 @@ router.post('/sell-price', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
+  const amount = paramData.amount
 
   try {
     // fetch the optimal pool mix from uniswap
-    const route = await uniswap.fetch_route(
+    const { trade, expectedOut} = await uniswap.priceSwapIn(
       baseTokenAddress,     // tokenIn is base asset
       quoteTokenAddress,    // tokenOut is quote asset
+      amount
     )
 
-    if (route != null) {
+    if (trade !== null && expectedOut !== null) {
       res.status(200).json({
         network: uniswap.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
-        expectedOut: parseFloat(paramData.amount * route.midPrice.toSignificant(8)),
-        price: route.midPrice.toSignificant(8),
-        swaps: route.path,
+        amount: amount,
+        expectedOut: expectedOut.toSignificant(8),
+        price: trade.executionPrice.toSignificant(8),
+        trade: trade,
       })
     } else { // no pool available
       res.status(200).json({
@@ -80,6 +80,7 @@ router.post('/sell-price', async (req, res) => {
       })
     }
   } catch (err) {
+    debug(err)
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -103,24 +104,26 @@ router.post('/buy-price', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
+  const amount = paramData.amount
 
   try {
     // fetch the optimal pool mix from uniswap
-    const route = await uniswap.fetch_route(
+    const { trade, expectedIn } = await uniswap.priceSwapOut(
       quoteTokenAddress,    // tokenIn is quote asset
       baseTokenAddress,     // tokenOut is base asset
+      amount
     )
-    if (route != null) {
+    if (trade !== null && expectedIn !== null) {
       res.status(200).json({
         network: uniswap.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
-        expectedIn: parseFloat(paramData.amount * route.midPrice.invert().toSignificant(8)),
-        price: route.midPrice.invert().toSignificant(8),
-        swaps: route.path,
+        amount: amount,
+        expectedIn: expectedIn.toSignificant(8),
+        price: trade.executionPrice.invert().toSignificant(8),
+        trade: trade,
       })
     } else { // no pool available
       res.status(200).json({
@@ -129,6 +132,7 @@ router.post('/buy-price', async (req, res) => {
       })
     }
   } catch (err) {
+    debug(err)
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -157,7 +161,7 @@ router.post('/sell', async (req, res) => {
   const wallet = new ethers.Wallet(privateKey, uniswap.provider)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount = new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const amount = paramData.amount
 
   let maxPrice
   if (paramData.maxPrice) {
@@ -168,25 +172,22 @@ router.post('/sell', async (req, res) => {
     gasPrice = parseFloat(paramData.gasPrice)
   }
 
-  const minAmountOut = maxPrice / amount
-  debug('minAmountOut', minAmountOut)
-
   try {
     // fetch the optimal pool mix from uniswap
-    const route = await uniswap.fetch_route(
+    const { trade, expectedOut} = await uniswap.priceSwapIn(
       baseTokenAddress,     // tokenIn is base asset
       quoteTokenAddress,    // tokenOut is quote asset
+      amount
     )
 
-    const price = route.midPrice.toSignificant(8)
+    const price = trade.executionPrice.toSignificant(8)
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price >= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const txObj = await uniswap.swapExactIn(
         wallet,
-        route,
+        trade,
         baseTokenAddress,
-        amount,
         gasPrice,
       )
 
@@ -197,8 +198,8 @@ router.post('/sell', async (req, res) => {
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
-        expectedOut: parseFloat(paramData.amount * route.midPrice.toSignificant(8)),
+        amount: amount,
+        expectedOut: expectedOut.toSignificant(8),
         price: price,
         gasUsed: parseInt(txObj.gasUsed),
         txHash: txObj.transactionHash,
@@ -240,7 +241,7 @@ router.post('/buy', async (req, res) => {
   const wallet = new ethers.Wallet(privateKey, uniswap.provider)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const amount = paramData.amount
 
   let maxPrice
   if (paramData.maxPrice) {
@@ -253,21 +254,20 @@ router.post('/buy', async (req, res) => {
 
   try {
     // fetch the optimal pool mix from uniswap
-    const route = await uniswap.fetch_route(
+    const { trade, expectedIn} = await uniswap.priceSwapOut(
       quoteTokenAddress,    // tokenIn is quote asset
       baseTokenAddress,     // tokenOut is base asset
-      // amount,
+      amount,
     )
 
-    const price = route.midPrice.invert().toSignificant(8)
+    const price = trade.executionPrice.invert().toSignificant(8)
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const txObj = await uniswap.swapExactOut(
         wallet,
-        route,
+        trade,
         baseTokenAddress,
-        amount,
         gasPrice,
       )
 
@@ -278,8 +278,8 @@ router.post('/buy', async (req, res) => {
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
-        expectedIn: parseFloat(paramData.amount * route.midPrice.invert().toSignificant(8)),
+        amount: amount,
+        expectedIn: expectedIn.toSignificant(8),
         price: price,
         gasUsed: parseInt(txObj.gasUsed),
         txHash: txObj.transactionHash,
