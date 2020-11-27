@@ -1,12 +1,11 @@
 import { LCDClient, Coin, MsgSwap, StdTx, StdFee, Dec, MnemonicKey, isTxError, Coins  } from '@terra-money/terra.js'
 import BigNumber from 'bignumber.js'
+import { getHummingbotMemo } from './utils';
 
 require('dotenv').config()
 const debug = require('debug')('router')
-const config = require('../services/config')
 
 // constants
-const ENV_CONFIG = config.getConfig()
 const TERRA_TOKENS = {
   uluna: { symbol: 'LUNA' },
   uusd: { symbol: 'UST' },
@@ -17,18 +16,18 @@ const TERRA_TOKENS = {
 const DENOM_UNIT = BigNumber('1e+6')
 const TOBIN_TAX = 0.0025  // a Tobin Tax (set at 0.25%) for spot-converting Terra<>Terra swaps
 const MIN_SPREAD = 0.02  // a minimum spread (set at 2%) for Terra<>Luna swaps
-const GAS_PRICE = 0.02
-const GAS_ADJUSTMENT = 1.5
-const MEMO = ENV_CONFIG.TERRA.MEMO
+const GAS_PRICE = { uluna: 0.16 }
+const GAS_ADJUSTMENT = 1.4
 
 export default class Terra {
   constructor () {
-    this.lcdUrl = ENV_CONFIG.TERRA.LCD_URL;
-    this.network =  ENV_CONFIG.TERRA.NETWORK;
+    this.lcdUrl = process.env.TERRA_LCD_URL;
+    this.network =  process.env.TERRA_CHAIN;
     this.tokens = TERRA_TOKENS
     this.denomUnitMultiplier = DENOM_UNIT
     this.tobinTax = TOBIN_TAX
     this.minSpread = MIN_SPREAD
+    this.memo = getHummingbotMemo()
 
     try {
       this.lcd = this.connect()
@@ -38,7 +37,7 @@ export default class Terra {
       })
       // set gas & fee
       this.lcd.config.gasAdjustment = GAS_ADJUSTMENT
-      this.lcd.config.gasPrice = GAS_PRICE
+      this.lcd.config.gasPrices = GAS_PRICE
     } catch (err) {
       throw Error(`Connection failed: ${this.network}`)
     }
@@ -52,7 +51,7 @@ export default class Terra {
         chainID: this.network,
       })
       lcd.config.gasAdjustment = GAS_ADJUSTMENT
-      lcd.config.gasPrice = GAS_PRICE
+      lcd.config.gasPrices = GAS_PRICE
       return lcd
     } catch (err) {
       let reason
@@ -127,7 +126,7 @@ export default class Terra {
 
   async getTxFee () {
     try {
-      const lunaFee = GAS_PRICE * GAS_ADJUSTMENT
+      const lunaFee = GAS_PRICE.uluna * GAS_ADJUSTMENT
       let feeList = { uluna: lunaFee }
       await this.lcd.oracle.exchangeRates().then(rates => {
         Object.keys(rates._coins).forEach(key => {
@@ -250,24 +249,23 @@ export default class Terra {
 
       const offerAmount = parseInt((swaps.offer.amount) * DENOM_UNIT)
       const offerCoin = new Coin(offerDenom, offerAmount)
-      debug('offerCoin', offerCoin, offerAmount)
+      // debug('offerCoin', offerCoin, offerAmount, 'gasPrice', gasPrice)
 
       // Create and Sign Transaction
       const msgSwap = new MsgSwap(address, offerCoin, swapDenom);
 
-      // debug('msgSwap', msgSwap)
       let txOptions
       if (gasPrice !== null && gasPrice !== null) { // ignore gasAdjustment when gasPrice is not set
         txOptions = {
           msgs: [msgSwap],
-          gasPrices: { [offerDenom]: gasPrice },
+          gasPrices: { uluna: parseFloat(gasPrice) },
           gasAdjustment: gasAdjustment,
-          memo: MEMO
+          memo: this.memo
         }
       } else {
         txOptions = {
           msgs: [msgSwap],
-          memo: MEMO
+          memo: this.memo
         }
       }
 

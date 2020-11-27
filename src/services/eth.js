@@ -3,19 +3,15 @@ const fs = require('fs');
 const ethers = require('ethers')
 const abi = require('../static/abi')
 const debug = require('debug')('router')
-const config = require('../services/config')
 
 // constants
-const ENV_CONFIG = config.getConfig()
 
 export default class Ethereum {
   constructor (network = 'kovan') {
     // network defaults to kovan
-    const providerUrl = ENV_CONFIG.ETHEREUM.RPC_URL
+    const providerUrl = process.env.ETHEREUM_RPC_URL
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
-    this.network = ENV_CONFIG.BALANCER.NETWORK
-    this.gasLimit = ENV_CONFIG.BALANCER.GAS_LIMIT
-    this.approvalGasLimit = ENV_CONFIG.BALANCER.APPROVAL_GAS_LIMIT
+    this.network = network
 
     if (network === 'kovan') {
       // for kovan testing only

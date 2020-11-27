@@ -68,3 +68,9 @@ export const reportConnectionError = (res, error) => {
 }
 
 export const strToDecimal = (str) => parseInt(str) / 100;
+
+export const getHummingbotMemo = () => {
+  const prefix = 'hbot'
+  const clientId = process.env.HUMMINGBOT_CLIENT_ID || ''
+  return [prefix, clientId].join('-')
+}

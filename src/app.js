@@ -12,6 +12,7 @@ import balancerRoutes from './routes/balancer.route'
 // import celoRoutes from './routes/celo.route'
 import ethRoutes from './routes/eth.route'
 import terraRoutes from './routes/terra.route'
+import uniswapRoutes from './routes/uniswap.route'
 
 // terminate if environment not found
 const result = dotenv.config();
@@ -38,6 +39,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(validateAccess)
 
 // mount all routes to this path
+app.use('/uniswap', validateAccess, uniswapRoutes);
 app.use('/api', validateAccess, apiRoutes);
 app.use('/eth', validateAccess, ethRoutes);
 // app.use('/celo', validateAccess, celoRoutes);

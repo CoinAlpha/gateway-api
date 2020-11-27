@@ -2,14 +2,12 @@
 
 import express from 'express'
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
-import { getConfig } from '../services/config';
 
 import Terra from '../services/terra';
 
 const debug = require('debug')('router')
 const router = express.Router();
-const ENV_CONFIG = getConfig()
-const terra = new Terra(ENV_CONFIG.TERRA)
+const terra = new Terra()
 
 // constants
 const network = terra.lcd.config.chainID
@@ -157,8 +155,8 @@ router.post('/trade', async (req, res) => {
   const quoteToken = paramData.quote
   const tradeType = paramData.trade_type
   const amount = parseFloat(paramData.amount)
-  const gasPrice = parseFloat(paramData.gas_price) || null
-  const gasAdjustment = paramData.gas_adjustment || null
+  const gasPrice = parseFloat(paramData.gas_price) || terra.lcd.config.gasPrices.uluna
+  const gasAdjustment = paramData.gas_adjustment || terra.lcd.config.gasAdjustment
   const secret = paramData.secret
 
   let tokenSwaps
