@@ -7,11 +7,12 @@ const debug = require('debug')('router')
 
 // constants
 const MULTI = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441';
+const MULTI_KOVAN = ' 0x2cc8688C5f75E365aaEEb4ea8D6a480405A48D2A';
 const EXCHANGE_PROXY = '0x3E66B66Fd1d0b02fDa6C811Da9E0547970DB2f21';
 const EXCHANGE_PROXY_KOVAN = '0x4e67bf5bD28Dd4b570FBAFe11D0633eCbA2754Ec';
 const MAX_UINT = ethers.constants.MaxUint256;
 const MAX_SWAPS = 4;
-const GAS_BASE = 200000;
+const GAS_BASE = 200688;
 const GAS_PER_SWAP = 100000;
 
 export default class Balancer {
@@ -23,9 +24,11 @@ export default class Balancer {
     switch (network) {
       case 'mainnet':
         this.exchangeProxy = EXCHANGE_PROXY;
+        this.multiCall = MULTI;
         break;
       case 'kovan':
         this.exchangeProxy = EXCHANGE_PROXY_KOVAN;
+        this.multiCall = MULTI_KOVAN;
         break;
       default:
         throw Error(`Invalid network ${network}`)
@@ -41,10 +44,12 @@ export default class Balancer {
     }
     console.log('Pools Retrieved.', this.network);
 
+    // Get current on-chain data about the fetched pools
     let poolData
     if (this.network === 'mainnet') {
-      poolData = await sor.parsePoolDataOnChain(pools.pools, tokenIn, tokenOut, MULTI, this.provider)
+      poolData = await sor.parsePoolDataOnChain(pools.pools, tokenIn, tokenOut, this.multiCall, this.provider)
     } else {
+      // Kovan multicall throws an ENS error
       poolData = await sor.parsePoolData(pools.pools, tokenIn, tokenOut)
     }
 
@@ -86,10 +91,12 @@ export default class Balancer {
     }
     console.log('Pools Retrieved.', this.network);
 
+    // Get current on-chain data about the fetched pools
     let poolData
     if (this.network === 'mainnet') {
-      poolData = await sor.parsePoolDataOnChain(pools.pools, tokenIn, tokenOut, MULTI, this.provider)
+      poolData = await sor.parsePoolDataOnChain(pools.pools, tokenIn, tokenOut, this.multiCall, this.provider)
     } else {
+      // Kovan multicall throws an ENS error
       poolData = await sor.parsePoolData(pools.pools, tokenIn, tokenOut)
     }
 
