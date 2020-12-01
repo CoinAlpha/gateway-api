@@ -91,9 +91,7 @@ router.post('/price', async (req, res) => {
   const quoteToken = paramData.quote
   const tradeType = paramData.trade_type
   const amount = parseFloat(paramData.amount)
-  debug('paramData', paramData)
 
-  const symbols = [baseToken, quoteToken]
   let exchangeRate
 
   try {
@@ -102,8 +100,6 @@ router.post('/price', async (req, res) => {
     }).catch((err) => {
       reportConnectionError(res, err)
     })
-
-    // debug('exchangeRate', exchangeRate)
 
     res.status(200).json(
       {
@@ -176,9 +172,7 @@ router.post('/trade', async (req, res) => {
       tradeType: tradeType,
       quote: quoteToken,
       amount: amount,
-      // gasPrice: gasPrice
     }
-    // debug('tokenSwaps', tokenSwaps)
     Object.assign(swapResult, tokenSwaps);
     res.status(200).json(
       swapResult
