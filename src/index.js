@@ -20,6 +20,7 @@ const env = process.env.NODE_ENV
 const port = process.env.PORT
 const certPassphrase = process.env.CERT_PASSPHRASE
 const ethereumChain = process.env.ETHEREUM_CHAIN
+const terraChain = process.env.TERRA_CHAIN
 let certPath = process.env.CERT_PATH
 
 if ((typeof certPath === 'undefined' && certPath == null) || certPath === '') {
@@ -79,4 +80,6 @@ server.listen(port)
 server.on('error', onError)
 server.on('listening', onListening)
 
-console.log('server: gateway-api | port:', port, '| ethereum-chain:', ethereumChain);
+console.log('server: gateway-api | port:', port)
+console.log(' - ethereum-chain:', ethereumChain)
+console.log(' - terra-chain:', terraChain)

@@ -3,9 +3,10 @@ import { ethers } from 'ethers';
 import express from 'express';
 
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
+
 import Balancer from '../services/balancer';
 
-require('dotenv').config()
+// require('dotenv').config()
 const debug = require('debug')('router')
 
 const router = express.Router()
@@ -15,17 +16,6 @@ const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
 
-router.use((req, res, next) => {
-  const cert = req.connection.getPeerCertificate()
-  if (req.client.authorized) {
-    next()
-  } else if (cert.subject) {
-    res.status(403).send({ error: statusMessages.ssl_cert_invalid })
-  } else {
-    res.status(401).send({ error: statusMessages.ssl_cert_required })
-  }
-})
-
 router.post('/', async (req, res) => {
   /*
     POST /
@@ -34,7 +24,8 @@ router.post('/', async (req, res) => {
     network: balancer.network,
     provider: balancer.provider.connection.url,
     exchangeProxy: balancer.exchangeProxy,
-    subgraphUrl: process.env.REACT_APP_SUBGRAPH_URL,
+    subgraphUrl: balancer.subgraphUrl,
+    gasLimit: balancer.gasLimit,
     connection: true,
     timestamp: Date.now(),
   })
