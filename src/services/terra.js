@@ -5,6 +5,9 @@ import { getHummingbotMemo } from './utils';
 require('dotenv').config()
 const debug = require('debug')('router')
 
+const hbUtils = require('../services/utils')
+const CONFIG = hbUtils.loadConfig()
+
 // constants
 const TERRA_TOKENS = {
   uluna: { symbol: 'LUNA' },
@@ -21,8 +24,8 @@ const GAS_ADJUSTMENT = 1.4
 
 export default class Terra {
   constructor () {
-    this.lcdUrl = process.env.TERRA_LCD_URL;
-    this.network =  process.env.TERRA_CHAIN;
+    this.lcdUrl = CONFIG.TERRA_LCD_URL;
+    this.network = CONFIG.TERRA_CHAIN_NAME;
     this.tokens = TERRA_TOKENS
     this.denomUnitMultiplier = DENOM_UNIT
     this.tobinTax = TOBIN_TAX
@@ -32,9 +35,11 @@ export default class Terra {
     try {
       this.lcd = this.connect()
 
-      this.lcd.market.parameters().catch(() => {
+      try {
+        this.lcd.market.parameters()
+      } catch (err) {
         throw new Error('Connection error')
-      })
+      }
       // set gas & fee
       this.lcd.config.gasAdjustment = GAS_ADJUSTMENT
       this.lcd.config.gasPrices = GAS_PRICE
@@ -87,7 +92,7 @@ export default class Terra {
     } catch (err) {
       let reason
       console.log(reason)
-      err.reason ? reason = err.reason : reason = 'error Terra Denom lookup'
+      err.reason ? reason = err.reason : reason = 'error Terra Symbol lookup'
       return reason
     }
   }
@@ -139,7 +144,7 @@ export default class Terra {
     } catch (err) {
       let reason
       console.log(reason)
-      err.reason ? reason = err.reason : reason = 'error Terra exchange rate lookup'
+      err.reason ? reason = err.reason : reason = 'error Terra tx fee lookup'
       return reason
     }
   }
@@ -203,7 +208,7 @@ export default class Terra {
     } catch (err) {
       let reason
       console.log(reason)
-      err.reason ? reason = err.reason : reason = 'error swap rate lookup'
+      err.reason ? reason = err.reason : reason = 'error Terra swap rate lookup'
       return reason
     }
   }

@@ -1,6 +1,7 @@
 const uni = require('@uniswap/sdk')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/uniswap_v2_router_abi.json')
+const hbUtils = require('../services/utils')
 const debug = require('debug')('router')
 
 // constants
@@ -10,8 +11,9 @@ const TTL = 60;
 
 export default class Uniswap {
   constructor (network = 'mainnet') {
-    const providerUrl = process.env.ETHEREUM_RPC_URL
-    this.network = process.env.ETHEREUM_CHAIN
+    const CONFIG = hbUtils.loadConfig()
+    const providerUrl = CONFIG.ETHEREUM_RPC_URL
+    this.network = CONFIG.ETHEREUM_CHAIN_NAME
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
     this.router = ROUTER;
     this.allowedSlippage = new uni.Percent('0', '100')

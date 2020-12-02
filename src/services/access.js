@@ -7,6 +7,7 @@ import { statusMessages } from './utils';
 const debug = require('debug')('router')
 
 export const validateAccess = (req, res, next) => {
+  res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate')
   const cert = req.connection.getPeerCertificate()
   if (req.client.authorized) {
     debug('Access granted')

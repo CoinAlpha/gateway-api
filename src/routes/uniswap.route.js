@@ -8,26 +8,19 @@ require('dotenv').config()
 const debug = require('debug')('router')
 
 const router = express.Router()
-const uniswap = new Uniswap(process.env.ETHEREUM_CHAIN)
+const hbUtils = require('../services/utils')
 
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
-
-router.use((req, res, next) => {
-  const cert = req.connection.getPeerCertificate()
-  if (req.client.authorized) {
-    next()
-  } else if (cert.subject) {
-    res.status(403).send({ error: statusMessages.ssl_cert_invalid })
-  } else {
-    res.status(401).send({ error: statusMessages.ssl_cert_required })
-  }
-})
 
 router.post('/', async (req, res) => {
   /*
     POST /
   */
+  // instantiate in route to load latest chain info
+  const CONFIG = hbUtils.loadConfig()
+  const uniswap = new Uniswap(CONFIG.ETHEREUM_CHAIN_NAME)
+
   res.status(200).json({
     network: uniswap.network,
     provider: uniswap.provider.connection.url,
@@ -46,6 +39,10 @@ router.post('/sell-price', async (req, res) => {
         "amount":0.1
       }
   */
+  // instantiate in route to load latest chain info
+  const CONFIG = hbUtils.loadConfig()
+  const uniswap = new Uniswap(CONFIG.ETHEREUM_CHAIN_NAME)
+
   const initTime = Date.now()
   // params: base (required), quote (required), amount (required)
   const paramData = getParamData(req.body)
@@ -99,6 +96,10 @@ router.post('/buy-price', async (req, res) => {
         "amount":0.1
       }
   */
+  // instantiate in route to load latest chain info
+  const CONFIG = hbUtils.loadConfig()
+  const uniswap = new Uniswap(CONFIG.ETHEREUM_CHAIN_NAME)
+
   const initTime = Date.now()
   // params: base (required), quote (required), amount (required)
   const paramData = getParamData(req.body)
@@ -154,6 +155,10 @@ router.post('/sell', async (req, res) => {
         "privateKey":{{privateKey}}
       }
   */
+  // instantiate in route to load latest chain info
+  const CONFIG = hbUtils.loadConfig()
+  const uniswap = new Uniswap(CONFIG.ETHEREUM_CHAIN_NAME)
+
   const initTime = Date.now()
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body)
@@ -234,6 +239,10 @@ router.post('/buy', async (req, res) => {
         "privateKey":{{privateKey}}
       }
   */
+  // instantiate in route to load latest chain info
+  const CONFIG = hbUtils.loadConfig()
+  const uniswap = new Uniswap(CONFIG.ETHEREUM_CHAIN_NAME)
+
   const initTime = Date.now()
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body)

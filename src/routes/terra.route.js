@@ -7,16 +7,15 @@ import Terra from '../services/terra';
 
 const debug = require('debug')('router')
 const router = express.Router();
-const terra = new Terra()
-
-// constants
-const network = terra.lcd.config.chainID
-const denomUnitMultiplier = terra.denomUnitMultiplier
 
 router.post('/', async (req, res) => {
   /*
     POST /
   */
+  // instantiate in route to load latest chain info
+  const terra = new Terra()
+  const network = terra.lcd.config.chainID
+
   res.status(200).json({
     network: network,
     lcdUrl: terra.lcd.config.URL,
@@ -32,6 +31,11 @@ router.post('/balances', async (req, res) => {
     POST:
         address:{{address}}
   */
+  // instantiate in route to load latest chain info
+  const terra = new Terra()
+  const network = terra.lcd.config.chainID
+  const denomUnitMultiplier = terra.denomUnitMultiplier
+
   const initTime = Date.now()
 
   const paramData = getParamData(req.body)
@@ -84,6 +88,10 @@ router.post('/price', async (req, res) => {
       "amount":1
     }
   */
+  // instantiate in route to load latest chain info
+  const terra = new Terra()
+  const network = terra.lcd.config.chainID
+
   const initTime = Date.now()
 
   const paramData = getParamData(req.body)
@@ -144,6 +152,10 @@ router.post('/trade', async (req, res) => {
         "secret": "mysupersecret"
       }
   */
+  // instantiate in route to load latest chain info
+  const terra = new Terra()
+  const network = terra.lcd.config.chainID
+
   const initTime = Date.now()
 
   const paramData = getParamData(req.body)

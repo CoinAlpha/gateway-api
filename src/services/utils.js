@@ -2,6 +2,11 @@
   Hummingbot Utils
 */
 const lodash = require('lodash')
+const fs = require('fs')
+const path = require('path')
+
+const configFilePath = '../../data/gateway_config.json'
+export const gatewayConfig = require(configFilePath)
 
 export const statusMessages = {
   ssl_cert_required: 'SSL Certificate required',
@@ -71,6 +76,31 @@ export const strToDecimal = (str) => parseInt(str) / 100;
 
 export const getHummingbotMemo = () => {
   const prefix = 'hbot'
-  const clientId = process.env.HUMMINGBOT_CLIENT_ID || ''
-  return [prefix, clientId].join('-')
+  const clientId = process.env.HUMMINGBOT_CLIENT_ID || loadConfig().CLIENT_ID
+  const memo = clientId ? [prefix, clientId].join('-') : prefix
+  return memo
+}
+
+export const loadConfig = (data) => {
+  const config = require(configFilePath)
+  return config
+}
+
+export const updateConfig = (data) => {
+  const config = gatewayConfig
+  Object.keys(data).forEach(key => {
+    // standardize chain name & value
+    let value = data[key]
+    if (key === 'ethereum_chain_name' && value.toUpperCase() === 'MAIN_NET') {
+      value = 'mainnet'
+    }
+    config[key.toUpperCase()] = value
+  })
+  Object.assign(config, {
+    UPDATED: new Date().toISOString()
+  })
+  fs.writeFile(path.resolve(__dirname, configFilePath), JSON.stringify(config, null, 2), err => {
+    if (err) throw err
+  })
+  return true
 }

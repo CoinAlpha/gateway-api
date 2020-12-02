@@ -1,38 +1,50 @@
-require('dotenv').config() // DO NOT REMOVE. needed to configure REACT_APP_SUBGRAPH_URL used by @balancer-labs/sor
-const sor = require('@balancer-labs/sor')
 const BigNumber = require('bignumber.js')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/ExchangeProxy.json')
+const hbUtils = require('../services/utils')
+const PROTOCOL = require('../static/protocol.json')
+
 const debug = require('debug')('router')
 
 // constants
-const MULTI = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441';
-const MULTI_KOVAN = ' 0x2cc8688C5f75E365aaEEb4ea8D6a480405A48D2A';
-const EXCHANGE_PROXY = '0x3E66B66Fd1d0b02fDa6C811Da9E0547970DB2f21';
-const EXCHANGE_PROXY_KOVAN = '0x4e67bf5bD28Dd4b570FBAFe11D0633eCbA2754Ec';
+const MULTI = PROTOCOL.BALANCER.MULTI;
+const MULTI_KOVAN = PROTOCOL.BALANCER.MULTI_KOVAN;
+const EXCHANGE_PROXY = PROTOCOL.BALANCER.EXCHANGE_PROXY;
+const EXCHANGE_PROXY_KOVAN = PROTOCOL.BALANCER.EXCHANGE_PROXY_KOVAN;
+
 const MAX_UINT = ethers.constants.MaxUint256;
 const MAX_SWAPS = 4;
 const GAS_BASE = 200688;
 const GAS_PER_SWAP = 100000;
+let sor
 
 export default class Balancer {
   constructor (network = 'mainnet') {
-    const providerUrl = process.env.ETHEREUM_RPC_URL
-    this.network = process.env.ETHEREUM_CHAIN
+    const CONFIG = hbUtils.loadConfig()
+    const providerUrl = CONFIG.ETHEREUM_RPC_URL
+    this.network = network
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
 
     switch (network) {
       case 'mainnet':
         this.exchangeProxy = EXCHANGE_PROXY;
         this.multiCall = MULTI;
+        this.subgraphUrl = PROTOCOL.BALANCER.REACT_APP_SUBGRAPH_URL;
+        // important! set subgraph url environment variable required by balancer sor module
+        process.env.REACT_APP_SUBGRAPH_URL = PROTOCOL.BALANCER.REACT_APP_SUBGRAPH_URL;
         break;
       case 'kovan':
         this.exchangeProxy = EXCHANGE_PROXY_KOVAN;
         this.multiCall = MULTI_KOVAN;
+        this.subgraphUrl = PROTOCOL.BALANCER.REACT_APP_SUBGRAPH_URL_KOVAN;
+        // important! set subgraph url environment variable required by balancer sor module
+        process.env.REACT_APP_SUBGRAPH_URL = PROTOCOL.BALANCER.REACT_APP_SUBGRAPH_URL_KOVAN;
         break;
       default:
         throw Error(`Invalid network ${network}`)
     }
+    // load sor module only after setting correct subgraph url in env
+    sor = require('@balancer-labs/sor')
   }
 
   async priceSwapIn (tokenIn, tokenOut, tokenInAmount, maxSwaps = MAX_SWAPS) {

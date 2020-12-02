@@ -5,14 +5,27 @@ import { getParamData, latency, reportConnectionError, statusMessages } from '..
 import Ethereum from '../services/eth';
 
 const router = express.Router()
-const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
-const separator = ','
-const spenders = {
-  balancer: process.env.EXCHANGE_PROXY,
-  uniswap: process.env.UNISWAP_ROUTER
-}
 
+const hbUtils = require('../services/utils')
+
+const separator = ','
 const debug = require('debug')('router')
+
+router.post('/', async (req, res) => {
+  /*
+    POST /
+  */
+  // instantiate in route to load latest chain info
+  const CONFIG = hbUtils.loadConfig()
+  const network = CONFIG.ETHEREUM_CHAIN_NAME
+  const eth = new Ethereum(network)
+
+  res.status(200).json({
+    network: eth.network,
+    connection: true,
+    timestamp: Date.now(),
+  })
+})
 
 router.post('/balances', async (req, res) => {
   /*
@@ -22,6 +35,11 @@ router.post('/balances', async (req, res) => {
         tokenAddressList:{{tokenAddressList}}
       }
   */
+  // instantiate in route to load latest chain info
+  const CONFIG = hbUtils.loadConfig()
+  const network = CONFIG.ETHEREUM_CHAIN_NAME
+  const eth = new Ethereum(network)
+
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
@@ -76,6 +94,12 @@ router.post('/allowances', async (req, res) => {
         connector:{{connector_name}}
       }
   */
+  // instantiate in route to load latest chain info
+  const CONFIG = hbUtils.loadConfig()
+  const network = CONFIG.ETHEREUM_CHAIN_NAME
+  const eth = new Ethereum(network)
+  const spenders = eth.spenders
+
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
@@ -133,6 +157,12 @@ router.post('/approve', async (req, res) => {
         amount:{{amount}}
       }
   */
+  // instantiate in route to load latest chain info
+  const CONFIG = hbUtils.loadConfig()
+  const network = CONFIG.ETHEREUM_CHAIN_NAME
+  const eth = new Ethereum(network)
+  const spenders = eth.spenders
+
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey

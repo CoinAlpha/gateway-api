@@ -3,15 +3,22 @@ const fs = require('fs');
 const ethers = require('ethers')
 const abi = require('../static/abi')
 const debug = require('debug')('router')
+const hbUtils = require('../services/utils')
+const PROTOCOL = require('../static/protocol.json')
 
 // constants
 
 export default class Ethereum {
   constructor (network = 'kovan') {
     // network defaults to kovan
-    const providerUrl = process.env.ETHEREUM_RPC_URL
+    const CONFIG = hbUtils.loadConfig()
+    const providerUrl = CONFIG.ETHEREUM_RPC_URL
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
     this.network = network
+    this.spenders = {
+      balancer: network === 'mainnet' ? CONFIG.EXCHANGE_PROXY : CONFIG.EXCHANGE_PROXY_KOVAN,
+      uniswap: PROTOCOL.UNISWAP.UNISWAP_ROUTER
+    }
 
     if (network === 'kovan') {
       // for kovan testing only

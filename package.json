@@ -7,8 +7,8 @@
   "repository": "https://github.com/coinalpha/gateway-api",
   "scripts": {
     "start": "babel-node src/index.js",
-    "dev": "nodemon --exec babel-node src/index.js",
-    "debug": "DEBUG=*router nodemon --exec babel-node src/index.js",
+    "dev": "nodemon --ignore 'data/' --exec babel-node src/index.js",
+    "debug": "DEBUG=*router nodemon --ignore 'data/' --exec babel-node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

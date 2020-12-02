@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import express from 'express';
 
-import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
+import { getParamData, latency, reportConnectionError, statusMessages, loadConfig } from '../services/utils';
 
 import Balancer from '../services/balancer';
 
@@ -10,7 +10,6 @@ import Balancer from '../services/balancer';
 const debug = require('debug')('router')
 
 const router = express.Router()
-const balancer = new Balancer(process.env.ETHEREUM_CHAIN)
 
 const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Price too high'
@@ -20,11 +19,14 @@ router.post('/', async (req, res) => {
   /*
     POST /
   */
+  // instantiate in route to load latest chain info
+  const balancer = new Balancer(loadConfig().ETHEREUM_CHAIN_NAME)
+
   res.status(200).json({
     network: balancer.network,
-    provider: balancer.provider.connection.url,
-    exchangeProxy: balancer.exchangeProxy,
-    subgraphUrl: balancer.subgraphUrl,
+    provider: balancer.provider.connection.url || '',
+    exchangeProxy: balancer.exchangeProxy || '',
+    subgraphUrl: balancer.subgraphUrl || '',
     gasLimit: balancer.gasLimit,
     connection: true,
     timestamp: Date.now(),
@@ -41,6 +43,9 @@ router.post('/sell-price', async (req, res) => {
         "maxSwaps":4
       }
   */
+  // instantiate in route to load latest chain info
+  const balancer = new Balancer(loadConfig().ETHEREUM_CHAIN_NAME)
+
   const initTime = Date.now()
   // params: base (required), quote (required), amount (required)
   const paramData = getParamData(req.body)
@@ -99,6 +104,9 @@ router.post('/buy-price', async (req, res) => {
         "maxSwaps":4
       }
   */
+  // instantiate in route to load latest chain info
+  const balancer = new Balancer(loadConfig().ETHEREUM_CHAIN_NAME)
+
   const initTime = Date.now()
   // params: base (required), quote (required), amount (required)
   const paramData = getParamData(req.body)
@@ -159,6 +167,9 @@ router.post('/sell', async (req, res) => {
         "privateKey":{{privateKey}}
       }
   */
+  // instantiate in route to load latest chain info
+  const balancer = new Balancer(loadConfig().ETHEREUM_CHAIN_NAME)
+
   const initTime = Date.now()
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body)
@@ -251,6 +262,9 @@ router.post('/buy', async (req, res) => {
         "privateKey":{{privateKey}}
       }
   */
+  // instantiate in route to load latest chain info
+  const balancer = new Balancer(loadConfig().ETHEREUM_CHAIN_NAME)
+
   const initTime = Date.now()
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body)
