@@ -1,0 +1,232 @@
+{
+	"info": {
+		"_postman_id": "c6948279-75e5-4328-852e-05f4a714172a",
+		"name": "Gateway",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "api",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/api",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"api"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "api/update-config",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "ethereum_rpc_url",
+							"value": "https://kovan.infura.io/v3/{{apikey}}",
+							"description": "RPC URL",
+							"type": "text"
+						},
+						{
+							"key": "ethereum_chain_name",
+							"value": "MAIN_NET",
+							"description": "MAIN_NET, KOVAN",
+							"type": "text"
+						},
+						{
+							"key": "terra_lcd_url",
+							"value": "https://lcd.terra.dev",
+							"description": "Terra Mainnet",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "terra_chain_name",
+							"value": "columbus-4",
+							"description": "Terra Mainnet",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "terra_lcd_url",
+							"value": "https://tequila-lcd.terra.dev",
+							"description": "Terra Testnet",
+							"type": "text"
+						},
+						{
+							"key": "terra_chain_name",
+							"value": "tequila-0004",
+							"description": "Terra Testnet",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "dev34",
+							"description": "HB Client ID",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/api/update-config",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"api",
+						"update-config"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "{network}/quote",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/{{network}}/quote/trading_pair/{{celo-cusd}}/amount/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"{{network}}",
+								"quote",
+								"trading_pair",
+								"{{celo-cusd}}",
+								"amount",
+								"1"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Security-Policy",
+							"value": "default-src 'self';base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+						},
+						{
+							"key": "X-DNS-Prefetch-Control",
+							"value": "off"
+						},
+						{
+							"key": "Expect-CT",
+							"value": "max-age=0"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "SAMEORIGIN"
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=15552000; includeSubDomains"
+						},
+						{
+							"key": "X-Download-Options",
+							"value": "noopen"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-Permitted-Cross-Domain-Policies",
+							"value": "none"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "no-referrer"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "97"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"61-Wemp9YmP9g/CsUFMa7Y5zK6SoLQ\""
+						},
+						{
+							"key": "Date",
+							"value": "Wed, 23 Sep 2020 18:07:26 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"timestamp\": 1600884444051,\n    \"latency\": 2.542,\n    \"trading_pair\": \"CELO-CUSD\",\n    \"price\": 2.5435604641582747\n}"
+				}
+			]
+		}
+	],
+	"protocolProfileBehavior": {}
+}
