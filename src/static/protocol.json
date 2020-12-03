@@ -9,5 +9,11 @@
   },
   "UNISWAP": {
     "UNISWAP_ROUTER": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+  },
+  "TERRA": {
+    "LCD_URL": "https://lcd.terra.dev",
+    "LCD_URL_TESTNET": "https://tequila-lcd.terra.dev",
+    "CHAIN_NAME": "columbus-4",
+    "CHAIN_NAME_TESTNET": "tequila-0004"
   }
 }

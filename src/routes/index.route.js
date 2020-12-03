@@ -21,8 +21,7 @@ router.post('/update-config', async (req, res) => {
       x-www-form-urlencoded: {
         "ethereum_rpc_url": "https://remote_rpc_url....",
         "ethereum_chain_name": "MAIN_NET",
-        "terra_lcd_url":"https://tequila-lcd.terra.dev"
-        "terra_chain":"tequila-0004"
+        "terra_chain":"MAIN_NET"
       }
     note: param can be set individually
   */

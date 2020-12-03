@@ -8,6 +8,8 @@ const path = require('path')
 const configFilePath = '../../data/gateway_config.json'
 export const gatewayConfig = require(configFilePath)
 
+const PROTOCOL = require('../static/protocol.json')
+
 export const statusMessages = {
   ssl_cert_required: 'SSL Certificate required',
   ssl_cert_invalid: 'Invalid SSL Certificate',
@@ -82,7 +84,8 @@ export const getHummingbotMemo = () => {
 }
 
 export const loadConfig = (data) => {
-  const config = require(configFilePath)
+  let config = null // reset cache
+  config = require(configFilePath)
   return config
 }
 
@@ -91,8 +94,25 @@ export const updateConfig = (data) => {
   Object.keys(data).forEach(key => {
     // standardize chain name & value
     let value = data[key]
-    if (key === 'ethereum_chain_name' && value.toUpperCase() === 'MAIN_NET') {
-      value = 'mainnet'
+    switch (key) {
+      case 'ethereum_chain_name':
+        if (value.toUpperCase() === 'MAIN_NET') {
+          value = 'mainnet'
+        } else {
+          value = value.toLowerCase()
+        }
+        break;
+      case 'terra_chain_name':
+        if (value.toUpperCase() === 'MAIN_NET') {
+          value = PROTOCOL.TERRA.CHAIN_NAME
+          config.TERRA_LCD_URL = PROTOCOL.TERRA.LCD_URL
+        } else if (value.toUpperCase() === 'TEST_NET') {
+          value = PROTOCOL.TERRA.CHAIN_NAME_TESTNET
+          config.TERRA_LCD_URL = PROTOCOL.TERRA.LCD_URL_TESTNET
+        }
+        break;
+      default:
+        break
     }
     config[key.toUpperCase()] = value
   })
