@@ -88,29 +88,9 @@
 							"type": "text"
 						},
 						{
-							"key": "terra_lcd_url",
-							"value": "https://lcd.terra.dev",
-							"description": "Terra Mainnet",
-							"type": "text",
-							"disabled": true
-						},
-						{
 							"key": "terra_chain_name",
-							"value": "columbus-4",
-							"description": "Terra Mainnet",
-							"type": "text",
-							"disabled": true
-						},
-						{
-							"key": "terra_lcd_url",
-							"value": "https://tequila-lcd.terra.dev",
-							"description": "Terra Testnet",
-							"type": "text"
-						},
-						{
-							"key": "terra_chain_name",
-							"value": "tequila-0004",
-							"description": "Terra Testnet",
+							"value": "TEST_NET",
+							"description": "MAIN_NET, TEST_NET",
 							"type": "text"
 						},
 						{
