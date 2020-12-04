@@ -184,7 +184,7 @@ router.post('/sell', async (req, res) => {
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price >= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
-      const txObj = await uniswap.swapExactIn(
+      const tx = await uniswap.swapExactIn(
         wallet,
         trade,
         baseTokenAddress,
@@ -201,9 +201,7 @@ router.post('/sell', async (req, res) => {
         amount: amount,
         expectedOut: expectedOut.toSignificant(8),
         price: price,
-        gasUsed: parseInt(txObj.gasUsed),
-        txHash: txObj.transactionHash,
-        status: txObj.status,
+        txHash: tx.hash,
       })
     } else {
       res.status(200).json({
@@ -264,7 +262,7 @@ router.post('/buy', async (req, res) => {
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
-      const txObj = await uniswap.swapExactOut(
+      const tx = await uniswap.swapExactOut(
         wallet,
         trade,
         baseTokenAddress,
@@ -281,9 +279,7 @@ router.post('/buy', async (req, res) => {
         amount: amount,
         expectedIn: expectedIn.toSignificant(8),
         price: price,
-        gasUsed: parseInt(txObj.gasUsed),
-        txHash: txObj.transactionHash,
-        status: txObj.status,
+        txHash: tx.hash,
       })
     } else {
       res.status(200).json({

@@ -85,8 +85,7 @@ export default class Uniswap {
     )
 
     debug(`Tx Hash: ${tx.hash}`);
-    const txObj = await tx.wait()
-    return txObj
+    return tx
   }
 
   async swapExactOut (wallet, trade, tokenAddress, gasPrice) {
@@ -110,7 +109,6 @@ export default class Uniswap {
     )
 
     debug(`Tx Hash: ${tx.hash}`);
-    const txObj = await tx.wait()
-    return txObj
+    return tx
   }
 }
