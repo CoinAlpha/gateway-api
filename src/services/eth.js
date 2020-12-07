@@ -37,12 +37,12 @@ export default class Ethereum {
   }
 
   // get ERC-20 token balance
-  async getERC20Balance (wallet, tokenAddress) {
+  async getERC20Balance (wallet, tokenAddress, decimals) {
     // instantiate a contract and pass in provider for read-only access
     const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, this.provider)
     try {
       const balance = await contract.balanceOf(wallet.address)
-      return balance / 1e18.toString()
+      return balance / Math.pow(10, decimals).toString()
     } catch (err) {
       let reason
       err.reason ? reason = err.reason : reason = 'error balance lookup'
@@ -51,12 +51,12 @@ export default class Ethereum {
   }
 
   // get ERC-20 token allowance
-  async getERC20Allowance (wallet, spender, tokenAddress) {
+  async getERC20Allowance (wallet, spender, tokenAddress, decimals) {
     // instantiate a contract and pass in provider for read-only access
     const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, this.provider)
     try {
       const allowance = await contract.allowance(wallet.address, spender)
-      return allowance / 1e18.toString()
+      return allowance / Math.pow(10, decimals).toString()
     } catch (err) {
       let reason
       err.reason ? reason = err.reason : reason = 'error allowance lookup'
