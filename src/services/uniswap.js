@@ -15,6 +15,7 @@ export default class Uniswap {
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
     this.router = ROUTER;
     this.allowedSlippage = new uni.Percent('0', '100')
+    this.gasLimit = GAS_LIMIT
 
     switch (network) {
       case 'mainnet':

@@ -16,6 +16,11 @@ const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
 
+const estimateGasLimit = (maxswaps) => {
+  const gasLimit = balancer.gasBase + maxswaps * balancer.gasPerSwap
+  return gasLimit
+}
+
 router.post('/', async (req, res) => {
   /*
     POST /
@@ -40,7 +45,7 @@ router.post('/gas-limit', async (req, res) => {
   const paramData = getParamData(req.body)
   const swaps = paramData.maxSwaps
   const maxSwaps = typeof swaps === 'undefined' || parseInt(swaps) === 0 ? balancer.maxSwaps : parseInt(swaps)
-  const gasLimit = balancer.gasBase + maxSwaps * balancer.gasPerSwap
+  const gasLimit = estimateGasLimit(maxSwaps)
 
   res.status(200).json({
     network: balancer.network,
@@ -79,7 +84,7 @@ router.post('/sell-price', async (req, res) => {
       maxSwaps,
     )
 
-    const gasLimit = balancer.gasBase + swaps.length * balancer.gasPerSwap
+    const gasLimit = estimateGasLimit(swaps.length)
 
     if (swaps != null && expectedOut != null) {
       res.status(200).json({
@@ -140,7 +145,7 @@ router.post('/buy-price', async (req, res) => {
       maxSwaps,
     )
 
-    const gasLimit = balancer.gasBase + swaps.length * balancer.gasPerSwap
+    const gasLimit = estimateGasLimit(swaps.length)
 
     if (swaps != null && expectedIn != null) {
       res.status(200).json({
