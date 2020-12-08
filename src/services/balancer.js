@@ -16,10 +16,14 @@ const GAS_BASE = 200688;
 const GAS_PER_SWAP = 100000;
 
 export default class Balancer {
-  constructor (network = 'mainnet') {
+  constructor (network = 'kovan') {
     const providerUrl = process.env.ETHEREUM_RPC_URL
     this.network = process.env.ETHEREUM_CHAIN
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
+    this.subgraphUrl = process.env.REACT_APP_SUBGRAPH_URL
+    this.gasBase = GAS_BASE
+    this.gasPerSwap = GAS_PER_SWAP
+    this.maxSwaps = MAX_SWAPS
 
     switch (network) {
       case 'mainnet':
