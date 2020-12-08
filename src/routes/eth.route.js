@@ -39,7 +39,7 @@ router.post('/balances', async (req, res) => {
   }
   let tokenAddressList
   if (paramData.tokenAddressList) {
-    tokenAddressList = paramData.tokenAddressList.split(separator)
+    tokenAddressList = JSON.parse(paramData.tokenAddressList)
   }
   debug(tokenAddressList)
 
@@ -47,8 +47,8 @@ router.post('/balances', async (req, res) => {
   balances.ETH = await eth.getETHBalance(wallet, privateKey)
   try {
     Promise.all(
-      tokenAddressList.map(async (key) =>
-        balances[key] = await eth.getERC20Balance(wallet, key)
+      Object.keys(tokenAddressList).map(async (key, index) =>
+        balances[key] = await eth.getERC20Balance(wallet, key, tokenAddressList[key])
       )).then(() => {
       res.status(200).json({
         network: eth.network,
@@ -94,14 +94,14 @@ router.post('/allowances', async (req, res) => {
   }
   let tokenAddressList
   if (paramData.tokenAddressList) {
-    tokenAddressList = paramData.tokenAddressList.split(separator)
+    tokenAddressList = JSON.parse(paramData.tokenAddressList)
   }
 
   const approvals = {}
   try {
     Promise.all(
-      tokenAddressList.map(async (key) =>
-      approvals[key] = await eth.getERC20Allowance(wallet, spender, key)
+      Object.keys(tokenAddressList).map(async (key, index) =>
+      approvals[key] = await eth.getERC20Allowance(wallet, spender, key, tokenAddressList[key])
       )).then(() => {
       res.status(200).json({
         network: eth.network,
