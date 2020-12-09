@@ -227,7 +227,7 @@ router.post('/sell', async (req, res) => {
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price >= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
-      const txObj = await balancer.swapExactIn(
+      const tx = await balancer.swapExactIn(
         wallet,
         swaps,
         baseTokenAddress,   // tokenIn is base asset
@@ -247,9 +247,7 @@ router.post('/sell', async (req, res) => {
         amount: parseFloat(paramData.amount),
         expectedOut: expectedOut / denomMultiplier,
         price: price,
-        gasUsed: parseInt(txObj.gasUsed),
-        txHash: txObj.transactionHash,
-        status: txObj.status,
+        txHash: tx.hash,
       })
     } else {
       res.status(200).json({
@@ -316,7 +314,7 @@ router.post('/buy', async (req, res) => {
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
-      const txObj = await balancer.swapExactOut(
+      const tx = await balancer.swapExactOut(
         wallet,
         swaps,
         quoteTokenAddress,   // tokenIn is quote asset
@@ -335,9 +333,7 @@ router.post('/buy', async (req, res) => {
         amount: parseFloat(paramData.amount),
         expectedIn: expectedIn / denomMultiplier,
         price: price,
-        gasUsed: parseInt(txObj.gasUsed),
-        txHash: txObj.transactionHash,
-        status: txObj.status,
+        txHash: tx.hash,
       })
     } else {
       res.status(200).json({

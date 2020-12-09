@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 import express from 'express';
 
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
@@ -235,6 +235,34 @@ router.post('/get-weth', async (req, res) => {
       message: err
     })
   }
+})
+
+router.post('/get-receipt', async (req, res) => {
+  const initTime = Date.now()
+  const paramData = getParamData(req.body)
+  const txHash = paramData.txHash
+  const txReceipt = await eth.provider.getTransactionReceipt(txHash)
+  debug('Tx Receipt:')
+  debug(txReceipt)
+
+  const receipt = {}
+  const confirmed = txReceipt && txReceipt.blockNumber ? true : false
+  if (confirmed) {
+    receipt.gasUsed = BigNumber.from(txReceipt.gasUsed).toNumber()
+    receipt.blockNumber = txReceipt.blockNumber
+    receipt.confirmations = txReceipt.confirmations
+    receipt.status = txReceipt.status
+  }
+
+  res.status(500).json({
+    network: eth.network,
+    timestamp: initTime,
+    latency: latency(initTime, Date.now()),
+    txHash: txHash,
+    confirmed: confirmed,
+    receipt: receipt,
+  })
+  return txReceipt
 })
 
 module.exports = router;

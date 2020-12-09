@@ -147,8 +147,7 @@ export default class Balancer {
       }
     )
     debug(`Tx Hash: ${tx.hash}`);
-    const txObj = await tx.wait()
-    return txObj
+    return tx
   }
 
   async swapExactOut (wallet, swaps, tokenIn, tokenOut, expectedIn, gasPrice) {
@@ -165,7 +164,6 @@ export default class Balancer {
       }
     )
     debug(`Tx Hash: ${tx.hash}`)
-    const txObj = await tx.wait()
-    return txObj
+    return tx
   }
 }
