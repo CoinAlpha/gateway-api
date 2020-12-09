@@ -7,7 +7,7 @@ const debug = require('debug')('router')
 // constants
 
 export default class Ethereum {
-  constructor (network = 'kovan') {
+  constructor (network = 'mainnet') {
     // network defaults to kovan
     const providerUrl = process.env.ETHEREUM_RPC_URL
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)

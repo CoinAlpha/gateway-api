@@ -13,16 +13,9 @@ const uniswap = new Uniswap(process.env.ETHEREUM_CHAIN)
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
 
-router.use((req, res, next) => {
-  const cert = req.connection.getPeerCertificate()
-  if (req.client.authorized) {
-    next()
-  } else if (cert.subject) {
-    res.status(403).send({ error: statusMessages.ssl_cert_invalid })
-  } else {
-    res.status(401).send({ error: statusMessages.ssl_cert_required })
-  }
-})
+const estimateGasLimit = () => {
+  return uniswap.gasLimit
+}
 
 router.post('/', async (req, res) => {
   /*
@@ -33,6 +26,19 @@ router.post('/', async (req, res) => {
     provider: uniswap.provider.connection.url,
     uniswap_router: uniswap.router,
     connection: true,
+    timestamp: Date.now(),
+  })
+})
+
+router.post('/gas-limit', async (req, res) => {
+  /*
+    POST: /buy-price
+  */
+  const gasLimit = estimateGasLimit()
+
+  res.status(200).json({
+    network: uniswap.network,
+    gasLimit: gasLimit,
     timestamp: Date.now(),
   })
 })

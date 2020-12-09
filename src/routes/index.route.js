@@ -1,4 +1,4 @@
-import { statusMessages } from '../services/utils';
+import { loadConfig } from '../services/utils';
 
 const express = require('express');
 
@@ -8,6 +8,7 @@ router.get('/', (req, res) => {
   res.status(200).json({
     app: process.env.APPNAME,
     image: process.env.IMAGE,
+    config: loadConfig(),
     status: 'ok',
   });
 })

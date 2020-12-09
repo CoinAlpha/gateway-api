@@ -74,3 +74,16 @@ export const getHummingbotMemo = () => {
   const clientId = process.env.HUMMINGBOT_CLIENT_ID || ''
   return [prefix, clientId].join('-')
 }
+
+export const loadConfig = () => {
+  const config = {
+    ethereum_rpc_url: process.env.ETHEREUM_RPC_URL,
+    ethereum_chain: process.env.ETHEREUM_CHAIN,
+    exchange_proxy: process.env.EXCHANGE_PROXY,
+    react_app_subgraph_url: process.env.REACT_APP_SUBGRAPH_URL,
+    uniswap_router: process.env.UNISWAP_ROUTER,
+    terra_lcd_url: process.env.TERRA_LCD_URL,
+    terra_chain: process.env.TERRA_CHAIN
+  }
+  return config
+}

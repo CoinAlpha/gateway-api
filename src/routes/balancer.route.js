@@ -16,6 +16,11 @@ const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
 
+const estimateGasLimit = (maxswaps) => {
+  const gasLimit = balancer.gasBase + maxswaps * balancer.gasPerSwap
+  return gasLimit
+}
+
 router.post('/', async (req, res) => {
   /*
     POST /
@@ -25,8 +30,26 @@ router.post('/', async (req, res) => {
     provider: balancer.provider.connection.url,
     exchangeProxy: balancer.exchangeProxy,
     subgraphUrl: balancer.subgraphUrl,
-    gasLimit: balancer.gasLimit,
     connection: true,
+    timestamp: Date.now(),
+  })
+})
+
+router.post('/gas-limit', async (req, res) => {
+  /*
+    POST: /buy-price
+      x-www-form-urlencoded: {
+        "maxSwaps":4
+      }
+  */
+  const paramData = getParamData(req.body)
+  const swaps = paramData.maxSwaps
+  const maxSwaps = typeof swaps === 'undefined' || parseInt(swaps) === 0 ? balancer.maxSwaps : parseInt(swaps)
+  const gasLimit = estimateGasLimit(maxSwaps)
+
+  res.status(200).json({
+    network: balancer.network,
+    gasLimit: gasLimit,
     timestamp: Date.now(),
   })
 })
@@ -61,6 +84,8 @@ router.post('/sell-price', async (req, res) => {
       maxSwaps,
     )
 
+    const gasLimit = estimateGasLimit(swaps.length)
+
     if (swaps != null && expectedOut != null) {
       res.status(200).json({
         network: balancer.network,
@@ -71,6 +96,7 @@ router.post('/sell-price', async (req, res) => {
         amount: parseFloat(paramData.amount),
         expectedOut: parseInt(expectedOut) / denomMultiplier,
         price: expectedOut / amount,
+        gasLimit: gasLimit,
         swaps: swaps,
       })
     } else { // no pool available
@@ -118,6 +144,9 @@ router.post('/buy-price', async (req, res) => {
       amount,
       maxSwaps,
     )
+
+    const gasLimit = estimateGasLimit(swaps.length)
+
     if (swaps != null && expectedIn != null) {
       res.status(200).json({
         network: balancer.network,
@@ -128,6 +157,7 @@ router.post('/buy-price', async (req, res) => {
         amount: parseFloat(paramData.amount),
         expectedIn: parseInt(expectedIn) / denomMultiplier,
         price: expectedIn / amount,
+        gasLimit: gasLimit,
         swaps: swaps,
       })
     } else { // no pool available
