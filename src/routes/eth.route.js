@@ -6,7 +6,6 @@ import Ethereum from '../services/eth';
 
 const router = express.Router()
 const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
-const separator = ','
 const spenders = {
   balancer: process.env.EXCHANGE_PROXY,
   uniswap: process.env.UNISWAP_ROUTER
@@ -243,8 +242,6 @@ router.post('/get-receipt', async (req, res) => {
   const txHash = paramData.txHash
   const txReceipt = await eth.provider.getTransactionReceipt(txHash)
   debug('Tx Receipt:')
-  debug(txReceipt)
-
   const receipt = {}
   const confirmed = txReceipt && txReceipt.blockNumber ? true : false
   if (confirmed) {
@@ -254,7 +251,7 @@ router.post('/get-receipt', async (req, res) => {
     receipt.status = txReceipt.status
   }
 
-  res.status(500).json({
+  res.status(200).json({
     network: eth.network,
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
