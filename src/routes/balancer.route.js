@@ -84,9 +84,8 @@ router.post('/sell-price', async (req, res) => {
       maxSwaps,
     )
 
-    const gasLimit = estimateGasLimit(swaps.length)
-
     if (swaps != null && expectedOut != null) {
+      const gasLimit = estimateGasLimit(swaps.length)
       res.status(200).json({
         network: balancer.network,
         timestamp: initTime,
@@ -145,9 +144,8 @@ router.post('/buy-price', async (req, res) => {
       maxSwaps,
     )
 
-    const gasLimit = estimateGasLimit(swaps.length)
-
     if (swaps != null && expectedIn != null) {
+      const gasLimit = estimateGasLimit(swaps.length)
       res.status(200).json({
         network: balancer.network,
         timestamp: initTime,
