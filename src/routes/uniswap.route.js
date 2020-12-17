@@ -88,8 +88,14 @@ router.post('/sell-price', async (req, res) => {
   } catch (err) {
     debug(err)
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
-    res.status(500).json({
+    let err_code = 500
+    if (Object.keys(err).includes('isInsufficientReservesError')) {
+      err_code = 200
+      reason = statusMessages.insufficient_reserves + ' in Sell at Uniswap'
+    } else {
+      err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    }
+    res.status(err_code).json({
       error: reason,
       message: err
     })
@@ -140,8 +146,14 @@ router.post('/buy-price', async (req, res) => {
   } catch (err) {
     debug(err)
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
-    res.status(500).json({
+    let err_code = 500
+    if (Object.keys(err).includes('isInsufficientReservesError')) {
+      err_code = 200
+      reason = statusMessages.insufficient_reserves + ' in Buy at Uniswap'
+    } else {
+      err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    }
+    res.status(err_code).json({
       error: reason,
       message: err
     })
