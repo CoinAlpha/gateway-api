@@ -9,6 +9,7 @@ export const statusMessages = {
   operation_error: 'Operation Error',
   no_pool_available: 'No Pool Available',
   invalid_token_symbol: 'Invalid Token Symbol',
+  insufficient_reserves: 'Insufficient Liquidity Reserves',
 }
 
 export const latency = (startTime, endTime) => parseFloat((endTime - startTime) / 1000)
@@ -71,8 +72,11 @@ export const strToDecimal = (str) => parseInt(str) / 100;
 
 export const getHummingbotMemo = () => {
   const prefix = 'hbot'
-  const clientId = process.env.HUMMINGBOT_CLIENT_ID || ''
-  return [prefix, clientId].join('-')
+  const clientId = process.env.HUMMINGBOT_INSTANCE_ID
+  if ((typeof clientId !== 'undefined' && clientId != null) && clientId !== '') {
+    return [prefix, clientId].join('-')
+  }
+  return prefix
 }
 
 export const loadConfig = () => {
