@@ -65,7 +65,7 @@ export default class Ethereum {
   }
 
   // approve a spender to transfer tokens from a wallet address
-  async approveERC20 (wallet, spender, tokenAddress, amount, gasPrice = this.gasPrice, gasLimit = this.approvalGasLimit) {
+  async approveERC20 (wallet, spender, tokenAddress, amount, gasPrice = this.gasPrice, gasLimit = 50000) {
     try {
       // instantiate a contract and pass in wallet, which act on behalf of that signer
       const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, wallet)
