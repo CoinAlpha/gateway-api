@@ -1,24 +1,20 @@
-import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import express from 'express';
 
-import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
+import { getParamData, latency, statusMessages } from '../services/utils';
+import Uniswap from '../services/uniswap';
 
-import Balancer from '../services/balancer';
-
-// require('dotenv').config()
+require('dotenv').config()
 const debug = require('debug')('router')
 
 const router = express.Router()
-const balancer = new Balancer(process.env.ETHEREUM_CHAIN)
+const uniswap = new Uniswap(process.env.ETHEREUM_CHAIN)
 
-const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
 
-const estimateGasLimit = (maxswaps) => {
-  const gasLimit = balancer.gasBase + maxswaps * balancer.gasPerSwap
-  return gasLimit
+const estimateGasLimit = () => {
+  return uniswap.gasLimit
 }
 
 router.post('/', async (req, res) => {
@@ -26,10 +22,9 @@ router.post('/', async (req, res) => {
     POST /
   */
   res.status(200).json({
-    network: balancer.network,
-    provider: balancer.provider.connection.url,
-    exchangeProxy: balancer.exchangeProxy,
-    subgraphUrl: balancer.subgraphUrl,
+    network: uniswap.network,
+    provider: uniswap.provider.connection.url,
+    uniswap_router: uniswap.router,
     connection: true,
     timestamp: Date.now(),
   })
@@ -38,17 +33,11 @@ router.post('/', async (req, res) => {
 router.post('/gas-limit', async (req, res) => {
   /*
     POST: /buy-price
-      x-www-form-urlencoded: {
-        "maxSwaps":4
-      }
   */
-  const paramData = getParamData(req.body)
-  const swaps = paramData.maxSwaps
-  const maxSwaps = typeof swaps === 'undefined' || parseInt(swaps) === 0 ? balancer.maxSwaps : parseInt(swaps)
-  const gasLimit = estimateGasLimit(maxSwaps)
+  const gasLimit = estimateGasLimit()
 
   res.status(200).json({
-    network: balancer.network,
+    network: uniswap.network,
     gasLimit: gasLimit,
     timestamp: Date.now(),
   })
@@ -61,7 +50,6 @@ router.post('/sell-price', async (req, res) => {
         "quote":"0x....."
         "base":"0x....."
         "amount":0.1
-        "maxSwaps":4
       }
   */
   const initTime = Date.now()
@@ -69,34 +57,27 @@ router.post('/sell-price', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount = new BigNumber(parseInt(paramData.amount * denomMultiplier))
-  let maxSwaps
-  if (paramData.maxSwaps) {
-    maxSwaps = parseInt(paramData.maxSwaps)
-  }
+  const amount = paramData.amount
 
   try {
-    // fetch the optimal pool mix from balancer-sor
-    const { swaps, expectedOut } = await balancer.priceSwapIn(
+    // fetch the optimal pool mix from uniswap
+    const { trade, expectedOut} = await uniswap.priceSwapIn(
       baseTokenAddress,     // tokenIn is base asset
       quoteTokenAddress,    // tokenOut is quote asset
-      amount,
-      maxSwaps,
+      amount
     )
 
-    if (swaps != null && expectedOut != null) {
-      const gasLimit = estimateGasLimit(swaps.length)
+    if (trade !== null && expectedOut !== null) {
       res.status(200).json({
-        network: balancer.network,
+        network: uniswap.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
-        expectedOut: parseInt(expectedOut) / denomMultiplier,
-        price: expectedOut / amount,
-        gasLimit: gasLimit,
-        swaps: swaps,
+        amount: amount,
+        expectedOut: expectedOut.toSignificant(8),
+        price: trade.executionPrice.toSignificant(8),
+        trade: trade,
       })
     } else { // no pool available
       res.status(200).json({
@@ -105,9 +86,16 @@ router.post('/sell-price', async (req, res) => {
       })
     }
   } catch (err) {
+    debug(err)
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
-    res.status(500).json({
+    let err_code = 500
+    if (Object.keys(err).includes('isInsufficientReservesError')) {
+      err_code = 200
+      reason = statusMessages.insufficient_reserves + ' in Sell at Uniswap'
+    } else {
+      err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    }
+    res.status(err_code).json({
       error: reason,
       message: err
     })
@@ -121,7 +109,6 @@ router.post('/buy-price', async (req, res) => {
         "quote":"0x....."
         "base":"0x....."
         "amount":0.1
-        "maxSwaps":4
       }
   */
   const initTime = Date.now()
@@ -129,34 +116,26 @@ router.post('/buy-price', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
-  let maxSwaps
-  if (paramData.maxSwaps) {
-    maxSwaps = parseInt(paramData.maxSwaps)
-  }
+  const amount = paramData.amount
 
   try {
-    // fetch the optimal pool mix from balancer-sor
-    const { swaps, expectedIn } = await balancer.priceSwapOut(
+    // fetch the optimal pool mix from uniswap
+    const { trade, expectedIn } = await uniswap.priceSwapOut(
       quoteTokenAddress,    // tokenIn is quote asset
       baseTokenAddress,     // tokenOut is base asset
-      amount,
-      maxSwaps,
+      amount
     )
-
-    if (swaps != null && expectedIn != null) {
-      const gasLimit = estimateGasLimit(swaps.length)
+    if (trade !== null && expectedIn !== null) {
       res.status(200).json({
-        network: balancer.network,
+        network: uniswap.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
-        expectedIn: parseInt(expectedIn) / denomMultiplier,
-        price: expectedIn / amount,
-        gasLimit: gasLimit,
-        swaps: swaps,
+        amount: amount,
+        expectedIn: expectedIn.toSignificant(8),
+        price: trade.executionPrice.invert().toSignificant(8),
+        trade: trade,
       })
     } else { // no pool available
       res.status(200).json({
@@ -165,9 +144,16 @@ router.post('/buy-price', async (req, res) => {
       })
     }
   } catch (err) {
+    debug(err)
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
-    res.status(500).json({
+    let err_code = 500
+    if (Object.keys(err).includes('isInsufficientReservesError')) {
+      err_code = 200
+      reason = statusMessages.insufficient_reserves + ' in Buy at Uniswap'
+    } else {
+      err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    }
+    res.status(err_code).json({
       error: reason,
       message: err
     })
@@ -183,7 +169,6 @@ router.post('/sell', async (req, res) => {
         "amount":0.1
         "minPrice":1
         "gasPrice":10
-        "maxSwaps":4
         "privateKey":{{privateKey}}
       }
   */
@@ -191,10 +176,10 @@ router.post('/sell', async (req, res) => {
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
-  const wallet = new ethers.Wallet(privateKey, balancer.provider)
+  const wallet = new ethers.Wallet(privateKey, uniswap.provider)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const amount = paramData.amount
 
   let maxPrice
   if (paramData.maxPrice) {
@@ -204,46 +189,35 @@ router.post('/sell', async (req, res) => {
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
   }
-  let maxSwaps
-  if (paramData.maxSwaps) {
-    maxSwaps = parseInt(paramData.maxSwaps)
-  }
-
-  const minAmountOut = maxPrice / amount * denomMultiplier
-  debug('minAmountOut', minAmountOut)
 
   try {
-    // fetch the optimal pool mix from balancer-sor
-    const { swaps, expectedOut } = await balancer.priceSwapIn(
+    // fetch the optimal pool mix from uniswap
+    const { trade, expectedOut} = await uniswap.priceSwapIn(
       baseTokenAddress,     // tokenIn is base asset
       quoteTokenAddress,    // tokenOut is quote asset
-      amount,
-      maxSwaps,
+      amount
     )
 
-    const price = expectedOut / amount
+    const price = trade.executionPrice.toSignificant(8)
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price >= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
-      const tx = await balancer.swapExactIn(
+      const tx = await uniswap.swapExactIn(
         wallet,
-        swaps,
-        baseTokenAddress,   // tokenIn is base asset
-        quoteTokenAddress,  // tokenOut is quote asset
-        amount.toString(),
-        parseInt(expectedOut) / denomMultiplier,
+        trade,
+        baseTokenAddress,
         gasPrice,
       )
 
       // submit response
       res.status(200).json({
-        network: balancer.network,
+        network: uniswap.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
-        expectedOut: expectedOut / denomMultiplier,
+        amount: amount,
+        expectedOut: expectedOut.toSignificant(8),
         price: price,
         txHash: tx.hash,
       })
@@ -273,7 +247,6 @@ router.post('/buy', async (req, res) => {
         "amount":0.1
         "maxPrice":1
         "gasPrice":10
-        "maxSwaps":4
         "privateKey":{{privateKey}}
       }
   */
@@ -281,10 +254,10 @@ router.post('/buy', async (req, res) => {
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
-  const wallet = new ethers.Wallet(privateKey, balancer.provider)
+  const wallet = new ethers.Wallet(privateKey, uniswap.provider)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const amount = paramData.amount
 
   let maxPrice
   if (paramData.maxPrice) {
@@ -294,42 +267,35 @@ router.post('/buy', async (req, res) => {
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
   }
-  let maxSwaps
-  if (paramData.maxSwaps) {
-    maxSwaps = parseInt(paramData.maxSwaps)
-  }
 
   try {
-    // fetch the optimal pool mix from balancer-sor
-    const { swaps, expectedIn } = await balancer.priceSwapOut(
+    // fetch the optimal pool mix from uniswap
+    const { trade, expectedIn} = await uniswap.priceSwapOut(
       quoteTokenAddress,    // tokenIn is quote asset
       baseTokenAddress,     // tokenOut is base asset
       amount,
-      maxSwaps,
     )
 
-    const price = expectedIn / amount
+    const price = trade.executionPrice.invert().toSignificant(8)
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
-      const tx = await balancer.swapExactOut(
+      const tx = await uniswap.swapExactOut(
         wallet,
-        swaps,
-        quoteTokenAddress,   // tokenIn is quote asset
-        baseTokenAddress,    // tokenOut is base asset
-        expectedIn.toString(),
+        trade,
+        baseTokenAddress,
         gasPrice,
       )
 
       // submit response
       res.status(200).json({
-        network: balancer.network,
+        network: uniswap.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
-        expectedIn: expectedIn / denomMultiplier,
+        amount: amount,
+        expectedIn: expectedIn.toSignificant(8),
         price: price,
         txHash: tx.hash,
       })

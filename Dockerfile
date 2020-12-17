@@ -1,5 +1,8 @@
 FROM node:10.22.0-alpine
 
+# Set labels
+LABEL application="gateway-api"
+
 # app directory
 WORKDIR /usr/src/app
 

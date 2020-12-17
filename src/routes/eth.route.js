@@ -1,15 +1,15 @@
-import BigNumber from 'bignumber.js';
-import { ethers } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 import express from 'express';
 
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
 import Ethereum from '../services/eth';
-import Balancer from '../services/balancer';
 
 const router = express.Router()
-const eth = new Ethereum(process.env.BALANCER_NETWORK)
-const balancer = new Balancer(process.env.BALANCER_NETWORK)
-const seperator = ','
+const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
+const spenders = {
+  balancer: process.env.EXCHANGE_PROXY,
+  uniswap: process.env.UNISWAP_ROUTER
+}
 
 const debug = require('debug')('router')
 
@@ -38,7 +38,7 @@ router.post('/balances', async (req, res) => {
   }
   let tokenAddressList
   if (paramData.tokenAddressList) {
-    tokenAddressList = paramData.tokenAddressList.split(seperator)
+    tokenAddressList = JSON.parse(paramData.tokenAddressList)
   }
   debug(tokenAddressList)
 
@@ -46,8 +46,8 @@ router.post('/balances', async (req, res) => {
   balances.ETH = await eth.getETHBalance(wallet, privateKey)
   try {
     Promise.all(
-      tokenAddressList.map(async (key) =>
-        balances[key] = await eth.getERC20Balance(wallet, key)
+      Object.keys(tokenAddressList).map(async (key, index) =>
+        balances[key] = await eth.getERC20Balance(wallet, key, tokenAddressList[key])
       )).then(() => {
       res.status(200).json({
         network: eth.network,
@@ -72,11 +72,13 @@ router.post('/allowances', async (req, res) => {
       x-www-form-urlencoded: {
         privateKey:{{privateKey}}
         tokenAddressList:{{tokenAddressList}}
+        connector:{{connector_name}}
       }
   */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
+  const spender = spenders[paramData.connector]
   let wallet
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
@@ -89,18 +91,16 @@ router.post('/allowances', async (req, res) => {
     })
     return
   }
-  const spender = balancer.exchangeProxy
   let tokenAddressList
   if (paramData.tokenAddressList) {
-    tokenAddressList = paramData.tokenAddressList.split(seperator)
+    tokenAddressList = JSON.parse(paramData.tokenAddressList)
   }
-  debug(tokenAddressList)
 
   const approvals = {}
   try {
     Promise.all(
-      tokenAddressList.map(async (key) =>
-      approvals[key] = await eth.getERC20Allowance(wallet, spender, key)
+      Object.keys(tokenAddressList).map(async (key, index) =>
+      approvals[key] = await eth.getERC20Allowance(wallet, spender, key, tokenAddressList[key])
       )).then(() => {
       res.status(200).json({
         network: eth.network,
@@ -125,15 +125,17 @@ router.post('/approve', async (req, res) => {
   /*
       POST: /approve
       x-www-form-urlencoded: {
-        tokenAddress:"0x....."
         privateKey:{{privateKey}}
+        tokenAddress:"0x....."
+        decimals: {{token_decimals}}
+        connector:{{connector_name}}
         amount:{{amount}}
       }
   */
   const initTime = Date.now()
-  // params: privateKey (required), tokenAddress (required), amount (optional), gasPrice (required)
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
+  const spender = spenders[paramData.connector]
   let wallet
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
@@ -147,10 +149,11 @@ router.post('/approve', async (req, res) => {
     return
   }
   const tokenAddress = paramData.tokenAddress
-  const spender = balancer.exchangeProxy
-  let amount
-  paramData.amount  ? amount = ethers.utils.parseEther(paramData.amount)
-                    : amount = ethers.utils.parseEther('1000000000') // approve for 1 billion units if no amount specified
+  let amount, decimals
+  paramData.decimals ? decimals = paramData.decimals
+                     : decimals = 18
+  paramData.amount  ? amount = ethers.utils.parseUnits(paramData.amount, decimals)
+                    : amount = ethers.utils.parseUnits('1000000000', decimals) // approve for 1 billion units if no amount specified
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
@@ -191,7 +194,6 @@ router.post('/get-weth', async (req, res) => {
       }
   */
   const initTime = Date.now()
-  // params: primaryKey (required), amount (required), gasPrice (optional)
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
   let wallet
@@ -232,16 +234,32 @@ router.post('/get-weth', async (req, res) => {
       message: err
     })
   }
+})
 
-  // When Balancer gives us the faucet ABI, we can use this faucet to get all Kovan tokens
-  // const contract = new ethers.Contract(abi.KovanFaucetAddress, abi.KovanFaucetAbi, provider)
-  // contract.drip(wallet.address, tokenAddress).then((response) => {
-  //   res.status(200).json({
-  //     network: network,
-  //     timestamp: initTime,
-  //     result: response
-  //   })
-  // })
+router.post('/get-receipt', async (req, res) => {
+  const initTime = Date.now()
+  const paramData = getParamData(req.body)
+  const txHash = paramData.txHash
+  const txReceipt = await eth.provider.getTransactionReceipt(txHash)
+  debug('Tx Receipt:')
+  const receipt = {}
+  const confirmed = txReceipt && txReceipt.blockNumber ? true : false
+  if (confirmed) {
+    receipt.gasUsed = BigNumber.from(txReceipt.gasUsed).toNumber()
+    receipt.blockNumber = txReceipt.blockNumber
+    receipt.confirmations = txReceipt.confirmations
+    receipt.status = txReceipt.status
+  }
+
+  res.status(200).json({
+    network: eth.network,
+    timestamp: initTime,
+    latency: latency(initTime, Date.now()),
+    txHash: txHash,
+    confirmed: confirmed,
+    receipt: receipt,
+  })
+  return txReceipt
 })
 
 module.exports = router;

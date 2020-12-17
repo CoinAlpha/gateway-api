@@ -21,7 +21,6 @@ npm-debug.log
 dist/
 
 # cert
-certs/
 *.pem
 *.srl
 *.key

@@ -3,6 +3,7 @@ import bodyParser from 'body-parser'
 import express from 'express'
 import helmet from 'helmet'
 import { statusMessages } from './services/utils';
+import { validateAccess } from './services/access';
 import { IpFilter } from 'express-ipfilter'
 
 // Routes
@@ -11,6 +12,7 @@ import balancerRoutes from './routes/balancer.route'
 // import celoRoutes from './routes/celo.route'
 import ethRoutes from './routes/eth.route'
 import terraRoutes from './routes/terra.route'
+import uniswapRoutes from './routes/uniswap.route'
 
 // terminate if environment not found
 const result = dotenv.config();
@@ -34,22 +36,18 @@ if (ipWhitelist) {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use(validateAccess)
+
 // mount all routes to this path
-app.use('/api', apiRoutes);
-app.use('/eth', ethRoutes);
-// app.use('/celo', celoRoutes);
-app.use('/terra', terraRoutes);
-app.use('/balancer', balancerRoutes);
+app.use('/uniswap', validateAccess, uniswapRoutes);
+app.use('/api', validateAccess, apiRoutes);
+app.use('/eth', validateAccess, ethRoutes);
+// app.use('/celo', validateAccess, celoRoutes);
+app.use('/terra', validateAccess, terraRoutes);
+app.use('/balancer', validateAccess, balancerRoutes);
 
 app.get('/', (req, res, next) => {
-  const cert = req.connection.getPeerCertificate()
-  if (req.client.authorized) {
-    next()
-  } else if (cert.subject) {
-    res.status(403).send({ error: statusMessages.ssl_cert_invalid })
-  } else {
-    res.status(401).send({ error: statusMessages.ssl_cert_required })
-  }
+  res.send('ok')
 })
 
 /**

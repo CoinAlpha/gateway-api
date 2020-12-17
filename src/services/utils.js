@@ -8,6 +8,8 @@ export const statusMessages = {
   ssl_cert_invalid: 'Invalid SSL Certificate',
   operation_error: 'Operation Error',
   no_pool_available: 'No Pool Available',
+  invalid_token_symbol: 'Invalid Token Symbol',
+  insufficient_reserves: 'Insufficient Liquidity Reserves',
 }
 
 export const latency = (startTime, endTime) => parseFloat((endTime - startTime) / 1000)
@@ -45,6 +47,11 @@ export const getParamData = (data, format = null) => {
   return dataObject
 }
 
+export const splitParamData = (param, separator = ',') => {
+  const dataArray = param.split(separator)
+  return dataArray
+}
+
 export const getSymbols = (tradingPair) => {
   const symbols = tradingPair.split('-')
   const baseQuotePair = {
@@ -62,3 +69,25 @@ export const reportConnectionError = (res, error) => {
 }
 
 export const strToDecimal = (str) => parseInt(str) / 100;
+
+export const getHummingbotMemo = () => {
+  const prefix = 'hbot'
+  const clientId = process.env.HUMMINGBOT_INSTANCE_ID
+  if ((typeof clientId !== 'undefined' && clientId != null) && clientId !== '') {
+    return [prefix, clientId].join('-')
+  }
+  return prefix
+}
+
+export const loadConfig = () => {
+  const config = {
+    ethereum_rpc_url: process.env.ETHEREUM_RPC_URL,
+    ethereum_chain: process.env.ETHEREUM_CHAIN,
+    exchange_proxy: process.env.EXCHANGE_PROXY,
+    react_app_subgraph_url: process.env.REACT_APP_SUBGRAPH_URL,
+    uniswap_router: process.env.UNISWAP_ROUTER,
+    terra_lcd_url: process.env.TERRA_LCD_URL,
+    terra_chain: process.env.TERRA_CHAIN
+  }
+  return config
+}

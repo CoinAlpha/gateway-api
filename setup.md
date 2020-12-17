@@ -9,7 +9,7 @@ This can be used as a common API server to handle transactions that requires cus
 ## Development Requirements
 
 - NodeJS 
-  - Tested on Node v10.22.0
+  - Tested on Node v10.22.1
   - https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
 
   ```bash
