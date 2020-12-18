@@ -12,7 +12,6 @@ const debug = require('debug')('router')
 const router = express.Router()
 const balancer = new Balancer(process.env.ETHEREUM_CHAIN)
 
-const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
 
@@ -62,6 +61,8 @@ router.post('/sell-price', async (req, res) => {
         "base":"0x....."
         "amount":0.1
         "maxSwaps":4
+        "base_decimals":18
+        "quote_decimals":18
       }
   */
   const initTime = Date.now()
@@ -69,7 +70,9 @@ router.post('/sell-price', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount = new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const baseDenomMultiplier = 10 ** paramData.base_decimals
+  const quoteDenomMultiplier = 10 ** paramData.quote_decimals
+  const amount = new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
   let maxSwaps
   if (paramData.maxSwaps) {
     maxSwaps = parseInt(paramData.maxSwaps)
@@ -93,8 +96,8 @@ router.post('/sell-price', async (req, res) => {
         base: baseTokenAddress,
         quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
-        expectedOut: parseInt(expectedOut) / denomMultiplier,
-        price: expectedOut / amount,
+        expectedOut: parseInt(expectedOut) / quoteDenomMultiplier,
+        price: expectedOut / amount * baseDenomMultiplier / quoteDenomMultiplier,
         gasLimit: gasLimit,
         swaps: swaps,
       })
@@ -122,6 +125,8 @@ router.post('/buy-price', async (req, res) => {
         "base":"0x....."
         "amount":0.1
         "maxSwaps":4
+        "base_decimals":18
+        "quote_decimals":18
       }
   */
   const initTime = Date.now()
@@ -129,7 +134,9 @@ router.post('/buy-price', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const baseDenomMultiplier = 10 ** paramData.base_decimals
+  const quoteDenomMultiplier = 10 ** paramData.quote_decimals
+  const amount =  new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
   let maxSwaps
   if (paramData.maxSwaps) {
     maxSwaps = parseInt(paramData.maxSwaps)
@@ -153,8 +160,8 @@ router.post('/buy-price', async (req, res) => {
         base: baseTokenAddress,
         quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
-        expectedIn: parseInt(expectedIn) / denomMultiplier,
-        price: expectedIn / amount,
+        expectedIn: parseInt(expectedIn) / quoteDenomMultiplier,
+        price: expectedIn / amount * baseDenomMultiplier / quoteDenomMultiplier,
         gasLimit: gasLimit,
         swaps: swaps,
       })
@@ -181,6 +188,8 @@ router.post('/sell', async (req, res) => {
         "quote":"0x....."
         "base":"0x....."
         "amount":0.1
+        "base_decimals":18
+        "quote_decimals":18
         "minPrice":1
         "gasPrice":10
         "maxSwaps":4
@@ -194,7 +203,9 @@ router.post('/sell', async (req, res) => {
   const wallet = new ethers.Wallet(privateKey, balancer.provider)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const baseDenomMultiplier = 10 ** paramData.base_decimals
+  const quoteDenomMultiplier = 10 ** paramData.quote_decimals
+  const amount =  new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
 
   let maxPrice
   if (paramData.maxPrice) {
@@ -209,7 +220,7 @@ router.post('/sell', async (req, res) => {
     maxSwaps = parseInt(paramData.maxSwaps)
   }
 
-  const minAmountOut = maxPrice / amount * denomMultiplier
+  const minAmountOut = maxPrice / amount *  baseDenomMultiplier
   debug('minAmountOut', minAmountOut)
 
   try {
@@ -221,7 +232,7 @@ router.post('/sell', async (req, res) => {
       maxSwaps,
     )
 
-    const price = expectedOut / amount
+    const price = expectedOut / amount  * baseDenomMultiplier / quoteDenomMultiplier
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price >= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
@@ -231,7 +242,7 @@ router.post('/sell', async (req, res) => {
         baseTokenAddress,   // tokenIn is base asset
         quoteTokenAddress,  // tokenOut is quote asset
         amount.toString(),
-        parseInt(expectedOut) / denomMultiplier,
+        parseInt(expectedOut) / quoteDenomMultiplier,
         gasPrice,
       )
 
@@ -243,7 +254,7 @@ router.post('/sell', async (req, res) => {
         base: baseTokenAddress,
         quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
-        expectedOut: expectedOut / denomMultiplier,
+        expectedOut: expectedOut / quoteDenomMultiplier,
         price: price,
         txHash: tx.hash,
       })
@@ -271,6 +282,8 @@ router.post('/buy', async (req, res) => {
         "quote":"0x....."
         "base":"0x....."
         "amount":0.1
+        "base_decimals":18
+        "quote_decimals":18
         "maxPrice":1
         "gasPrice":10
         "maxSwaps":4
@@ -284,7 +297,9 @@ router.post('/buy', async (req, res) => {
   const wallet = new ethers.Wallet(privateKey, balancer.provider)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const baseDenomMultiplier = 10 ** paramData.base_decimals
+  const quoteDenomMultiplier = 10 ** paramData.quote_decimals
+  const amount =  new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
 
   let maxPrice
   if (paramData.maxPrice) {
@@ -308,7 +323,7 @@ router.post('/buy', async (req, res) => {
       maxSwaps,
     )
 
-    const price = expectedIn / amount
+    const price = expectedIn / amount * baseDenomMultiplier / quoteDenomMultiplier
     debug(`Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
@@ -329,7 +344,7 @@ router.post('/buy', async (req, res) => {
         base: baseTokenAddress,
         quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
-        expectedIn: expectedIn / denomMultiplier,
+        expectedIn: expectedIn / quoteDenomMultiplier,
         price: price,
         txHash: tx.hash,
       })
