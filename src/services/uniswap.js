@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 const uni = require('@uniswap/sdk')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/uniswap_v2_router_abi.json')
@@ -39,7 +41,8 @@ export default class Uniswap {
         route = new uni.Route([pair], tIn, tOut)
       }
       catch(err) {
-        console.log('Trying alternative/indirect route.')
+        logger.warn(err)
+        logger.info('Trying alternative/indirect route.')
         pairOne = await uni.Fetcher.fetchPairData(tIn, uni.WETH[this.chainID])
         pairTwo = await uni.Fetcher.fetchPairData(tOut, uni.WETH[this.chainID])
         route = new uni.Route([pairOne, pairTwo], tIn, tOut)

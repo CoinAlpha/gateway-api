@@ -5,6 +5,7 @@ import helmet from 'helmet'
 import { statusMessages } from './services/utils';
 import { validateAccess } from './services/access';
 import { IpFilter } from 'express-ipfilter'
+import { logger } from './services/logger';
 
 // Routes
 import apiRoutes from './routes/index.route'
@@ -17,7 +18,7 @@ import uniswapRoutes from './routes/uniswap.route'
 // terminate if environment not found
 const result = dotenv.config();
 if (result.error) {
-  console.log(result.error);
+  logger.error(result.error);
   process.exit(1);
 }
 
@@ -39,12 +40,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(validateAccess)
 
 // mount all routes to this path
-app.use('/uniswap', validateAccess, uniswapRoutes);
-app.use('/api', validateAccess, apiRoutes);
-app.use('/eth', validateAccess, ethRoutes);
-// app.use('/celo', validateAccess, celoRoutes);
-app.use('/terra', validateAccess, terraRoutes);
-app.use('/balancer', validateAccess, balancerRoutes);
+app.use('/uniswap', uniswapRoutes);
+app.use('/api', apiRoutes);
+app.use('/eth', ethRoutes);
+// app.use('/celo', celoRoutes);
+app.use('/terra', terraRoutes);
+app.use('/balancer', balancerRoutes);
 
 app.get('/', (req, res, next) => {
   res.send('ok')
@@ -54,18 +55,12 @@ app.get('/', (req, res, next) => {
  * Catch all 404 response when routes are not found
  */
 app.use((req, res, next) => {
+  const message = `${statusMessages.page_not_found} at ${req.originalUrl}`
+  logger.error(message)
   res.status(404).send({
     error: 'Page not found',
+    message: message
   });
 });
-
-// // strip stacktrace on error
-// app.use((err, req, res, next) => {
-//   // console.log('Error handler', err)
-//   res.status(err.status || 500)
-//   res.json({
-//     error: err.message,
-//   })
-// })
 
 export default app;

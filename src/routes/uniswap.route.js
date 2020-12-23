@@ -2,6 +2,7 @@ import { ethers } from 'ethers';
 import express from 'express';
 
 import { getParamData, latency, statusMessages } from '../services/utils';
+import { logger } from '../services/logger';
 import Uniswap from '../services/uniswap';
 
 require('dotenv').config()
@@ -15,6 +16,19 @@ const swapLessThanMaxPriceError = 'Price too low'
 
 const estimateGasLimit = () => {
   return uniswap.gasLimit
+}
+
+const getErrorMessage = (err) => {
+  /*
+    [WIP] Custom error message based-on string match
+  */
+  let message = err
+  if (err.includes('failed to meet quorum')) {
+    message = 'Failed to meet quorum'
+  } else if (err.includes('Invariant failed: ADDRESSES')) {
+    message = 'Invariant failed: ADDRESSES'
+  }
+  return message
 }
 
 router.post('/', async (req, res) => {
@@ -36,11 +50,21 @@ router.post('/gas-limit', async (req, res) => {
   */
   const gasLimit = estimateGasLimit()
 
-  res.status(200).json({
-    network: uniswap.network,
-    gasLimit: gasLimit,
-    timestamp: Date.now(),
-  })
+  try {
+    res.status(200).json({
+      network: uniswap.network,
+      gasLimit: gasLimit,
+      timestamp: Date.now(),
+    })
+  } catch (err) {
+    logger.error(req.originalUrl, err)
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+  }
 })
 
 router.post('/sell-price', async (req, res) => {
@@ -61,7 +85,7 @@ router.post('/sell-price', async (req, res) => {
 
   try {
     // fetch the optimal pool mix from uniswap
-    const { trade, expectedOut} = await uniswap.priceSwapIn(
+    const { trade, expectedOut } = await uniswap.priceSwapIn(
       baseTokenAddress,     // tokenIn is base asset
       quoteTokenAddress,    // tokenOut is quote asset
       amount
@@ -86,16 +110,18 @@ router.post('/sell-price', async (req, res) => {
       })
     }
   } catch (err) {
-    debug(err)
+    logger.error(req.originalUrl, err)
     let reason
-    let err_code = 500
+    let errCode = 500
     if (Object.keys(err).includes('isInsufficientReservesError')) {
-      err_code = 200
+      errCode = 200
       reason = statusMessages.insufficient_reserves + ' in Sell at Uniswap'
+    } else if (Object.getOwnPropertyNames(err).includes('message')) {
+      reason = getErrorMessage(err.message)
     } else {
       err.reason ? reason = err.reason : reason = statusMessages.operation_error
     }
-    res.status(err_code).json({
+    res.status(errCode).json({
       error: reason,
       message: err
     })
@@ -144,16 +170,18 @@ router.post('/buy-price', async (req, res) => {
       })
     }
   } catch (err) {
-    debug(err)
+    logger.error(req.originalUrl, err)
     let reason
-    let err_code = 500
+    let errCode = 500
     if (Object.keys(err).includes('isInsufficientReservesError')) {
-      err_code = 200
+      errCode = 200
       reason = statusMessages.insufficient_reserves + ' in Buy at Uniswap'
+    } else if (Object.getOwnPropertyNames(err).includes('message')) {
+      reason = getErrorMessage(err.message)
     } else {
       err.reason ? reason = err.reason : reason = statusMessages.operation_error
     }
-    res.status(err_code).json({
+    res.status(errCode).json({
       error: reason,
       message: err
     })
@@ -229,6 +257,7 @@ router.post('/sell', async (req, res) => {
       debug(`Swap price ${price} lower than maxPrice ${maxPrice}`)
     }
   } catch (err) {
+    logger.error(req.originalUrl, err)
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -270,7 +299,7 @@ router.post('/buy', async (req, res) => {
 
   try {
     // fetch the optimal pool mix from uniswap
-    const { trade, expectedIn} = await uniswap.priceSwapOut(
+    const { trade, expectedIn } = await uniswap.priceSwapOut(
       quoteTokenAddress,    // tokenIn is quote asset
       baseTokenAddress,     // tokenOut is base asset
       amount,
@@ -307,6 +336,7 @@ router.post('/buy', async (req, res) => {
       debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
     }
   } catch (err) {
+    logger.error(req.originalUrl, '|', err)
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
