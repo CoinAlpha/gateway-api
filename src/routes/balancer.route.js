@@ -15,8 +15,8 @@ const balancer = new Balancer(process.env.ETHEREUM_CHAIN)
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
 
-const estimateGasLimit = (maxswaps) => {
-  const gasLimit = balancer.gasBase + maxswaps * balancer.gasPerSwap
+const estimateGasLimit = (maxSwaps) => {
+  const gasLimit = balancer.gasBase + maxSwaps * balancer.gasPerSwap
   return gasLimit
 }
 
