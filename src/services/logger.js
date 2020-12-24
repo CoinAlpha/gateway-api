@@ -6,7 +6,9 @@ const logFormat = winston.format.combine(
   winston.format.align(),
   winston.format.printf(
     info => {
-      return `${info.timestamp} | ${info.level} | ${info.message}`
+      const local = new Date()
+      const timestamp = local.toLocaleString()
+      return `${timestamp} | ${info.level} | ${info.message}`
     }
   ),
 )
