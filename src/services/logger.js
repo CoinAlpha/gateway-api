@@ -27,7 +27,12 @@ const config = {
   rejection: {
     level: 'error',
     filename: `${appRoot}/logs/rejection.log`,
-  }
+  },
+  debug: {
+    level: 'debug',
+    filename: `${appRoot}/logs/debug.log`,
+    handleExceptions: true,
+  },
 }
 
 const allLogsFileTransport = new winston.transports.File(config.file)

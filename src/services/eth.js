@@ -1,9 +1,10 @@
+import { logger } from './logger';
+
 require('dotenv').config()
 const fs = require('fs');
 const ethers = require('ethers')
 const abi = require('../static/abi')
 const debug = require('debug')('router')
-const logger = require('../services/logger')
 
 // constants
 

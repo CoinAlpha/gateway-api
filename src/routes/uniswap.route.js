@@ -57,7 +57,7 @@ router.post('/gas-limit', async (req, res) => {
       timestamp: Date.now(),
     })
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -110,7 +110,7 @@ router.post('/sell-price', async (req, res) => {
       })
     }
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let reason
     let errCode = 500
     if (Object.keys(err).includes('isInsufficientReservesError')) {
@@ -170,7 +170,7 @@ router.post('/buy-price', async (req, res) => {
       })
     }
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let reason
     let errCode = 500
     if (Object.keys(err).includes('isInsufficientReservesError')) {
@@ -257,7 +257,7 @@ router.post('/sell', async (req, res) => {
       debug(`Swap price ${price} lower than maxPrice ${maxPrice}`)
     }
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -336,7 +336,7 @@ router.post('/buy', async (req, res) => {
       debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
     }
   } catch (err) {
-    logger.error(req.originalUrl, '|', err)
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({

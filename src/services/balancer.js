@@ -1,10 +1,10 @@
+import { logger } from '../services/logger';
 require('dotenv').config() // DO NOT REMOVE. needed to configure REACT_APP_SUBGRAPH_URL used by @balancer-labs/sor
 const sor = require('@balancer-labs/sor')
 const BigNumber = require('bignumber.js')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/ExchangeProxy.json')
 const debug = require('debug')('router')
-const logger = require('../services/logger')
 
 // constants
 const MULTI = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441';
@@ -36,7 +36,9 @@ export default class Balancer {
         this.multiCall = MULTI_KOVAN;
         break;
       default:
-        throw Error(`Invalid network ${network}`)
+        const err = `Invalid network ${network}`
+        logger.error(err)
+        throw Error(err)
     }
   }
 
@@ -45,10 +47,10 @@ export default class Balancer {
     try {
       const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
       if (pools.pools.length === 0) {
-        logger.info('No pools contain the tokens provided', this.network)
+        logger.info('No pools contain the tokens provided.', { message: this.network })
         return {};
       }
-      logger.info('Pools Retrieved.', this.network)
+      logger.info('Pools Retrieved.', { message: this.network })
 
       // Get current on-chain data about the fetched pools
       let poolData
@@ -99,11 +101,10 @@ export default class Balancer {
     try {
       const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
       if (pools.pools.length === 0) {
-        logger.info('No pools contain the tokens provided', this.network);
+        logger.info('No pools contain the tokens provided.', { message: this.network });
         return {};
       }
-      logger.info('Pools Retrieved.', this.network);
-
+      logger.info('Pools Retrieved.', { message: this.network })
       // Get current on-chain data about the fetched pools
       let poolData
       if (this.network === 'mainnet') {

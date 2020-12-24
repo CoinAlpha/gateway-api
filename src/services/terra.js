@@ -1,10 +1,10 @@
+import { logger } from './logger';
 import { LCDClient, Coin, MsgSwap, StdTx, StdFee, Dec, MnemonicKey, isTxError, Coins  } from '@terra-money/terra.js'
 import BigNumber from 'bignumber.js'
 import { getHummingbotMemo } from './utils';
 
 require('dotenv').config()
 const debug = require('debug')('router')
-const logger = require('../services/logger')
 
 // constants
 const TERRA_TOKENS = {

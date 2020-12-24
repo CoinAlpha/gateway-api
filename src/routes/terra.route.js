@@ -58,7 +58,7 @@ router.post('/balances', async (req, res) => {
       balances: balances,
     })
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let message
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
@@ -118,7 +118,7 @@ router.post('/price', async (req, res) => {
       }
     )
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let message
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
@@ -181,7 +181,7 @@ router.post('/trade', async (req, res) => {
       swapResult
     )
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let message
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error

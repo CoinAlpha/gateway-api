@@ -27,7 +27,9 @@ export default class Uniswap {
         this.chainID = uni.ChainId.KOVAN;
         break;
       default:
-        throw Error(`Invalid network ${network}`)
+        const err = `Invalid network ${network}`
+        logger.error(err)
+        throw Error(err)
     }
   }
 

@@ -29,7 +29,7 @@ router.post('/balances', async (req, res) => {
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = 'Error getting wallet'
     res.status(500).json({
@@ -59,7 +59,7 @@ router.post('/balances', async (req, res) => {
       })
     })
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -86,7 +86,7 @@ router.post('/allowances', async (req, res) => {
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = 'Error getting wallet'
     res.status(500).json({
@@ -116,7 +116,7 @@ router.post('/allowances', async (req, res) => {
     }
     )
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -145,7 +145,7 @@ router.post('/approve', async (req, res) => {
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = 'Error getting wallet'
     res.status(500).json({
@@ -180,7 +180,7 @@ router.post('/approve', async (req, res) => {
       approval: approval
     })
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -207,7 +207,7 @@ router.post('/get-weth', async (req, res) => {
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = 'Error getting wallet'
     res.status(500).json({
@@ -235,7 +235,7 @@ router.post('/get-weth', async (req, res) => {
       result: response
     })
   } catch (err) {
-    logger.error(req.originalUrl, err)
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
