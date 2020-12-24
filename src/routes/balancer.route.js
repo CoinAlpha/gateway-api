@@ -65,27 +65,29 @@ router.post('/sell-price', async (req, res) => {
         "quote_decimals":18
       }
   */
-  const initTime = Date.now()
-  // params: base (required), quote (required), amount (required)
-  const paramData = getParamData(req.body)
-  const baseTokenAddress = paramData.base
-  const quoteTokenAddress = paramData.quote
-  const baseDenomMultiplier = 10 ** paramData.base_decimals
-  const quoteDenomMultiplier = 10 ** paramData.quote_decimals
-  const amount = new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
+
+  const initTime = Date.now();
+  const paramData = getParamData(req.body);
+  const baseTokenAddress = paramData.base;
+  const quoteTokenAddress = paramData.quote;
+  const baseDenomMultiplier = 10 ** paramData.base_decimals;
+  const quoteDenomMultiplier = 10 ** paramData.quote_decimals;
+  const amount = new BigNumber(parseInt(paramData.amount * baseDenomMultiplier));
   let maxSwaps
   if (paramData.maxSwaps) {
-    maxSwaps = parseInt(paramData.maxSwaps)
+    maxSwaps = parseInt(paramData.maxSwaps);
   }
 
   try {
     // fetch the optimal pool mix from balancer-sor
-    const { swaps, expectedOut } = await balancer.priceSwapIn(
+    const [swaps, expectedOut] = await balancer.priceSwapIn(
       baseTokenAddress,     // tokenIn is base asset
       quoteTokenAddress,    // tokenOut is quote asset
       amount,
       maxSwaps,
     )
+    console.log(swaps)
+    console.log(expectedOut)
 
     if (swaps != null && expectedOut != null) {
       const gasLimit = estimateGasLimit(swaps.length)
@@ -130,7 +132,6 @@ router.post('/buy-price', async (req, res) => {
       }
   */
   const initTime = Date.now()
-  // params: base (required), quote (required), amount (required)
   const paramData = getParamData(req.body)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
