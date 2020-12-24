@@ -41,7 +41,7 @@ export default class Uniswap {
         route = new uni.Route([pair], tIn, tOut)
       }
       catch(err) {
-        logger.warn(err)
+        logger.error(err)
         logger.info('Trying alternative/indirect route.')
         pairOne = await uni.Fetcher.fetchPairData(tIn, uni.WETH[this.chainID])
         pairTwo = await uni.Fetcher.fetchPairData(tOut, uni.WETH[this.chainID])

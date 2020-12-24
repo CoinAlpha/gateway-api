@@ -25,7 +25,7 @@ const config = {
     handleExceptions: true,
   },
   rejection: {
-    level: 'crit',
+    level: 'error',
     filename: `${appRoot}/logs/rejection.log`,
   }
 }
