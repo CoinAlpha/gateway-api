@@ -51,7 +51,7 @@ export default class Ethereum {
   }
 
   // get ERC-20 token allowance
-  async getERC20Allowance (wallet, spender, tokenAddress, decimals = 18) {
+  async getERC20Allowance (wallet, spender, tokenAddress, decimals) {
     // instantiate a contract and pass in provider for read-only access
     const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, this.provider)
     try {
