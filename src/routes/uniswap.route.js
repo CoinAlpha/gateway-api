@@ -6,7 +6,6 @@ import { logger } from '../services/logger';
 import Uniswap from '../services/uniswap';
 
 require('dotenv').config()
-const debug = require('debug')('router')
 
 const router = express.Router()
 const uniswap = new Uniswap(process.env.ETHEREUM_CHAIN)
@@ -227,7 +226,7 @@ router.post('/sell', async (req, res) => {
     )
 
     const price = trade.executionPrice.toSignificant(8)
-    debug(`Price: ${price.toString()}`)
+    logger.debug(`Price: ${price.toString()}`)
     if (!maxPrice || price >= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const tx = await uniswap.swapExactIn(
@@ -254,7 +253,7 @@ router.post('/sell', async (req, res) => {
         error: swapLessThanMaxPriceError,
         message: `Swap price ${price} lower than maxPrice ${maxPrice}`
       })
-      debug(`Swap price ${price} lower than maxPrice ${maxPrice}`)
+      logger.debug(`Swap price ${price} lower than maxPrice ${maxPrice}`)
     }
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
@@ -306,7 +305,7 @@ router.post('/buy', async (req, res) => {
     )
 
     const price = trade.executionPrice.invert().toSignificant(8)
-    debug(`Price: ${price.toString()}`)
+    logger.debug(`Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const tx = await uniswap.swapExactOut(
@@ -333,7 +332,7 @@ router.post('/buy', async (req, res) => {
         error: swapMoreThanMaxPriceError,
         message: `Swap price ${price} exceeds maxPrice ${maxPrice}`
       })
-      debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
+      logger.debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
     }
   } catch (err) {
     logger.error(req.originalUrl, { message: err })

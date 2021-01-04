@@ -5,12 +5,9 @@
 import { logger } from './logger';
 import { statusMessages } from './utils';
 
-const debug = require('debug')('router')
-
 export const validateAccess = (req, res, next) => {
   const cert = req.connection.getPeerCertificate()
   if (req.client.authorized) {
-    debug('Access granted')
     next()
   } else if (cert.subject) {
     logger.error(statusMessages.ssl_cert_invalid)

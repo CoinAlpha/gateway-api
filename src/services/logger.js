@@ -1,46 +1,60 @@
+import { getLocalDate } from './utils'
+require('dotenv').config()
+// const fecha = require('fecha')
 const appRoot = require('app-root-path')
-const winston = require('winston');
+const winston = require('winston')
+require('winston-daily-rotate-file');
 
 const logFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.align(),
   winston.format.printf(
     info => {
-      const local = new Date()
-      const timestamp = local.toLocaleString()
-      return `${timestamp} | ${info.level} | ${info.message}`
+      const localDate = getLocalDate()
+      return `${localDate} | ${info.level} | ${info.message}`
     }
   ),
 )
 
+const getLogPath = () => {
+  let logPath = process.env.LOG_PATH
+  if (typeof logPath === 'undefined' || logPath == null || logPath === '') {
+    logPath = [appRoot.path, 'logs'].join('/')
+  }
+  return logPath
+}
+
 const config = {
   file: {
     level: 'info',
-    filename: `${appRoot}/logs/app.log`,
-    handleExceptions: false,
-    // maxsize: 5242880, // 5MB
-    // maxFiles: 30,
+    filename: `${getLogPath()}/logs_gateway_app.log.%DATE%`,
+    datePattern: 'YYYY-MM-DD',
+    handleExceptions: true,
   },
   error: {
     level: 'error',
-    filename: `${appRoot}/logs/error.log`,
-    handleExceptions: true,
+    filename: `${getLogPath()}/logs_gateway_error.log.%DATE%`,
+    datePattern: 'YYYY-MM-DD',
+    handleExceptions: false,
   },
   rejection: {
     level: 'error',
-    filename: `${appRoot}/logs/rejection.log`,
+    filename: `${getLogPath()}/logs_gateway_rejection.log.%DATE%`,
+    datePattern: 'YYYY-MM-DD',
+    handleExceptions: true,
   },
   debug: {
     level: 'debug',
-    filename: `${appRoot}/logs/debug.log`,
-    handleExceptions: true,
+    filename: `${getLogPath()}/logs_gateway_debug.log.%DATE%`,
+    datePattern: 'YYYY-MM-DD',
+    handleExceptions: false,
   },
 }
 
-const allLogsFileTransport = new winston.transports.File(config.file)
-const errorLogsFileTransport = new winston.transports.File(config.error)
-const debugTransport = new winston.transports.Console(config.debug)
-const rejectionTransport = new winston.transports.File(config.rejection)
+const allLogsFileTransport = new winston.transports.DailyRotateFile(config.file)
+const errorLogsFileTransport = new winston.transports.DailyRotateFile(config.error)
+const debugTransport = new winston.transports.DailyRotateFile(config.debug)
+const rejectionTransport = new winston.transports.DailyRotateFile(config.rejection)
 
 const options = {
   format: logFormat,

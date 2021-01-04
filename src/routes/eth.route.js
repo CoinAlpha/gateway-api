@@ -12,8 +12,6 @@ const spenders = {
   uniswap: process.env.UNISWAP_ROUTER
 }
 
-const debug = require('debug')('router')
-
 router.post('/balances', async (req, res) => {
   /*
       POST: /balances
@@ -42,7 +40,7 @@ router.post('/balances', async (req, res) => {
   if (paramData.tokenAddressList) {
     tokenAddressList = JSON.parse(paramData.tokenAddressList)
   }
-  debug(tokenAddressList)
+  logger.debug('tokenAddressList', { message: JSON.stringify(tokenAddressList) })
 
   const balances = {}
   balances.ETH = await eth.getETHBalance(wallet, privateKey)
@@ -250,7 +248,6 @@ router.post('/get-receipt', async (req, res) => {
   const paramData = getParamData(req.body)
   const txHash = paramData.txHash
   const txReceipt = await eth.provider.getTransactionReceipt(txHash)
-  debug('Tx Receipt:')
   const receipt = {}
   const confirmed = txReceipt && txReceipt.blockNumber ? true : false
   if (confirmed) {

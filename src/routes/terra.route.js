@@ -6,7 +6,6 @@ import { logger } from '../services/logger';
 
 import Terra from '../services/terra';
 
-const debug = require('debug')('router')
 const router = express.Router();
 const terra = new Terra()
 
@@ -37,7 +36,6 @@ router.post('/balances', async (req, res) => {
 
   const paramData = getParamData(req.body)
   const address = paramData.address
-  debug(paramData)
 
   let balances = {}
 

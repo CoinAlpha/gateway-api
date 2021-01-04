@@ -4,7 +4,6 @@ const sor = require('@balancer-labs/sor')
 const BigNumber = require('bignumber.js')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/ExchangeProxy.json')
-const debug = require('debug')('router')
 
 // constants
 const MULTI = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441';
@@ -47,10 +46,10 @@ export default class Balancer {
     try {
       const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
       if (pools.pools.length === 0) {
-        logger.info('No pools contain the tokens provided.', { message: this.network })
+        logger.debug('No pools contain the tokens provided.', { message: this.network })
         return {};
       }
-      logger.info('Pools Retrieved.', { message: this.network })
+      logger.debug('Pools Retrieved.', { message: this.network })
 
       // Get current on-chain data about the fetched pools
       let poolData
@@ -72,7 +71,7 @@ export default class Balancer {
 
       const swapsFormatted = sor.formatSwapsExactAmountIn(sorSwaps, MAX_UINT, 0)
       const expectedOut = sor.calcTotalOutput(swapsFormatted, poolData)
-      debug(`Expected Out: ${expectedOut.toString()} (${tokenOut})`);
+      logger.debug(`Expected Out: ${expectedOut.toString()} (${tokenOut})`);
 
       // Create correct swap format for new proxy
       let swaps = [];
@@ -101,10 +100,10 @@ export default class Balancer {
     try {
       const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
       if (pools.pools.length === 0) {
-        logger.info('No pools contain the tokens provided.', { message: this.network });
+        logger.debug('No pools contain the tokens provided.', { message: this.network });
         return {};
       }
-      logger.info('Pools Retrieved.', { message: this.network })
+      logger.debug('Pools Retrieved.', { message: this.network })
       // Get current on-chain data about the fetched pools
       let poolData
       if (this.network === 'mainnet') {
@@ -124,7 +123,7 @@ export default class Balancer {
       )
       const swapsFormatted = sor.formatSwapsExactAmountOut(sorSwaps, MAX_UINT, MAX_UINT)
       const expectedIn = sor.calcTotalInput(swapsFormatted, poolData)
-      debug(`Expected In: ${expectedIn.toString()} (${tokenIn})`);
+      logger.debug(`Expected In: ${expectedIn.toString()} (${tokenIn})`);
 
       // Create correct swap format for new proxy
       let swaps = [];
@@ -149,7 +148,7 @@ export default class Balancer {
   }
 
   async swapExactIn (wallet, swaps, tokenIn, tokenOut, amountIn, minAmountOut, gasPrice) {
-    debug(`Number of swaps: ${swaps.length}`)
+    logger.debug(`Number of swaps: ${swaps.length}`)
     try {
       const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
       const tx = await contract.batchSwapExactIn(
@@ -163,7 +162,7 @@ export default class Balancer {
           gasLimit: GAS_BASE + swaps.length * GAS_PER_SWAP,
         }
       )
-      debug(`Tx Hash: ${tx.hash}`);
+      logger.debug(`Tx Hash: ${tx.hash}`);
       return tx
     } catch (err) {
       logger.error(err)
@@ -174,7 +173,7 @@ export default class Balancer {
   }
 
   async swapExactOut (wallet, swaps, tokenIn, tokenOut, expectedIn, gasPrice) {
-    debug(`Number of swaps: ${swaps.length}`)
+    logger.debug(`Number of swaps: ${swaps.length}`)
     try {
       const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
       const tx = await contract.batchSwapExactOut(
@@ -187,7 +186,7 @@ export default class Balancer {
           gasLimit: GAS_BASE + swaps.length * GAS_PER_SWAP,
         }
       )
-      debug(`Tx Hash: ${tx.hash}`)
+      logger.debug(`Tx Hash: ${tx.hash}`)
       return tx
     } catch (err) {
       logger.error(err)

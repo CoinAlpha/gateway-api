@@ -2,6 +2,7 @@
   Hummingbot Utils
 */
 const lodash = require('lodash')
+const moment = require('moment')
 
 export const statusMessages = {
   ssl_cert_required: 'SSL Certificate required',
@@ -91,4 +92,15 @@ export const loadConfig = () => {
     terra_chain: process.env.TERRA_CHAIN
   }
   return config
+}
+
+export const getLocalDate = () => {
+  const gmtOffset = process.env.GMT_OFFSET
+  console.log('gmtOffset', gmtOffset)
+  let newDate = moment().format('YYYY-MM-DD hh:mm:ss').trim()
+  if (typeof gmtOffset !== 'undefined' && gmtOffset !== null && gmtOffset !== '') {
+    newDate = moment().utcOffset(gmtOffset, false).format('YYYY-MM-DD hh:mm:ss').trim()
+  }
+  console.log(moment().format(), newDate)
+  return newDate
 }
