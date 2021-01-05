@@ -23,7 +23,7 @@ const getErrorMessage = (err) => {
   */
   let message = err
   if (err.includes('failed to meet quorum')) {
-    message = 'Failed to meet quorum'
+    message = 'Failed to meet quorum in Uniswap'
   } else if (err.includes('Invariant failed: ADDRESSES')) {
     message = 'Invariant failed: ADDRESSES'
   }
@@ -50,7 +50,6 @@ router.post('/gas-limit', async (req, res) => {
   const gasLimit = estimateGasLimit()
 
   try {
-    // logger.debug('uniswap.route - Get Gas Limmit', { message: gasLimit })
     res.status(200).json({
       network: uniswap.network,
       gasLimit: gasLimit,

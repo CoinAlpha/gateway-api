@@ -40,7 +40,6 @@ router.post('/balances', async (req, res) => {
   if (paramData.tokenAddressList) {
     tokenAddressList = JSON.parse(paramData.tokenAddressList)
   }
-  logger.debug('tokenAddressList', { message: JSON.stringify(tokenAddressList) })
 
   const balances = {}
   balances.ETH = await eth.getETHBalance(wallet, privateKey)
