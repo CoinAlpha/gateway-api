@@ -49,6 +49,7 @@ router.post('/balances', async (req, res) => {
         balances[symbol] = amount
       })
     })
+    logger.info('terra.route - Get Account Balance', { message: address })
     res.status(200).json({
       network: network,
       timestamp: initTime,
@@ -175,6 +176,7 @@ router.post('/trade', async (req, res) => {
       amount: amount,
     }
     Object.assign(swapResult, tokenSwaps);
+    logger.info(`terra.route - ${tradeType}: ${baseToken}-${quoteToken} - Amount: ${amount}`)
     res.status(200).json(
       swapResult
     )

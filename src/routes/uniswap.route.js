@@ -50,6 +50,7 @@ router.post('/gas-limit', async (req, res) => {
   const gasLimit = estimateGasLimit()
 
   try {
+    // logger.debug('uniswap.route - Get Gas Limmit', { message: gasLimit })
     res.status(200).json({
       network: uniswap.network,
       gasLimit: gasLimit,
@@ -219,7 +220,7 @@ router.post('/sell', async (req, res) => {
 
   try {
     // fetch the optimal pool mix from uniswap
-    const { trade, expectedOut} = await uniswap.priceSwapIn(
+    const { trade, expectedOut } = await uniswap.priceSwapIn(
       baseTokenAddress,     // tokenIn is base asset
       quoteTokenAddress,    // tokenOut is quote asset
       amount
@@ -253,7 +254,7 @@ router.post('/sell', async (req, res) => {
         error: swapLessThanMaxPriceError,
         message: `Swap price ${price} lower than maxPrice ${maxPrice}`
       })
-      logger.debug(`Swap price ${price} lower than maxPrice ${maxPrice}`)
+      logger.info(`uniswap.route - Swap price ${price} lower than maxPrice ${maxPrice}`)
     }
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
@@ -305,7 +306,7 @@ router.post('/buy', async (req, res) => {
     )
 
     const price = trade.executionPrice.invert().toSignificant(8)
-    logger.debug(`Price: ${price.toString()}`)
+    logger.info(`uniswap.route - Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const tx = await uniswap.swapExactOut(
@@ -332,7 +333,7 @@ router.post('/buy', async (req, res) => {
         error: swapMoreThanMaxPriceError,
         message: `Swap price ${price} exceeds maxPrice ${maxPrice}`
       })
-      logger.debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
+      logger.info(`uniswap.route - Swap price ${price} exceeds maxPrice ${maxPrice}`)
     }
   } catch (err) {
     logger.error(req.originalUrl, { message: err })

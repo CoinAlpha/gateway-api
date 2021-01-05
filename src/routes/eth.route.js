@@ -49,7 +49,8 @@ router.post('/balances', async (req, res) => {
       Object.keys(tokenAddressList).map(async (key, index) =>
         balances[key] = await eth.getERC20Balance(wallet, key, tokenAddressList[key])
       )).then(() => {
-      res.status(200).json({
+        logger.info('eth.route - Get Account Balance', { message: JSON.stringify(tokenAddressList) })
+        res.status(200).json({
         network: eth.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
@@ -104,6 +105,7 @@ router.post('/allowances', async (req, res) => {
       Object.keys(tokenAddressList).map(async (key, index) =>
       approvals[key] = await eth.getERC20Allowance(wallet, spender, key, tokenAddressList[key])
       )).then(() => {
+      logger.info('eth.route - Getting allowances', { message: JSON.stringify(tokenAddressList) })
       res.status(200).json({
         network: eth.network,
         timestamp: initTime,
@@ -166,7 +168,7 @@ router.post('/approve', async (req, res) => {
   try {
     // call approve function
     const approval = await eth.approveERC20(wallet, spender, tokenAddress, amount, gasPrice)
-
+    logger.info('eth.route - Approving allowance', { message: tokenAddress })
     // submit response
     res.status(200).json({
       network: eth.network,
@@ -256,7 +258,7 @@ router.post('/get-receipt', async (req, res) => {
     receipt.confirmations = txReceipt.confirmations
     receipt.status = txReceipt.status
   }
-
+  logger.info(`eth.route - Get TX Receipt: ${txHash}`, { message: JSON.stringify(receipt) })
   res.status(200).json({
     network: eth.network,
     timestamp: initTime,

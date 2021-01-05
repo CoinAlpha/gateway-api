@@ -96,11 +96,9 @@ export const loadConfig = () => {
 
 export const getLocalDate = () => {
   const gmtOffset = process.env.GMT_OFFSET
-  console.log('gmtOffset', gmtOffset)
   let newDate = moment().format('YYYY-MM-DD hh:mm:ss').trim()
   if (typeof gmtOffset !== 'undefined' && gmtOffset !== null && gmtOffset !== '') {
     newDate = moment().utcOffset(gmtOffset, false).format('YYYY-MM-DD hh:mm:ss').trim()
   }
-  console.log(moment().format(), newDate)
   return newDate
 }

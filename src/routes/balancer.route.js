@@ -244,7 +244,7 @@ router.post('/sell', async (req, res) => {
     )
 
     const price = expectedOut / amount  * baseDenomMultiplier / quoteDenomMultiplier
-    logger.debug(`Price: ${price.toString()}`)
+    logger.info(`Price: ${price.toString()}`)
     if (!maxPrice || price >= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const tx = await balancer.swapExactIn(
@@ -336,7 +336,7 @@ router.post('/buy', async (req, res) => {
     )
 
     const price = expectedIn / amount * baseDenomMultiplier / quoteDenomMultiplier
-    logger.debug(`Price: ${price.toString()}`)
+    logger.info(`Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const tx = await balancer.swapExactOut(
