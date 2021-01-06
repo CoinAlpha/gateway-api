@@ -5,6 +5,7 @@ import express from 'express';
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
 
 import Balancer from '../services/balancer';
+import { logger } from '../services/logger';
 
 // require('dotenv').config()
 const debug = require('debug')('router')
@@ -42,15 +43,26 @@ router.post('/gas-limit', async (req, res) => {
       }
   */
   const paramData = getParamData(req.body)
-  const swaps = paramData.maxSwaps
-  const maxSwaps = typeof swaps === 'undefined' || parseInt(swaps) === 0 ? balancer.maxSwaps : parseInt(swaps)
-  const gasLimit = estimateGasLimit(maxSwaps)
 
-  res.status(200).json({
-    network: balancer.network,
-    gasLimit: gasLimit,
-    timestamp: Date.now(),
-  })
+  try {
+    const swaps = paramData.maxSwaps
+    const maxSwaps = typeof swaps === 'undefined' || parseInt(swaps) === 0 ? balancer.maxSwaps : parseInt(swaps)
+    const gasLimit = estimateGasLimit(maxSwaps)
+
+    res.status(200).json({
+      network: balancer.network,
+      gasLimit: gasLimit,
+      timestamp: Date.now(),
+    })
+  } catch (err) {
+    logger.error(req.originalUrl, { message: err })
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+  }
 })
 
 router.post('/sell-price', async (req, res) => {
@@ -108,6 +120,7 @@ router.post('/sell-price', async (req, res) => {
       })
     }
   } catch (err) {
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -172,6 +185,7 @@ router.post('/buy-price', async (req, res) => {
       })
     }
   } catch (err) {
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -266,6 +280,7 @@ router.post('/sell', async (req, res) => {
       debug(`Swap price ${price} lower than maxPrice ${maxPrice}`)
     }
   } catch (err) {
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -356,6 +371,7 @@ router.post('/buy', async (req, res) => {
       debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
     }
   } catch (err) {
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({

@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 require('dotenv').config()
 const fs = require('fs');
 const ethers = require('ethers')
@@ -30,6 +32,7 @@ export default class Ethereum {
       const balance = await wallet.getBalance()
       return balance / 1e18.toString()
     } catch (err) {
+      logger.error(err)
       let reason
       err.reason ? reason = err.reason : reason = 'error ETH balance lookup'
       return reason
@@ -44,6 +47,7 @@ export default class Ethereum {
       const balance = await contract.balanceOf(wallet.address)
       return balance / Math.pow(10, decimals).toString()
     } catch (err) {
+      logger.error(err)
       let reason
       err.reason ? reason = err.reason : reason = 'error balance lookup'
       return reason
@@ -58,6 +62,7 @@ export default class Ethereum {
       const allowance = await contract.allowance(wallet.address, spender)
       return allowance / Math.pow(10, decimals).toString()
     } catch (err) {
+      logger.error(err)
       let reason
       err.reason ? reason = err.reason : reason = 'error allowance lookup'
       return reason
@@ -79,6 +84,7 @@ export default class Ethereum {
         }
       )
     } catch (err) {
+      logger.error(err)
       let reason
       err.reason ? reason = err.reason : reason = 'error approval'
       return reason
@@ -94,6 +100,7 @@ export default class Ethereum {
         return gasPrice
       })
     } catch (err) {
+      logger.error(err)
       let reason
       err.reason ? reason = err.reason : reason = 'error gas lookup'
       return reason
@@ -111,6 +118,7 @@ export default class Ethereum {
         }
       )
     } catch (err) {
+      logger.error(err)
       let reason
       err.reason ? reason = err.reason : reason = 'error deposit'
       return reason
