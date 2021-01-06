@@ -12,10 +12,6 @@ const GAS_LIMIT = 150688;
 const TTL = 60;
 const UPDATE_PERIOD = 300000;  // stop updating pair after 5 minutes from last request
 
-function sleep (time) {
-  return new Promise((resolve) => setTimeout(resolve, time));
-}
-
 export default class Uniswap {
   constructor (network = 'mainnet') {
     this.providerUrl = process.env.ETHEREUM_RPC_URL
