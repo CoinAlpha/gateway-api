@@ -10,6 +10,8 @@ const debug = require('debug')('router')
 
 const router = express.Router()
 const uniswap = new Uniswap(process.env.ETHEREUM_CHAIN)
+uniswap.generate_tokens()
+setTimeout(uniswap.update_pairs.bind(uniswap), 2000)
 
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
