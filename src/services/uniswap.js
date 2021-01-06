@@ -28,6 +28,7 @@ export default class Uniswap {
     this.tokenList = {}
     this.pairs = []
     this.tokenSwapList = {}
+    this.cachedRoutes = {}
 
     switch (network) {
       case 'mainnet':
@@ -103,30 +104,44 @@ export default class Uniswap {
   async priceSwapIn (tokenIn, tokenOut, tokenInAmount) {
     await this.update_tokens([tokenIn, tokenOut]);
     const tIn = this.tokenList[tokenIn];
+    const tOut = this.tokenList[tokenOut];
     const tokenAmountIn = new uni.TokenAmount(tIn, ethers.utils.parseUnits(tokenInAmount, tIn.decimals));
     if (this.pairs.length === 0){
-      const route = await this.fetch_route(this.tokenList[tokenIn], this.tokenList[tokenOut]);
+      const route = await this.fetch_route(tIn, tOut);
       const trade = uni.Trade.exactIn(route, tokenAmountIn);
-      const expectedOut = trade.minimumAmountOut(this.allowedSlippage);
-      return { trade, expectedOut }
+      if ( trade !== undefined ){
+        const expectedOut = trade.minimumAmountOut(this.allowedSlippage);
+        this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;
+        return { trade, expectedOut }
+      }
+      return "Can't find route to swap, kindly update "
     }
     const trade = uni.Trade.bestTradeExactIn(this.pairs, tokenAmountIn, this.tokenList[tokenOut], { maxHops: 5 })[0];
-    const expectedOut = trade.minimumAmountOut(this.allowedSlippage)
+    if (trade === undefined){trade = this.cachedRoutes[tIn.symbol + tOut.Symbol];}
+    else{this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;}
+    const expectedOut = trade.minimumAmountOut(this.allowedSlippage);
     return { trade, expectedOut }
   }
 
   async priceSwapOut (tokenIn, tokenOut, tokenOutAmount) {
     await this.update_tokens([tokenIn, tokenOut]);
     const tOut = this.tokenList[tokenOut];
+    const tIn = this.tokenList[tokenIn];
     const tokenAmountOut = new uni.TokenAmount(tOut, ethers.utils.parseUnits(tokenOutAmount, tOut.decimals));
-    while (this.pairs.length === 0){
-      const route = await this.fetch_route(this.tokenList[tokenIn], this.tokenList[tokenOut]);
+    if (this.pairs.length === 0){
+      const route = await this.fetch_route(tIn, tOut);
       const trade = uni.Trade.exactOut(route, tokenAmountOut);
-      const expectedIn = trade.maximumAmountIn(this.allowedSlippage);
-      return { trade, expectedIn }
+      if ( trade !== undefined ){
+        const expectedIn = trade.maximumAmountIn(this.allowedSlippage);
+        this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;
+        return { trade, expectedIn }
+      }
+      return
     }
     const trade = uni.Trade.bestTradeExactOut(this.pairs, this.tokenList[tokenIn], tokenAmountOut, { maxHops: 5 })[0];
-    const expectedIn = trade.maximumAmountIn(this.allowedSlippage)
+    if (trade === undefined){trade = this.cachedRoutes[tIn.symbol + tOut.Symbol];}
+    else{this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;}
+    const expectedIn = trade.maximumAmountIn(this.allowedSlippage);
     return { trade, expectedIn }
   }
 
