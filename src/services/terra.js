@@ -4,7 +4,6 @@ import BigNumber from 'bignumber.js'
 import { getHummingbotMemo } from './utils';
 
 require('dotenv').config()
-const debug = require('debug')('router')
 
 // constants
 const TERRA_TOKENS = {
@@ -135,7 +134,7 @@ export default class Terra {
           feeList[key] = rates._coins[key].amount * lunaFee
         })
       })
-      debug('lunaFee', lunaFee, feeList)
+      logger.debug('lunaFee', lunaFee, feeList)
 
       return feeList
     } catch (err) {
@@ -200,7 +199,7 @@ export default class Terra {
       swaps.price = exchangeRate
       swaps.cost = cost
       swaps.txFee = txFee
-      debug('swaps', swaps)
+      logger.debug('swaps', swaps)
       return swaps
     } catch (err) {
       logger.error(err)

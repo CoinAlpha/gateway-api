@@ -4,7 +4,6 @@ const uni = require('@uniswap/sdk')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/uniswap_v2_router_abi.json')
 const routeTokens = require('../static/uniswap_route_tokens.json')
-const debug = require('debug')('router')
 
 // constants
 const ROUTER = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
@@ -161,7 +160,7 @@ export default class Uniswap {
       }
     )
 
-    debug(`Tx Hash: ${tx.hash}`);
+    logger.debug(`Tx Hash: ${tx.hash}`);
     return tx
   }
 
@@ -185,7 +184,7 @@ export default class Uniswap {
       }
     )
 
-    debug(`Tx Hash: ${tx.hash}`);
+    logger.debug(`Tx Hash: ${tx.hash}`);
     return tx
   }
 }

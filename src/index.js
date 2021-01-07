@@ -2,7 +2,6 @@
 
 // absolute imports
 import https from 'https'
-import debug from 'debug'
 import dotenv from 'dotenv'
 import fs from 'fs'
 
@@ -72,8 +71,8 @@ const onError = error => {
 const onListening = () => {
   const addr = server.address()
   const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
-  // console.error('bind', bind)
-  debug('listening on ' + bind)
+  console.log('listening on ' + bind)
+  logger.debug('listening on ' + bind)
 }
 
 // listen on provided port, on all network interfaces.
