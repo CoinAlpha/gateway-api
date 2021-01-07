@@ -7,9 +7,6 @@ import { getParamData, latency, reportConnectionError, statusMessages } from '..
 import Balancer from '../services/balancer';
 import { logger } from '../services/logger';
 
-// require('dotenv').config()
-const debug = require('debug')('router')
-
 const router = express.Router()
 const balancer = new Balancer(process.env.ETHEREUM_CHAIN)
 
@@ -235,7 +232,7 @@ router.post('/sell', async (req, res) => {
   }
 
   const minAmountOut = maxPrice / amount *  baseDenomMultiplier
-  debug('minAmountOut', minAmountOut)
+  logger.debug('minAmountOut', minAmountOut)
 
   try {
     // fetch the optimal pool mix from balancer-sor
@@ -247,7 +244,7 @@ router.post('/sell', async (req, res) => {
     )
 
     const price = expectedOut / amount  * baseDenomMultiplier / quoteDenomMultiplier
-    debug(`Price: ${price.toString()}`)
+    logger.info(`Price: ${price.toString()}`)
     if (!maxPrice || price >= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const tx = await balancer.swapExactIn(
@@ -277,7 +274,7 @@ router.post('/sell', async (req, res) => {
         error: swapLessThanMaxPriceError,
         message: `Swap price ${price} lower than maxPrice ${maxPrice}`
       })
-      debug(`Swap price ${price} lower than maxPrice ${maxPrice}`)
+      logger.debug(`Swap price ${price} lower than maxPrice ${maxPrice}`)
     }
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
@@ -339,7 +336,7 @@ router.post('/buy', async (req, res) => {
     )
 
     const price = expectedIn / amount * baseDenomMultiplier / quoteDenomMultiplier
-    debug(`Price: ${price.toString()}`)
+    logger.info(`Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const tx = await balancer.swapExactOut(
@@ -368,7 +365,7 @@ router.post('/buy', async (req, res) => {
         error: swapMoreThanMaxPriceError,
         message: `Swap price ${price} exceeds maxPrice ${maxPrice}`
       })
-      debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
+      logger.debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
     }
   } catch (err) {
     logger.error(req.originalUrl, { message: err })

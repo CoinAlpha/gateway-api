@@ -12,8 +12,6 @@ const spenders = {
   uniswap: process.env.UNISWAP_ROUTER
 }
 
-const debug = require('debug')('router')
-
 router.post('/balances', async (req, res) => {
   /*
       POST: /balances
@@ -42,7 +40,6 @@ router.post('/balances', async (req, res) => {
   if (paramData.tokenAddressList) {
     tokenAddressList = JSON.parse(paramData.tokenAddressList)
   }
-  debug(tokenAddressList)
 
   const balances = {}
   balances.ETH = await eth.getETHBalance(wallet, privateKey)
@@ -51,7 +48,8 @@ router.post('/balances', async (req, res) => {
       Object.keys(tokenAddressList).map(async (key, index) =>
         balances[key] = await eth.getERC20Balance(wallet, key, tokenAddressList[key])
       )).then(() => {
-      res.status(200).json({
+        logger.info('eth.route - Get Account Balance', { message: JSON.stringify(tokenAddressList) })
+        res.status(200).json({
         network: eth.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
@@ -106,6 +104,7 @@ router.post('/allowances', async (req, res) => {
       Object.keys(tokenAddressList).map(async (key, index) =>
       approvals[key] = await eth.getERC20Allowance(wallet, spender, key, tokenAddressList[key])
       )).then(() => {
+      logger.info('eth.route - Getting allowances', { message: JSON.stringify(tokenAddressList) })
       res.status(200).json({
         network: eth.network,
         timestamp: initTime,
@@ -168,7 +167,7 @@ router.post('/approve', async (req, res) => {
   try {
     // call approve function
     const approval = await eth.approveERC20(wallet, spender, tokenAddress, amount, gasPrice)
-
+    logger.info('eth.route - Approving allowance', { message: tokenAddress })
     // submit response
     res.status(200).json({
       network: eth.network,
@@ -250,7 +249,6 @@ router.post('/get-receipt', async (req, res) => {
   const paramData = getParamData(req.body)
   const txHash = paramData.txHash
   const txReceipt = await eth.provider.getTransactionReceipt(txHash)
-  debug('Tx Receipt:')
   const receipt = {}
   const confirmed = txReceipt && txReceipt.blockNumber ? true : false
   if (confirmed) {
@@ -259,7 +257,7 @@ router.post('/get-receipt', async (req, res) => {
     receipt.confirmations = txReceipt.confirmations
     receipt.status = txReceipt.status
   }
-
+  logger.info(`eth.route - Get TX Receipt: ${txHash}`, { message: JSON.stringify(receipt) })
   res.status(200).json({
     network: eth.network,
     timestamp: initTime,
