@@ -28,6 +28,10 @@ const getErrorMessage = (err) => {
     message = 'Failed to meet quorum in Uniswap'
   } else if (err.includes('Invariant failed: ADDRESSES')) {
     message = 'Invariant failed: ADDRESSES'
+  } else if (err.includes('"call revert exception')) {
+    message = statusMessages.no_pool_available
+  } else if (err.includes('"trade" is read-only')) {
+    message = statusMessages.no_pool_available
   }
   return message
 }
@@ -119,6 +123,9 @@ router.post('/sell-price', async (req, res) => {
       reason = statusMessages.insufficient_reserves + ' in Sell at Uniswap'
     } else if (Object.getOwnPropertyNames(err).includes('message')) {
       reason = getErrorMessage(err.message)
+      if (reason === statusMessages.no_pool_available) {
+        errCode = 200
+      }
     } else {
       err.reason ? reason = err.reason : reason = statusMessages.operation_error
     }
@@ -179,6 +186,9 @@ router.post('/buy-price', async (req, res) => {
       reason = statusMessages.insufficient_reserves + ' in Buy at Uniswap'
     } else if (Object.getOwnPropertyNames(err).includes('message')) {
       reason = getErrorMessage(err.message)
+      if (reason === statusMessages.no_pool_available) {
+        errCode = 200
+      }
     } else {
       err.reason ? reason = err.reason : reason = statusMessages.operation_error
     }

@@ -47,7 +47,7 @@ export default class Uniswap {
         route = new uni.Route([pair], tIn, tOut);
       }
       catch(err) {
-        console.log(err);
+        logger.error(err);
       }
       return route;
   }
@@ -88,7 +88,9 @@ export default class Uniswap {
           try{
             pairAddressRequests.push(await uni.Fetcher.fetchPairData(this.tokenList[tokens[firstToken]], this.tokenList[tokens[secondToken]]));
           }
-          catch(err){console.log(err);}
+          catch(err) {
+            logger.error(err);
+          }
         }
       }
       this.pairs = pairAddressRequests;
