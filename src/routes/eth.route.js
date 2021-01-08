@@ -125,6 +125,123 @@ router.post('/allowances', async (req, res) => {
   }
 })
 
+router.post('/balances-2', async (req, res) => {
+  /*
+      POST: /balances
+      x-www-form-urlencoded: {
+        privateKey:{{privateKey}}
+        tokenAddressList:{{tokenAddressList}}
+        tokenDecimalList:{{tokenDecimalList}}
+      }
+  */
+  const initTime = Date.now()
+  const paramData = getParamData(req.body)
+  const privateKey = paramData.privateKey
+  let wallet
+  try {
+    wallet = new ethers.Wallet(privateKey, eth.provider)
+  } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+    return
+  }
+  let tokenAddressList
+  if (paramData.tokenAddressList) {
+    tokenAddressList = paramData.tokenAddressList.split(',')
+  }
+  let tokenDecimalList
+  if (paramData.tokenDecimalList) {
+    tokenDecimalList = paramData.tokenDecimalList.split(',')
+  }
+
+  const balances = {}
+  balances.ETH = await eth.getETHBalance(wallet, privateKey)
+  try {
+    Promise.all(
+      tokenAddressList.map(async (value, index) =>
+      balances[value] = await eth.getERC20Balance(wallet, value, tokenDecimalList[index])
+      )).then(() => {
+      res.status(200).json({
+        network: eth.network,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        balances: balances
+      })
+    })
+  } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+  }
+})
+
+router.post('/allowances-2', async (req, res) => {
+  /*
+      POST: /allowances
+      x-www-form-urlencoded: {
+        privateKey:{{privateKey}}
+        tokenAddressList:{{tokenAddressList}}
+        tokenDecimalList:{{tokenDecimalList}}
+        connector:{{connector_name}}
+      }
+  */
+  const initTime = Date.now()
+  const paramData = getParamData(req.body)
+  const privateKey = paramData.privateKey
+  const spender = spenders[paramData.connector]
+  let wallet
+  try {
+    wallet = new ethers.Wallet(privateKey, eth.provider)
+  } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+    return
+  }
+  let tokenAddressList
+  if (paramData.tokenAddressList) {
+    tokenAddressList = paramData.tokenAddressList.split(',')
+  }
+  let tokenDecimalList
+  if (paramData.tokenDecimalList) {
+    tokenDecimalList = paramData.tokenDecimalList.split(',')
+  }
+
+  const approvals = {}
+  try {
+    Promise.all(
+      tokenAddressList.map(async (value, index) =>
+      approvals[value] = await eth.getERC20Allowance(wallet, spender, value, tokenDecimalList[index])
+      )).then(() => {
+      res.status(200).json({
+        network: eth.network,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        spender: spender,
+        approvals: approvals,
+      })
+    }
+    )
+  } catch (err) {
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+  }
+})
+
 router.post('/approve', async (req, res) => {
   /*
       POST: /approve
