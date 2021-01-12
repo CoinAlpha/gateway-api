@@ -1,9 +1,9 @@
+import { logger } from './logger';
 import { LCDClient, Coin, MsgSwap, StdTx, StdFee, Dec, MnemonicKey, isTxError, Coins  } from '@terra-money/terra.js'
 import BigNumber from 'bignumber.js'
 import { getHummingbotMemo } from './utils';
 
 require('dotenv').config()
-const debug = require('debug')('router')
 
 // constants
 const TERRA_TOKENS = {
@@ -39,6 +39,7 @@ export default class Terra {
       this.lcd.config.gasAdjustment = GAS_ADJUSTMENT
       this.lcd.config.gasPrices = GAS_PRICE
     } catch (err) {
+      logger.error(err)
       throw Error(`Connection failed: ${this.network}`)
     }
   }
@@ -54,8 +55,8 @@ export default class Terra {
       lcd.config.gasPrices = GAS_PRICE
       return lcd
     } catch (err) {
+      logger.error(err)
       let reason
-      console.log(reason)
       err.reason ? reason = err.reason : reason = 'error Terra LCD connect'
       return reason
     }
@@ -72,8 +73,8 @@ export default class Terra {
       })
       return denom
     } catch (err) {
+      logger.error(err)
       let reason
-      console.log(reason)
       err.reason ? reason = err.reason : reason = 'error Terra Denom lookup'
       return reason
     }
@@ -85,8 +86,8 @@ export default class Terra {
       const symbol = TERRA_TOKENS[denom].symbol
       return symbol
     } catch (err) {
+      logger.error(err)
       let reason
-      console.log(reason)
       err.reason ? reason = err.reason : reason = 'error Terra Denom lookup'
       return reason
     }
@@ -105,8 +106,8 @@ export default class Terra {
       const fee = await this.lcd.tx.estimateFee(tx)
       return fee
     } catch (err) {
+      logger.error(err)
       let reason
-      console.log(reason)
       err.reason ? reason = err.reason : reason = 'error Terra estimate fee lookup'
       return reason
     }
@@ -117,8 +118,8 @@ export default class Terra {
       const exchangeRates = await this.lcd.oracle.exchangeRates()
       return exchangeRates.get(denom)
     } catch (err) {
+      logger.error(err)
       let reason
-      console.log(reason)
       err.reason ? reason = err.reason : reason = 'error Terra exchange rate lookup'
       return reason
     }
@@ -133,12 +134,12 @@ export default class Terra {
           feeList[key] = rates._coins[key].amount * lunaFee
         })
       })
-      debug('lunaFee', lunaFee, feeList)
+      logger.debug('lunaFee', lunaFee, feeList)
 
       return feeList
     } catch (err) {
+      logger.error(err)
       let reason
-      console.log(reason)
       err.reason ? reason = err.reason : reason = 'error Terra exchange rate lookup'
       return reason
     }
@@ -198,11 +199,11 @@ export default class Terra {
       swaps.price = exchangeRate
       swaps.cost = cost
       swaps.txFee = txFee
-      debug('swaps', swaps)
+      logger.debug('swaps', swaps)
       return swaps
     } catch (err) {
+      logger.error(err)
       let reason
-      console.log(reason)
       err.reason ? reason = err.reason : reason = 'error swap rate lookup'
       return reason
     }
@@ -222,6 +223,7 @@ export default class Terra {
       try {
         wallet = lcd.wallet(mk);
       } catch (err) {
+        logger.error(err)
         throw Error('Wallet access error')
       }
 
@@ -306,8 +308,8 @@ export default class Terra {
       })
       return tokenSwap
     } catch (err) {
+      logger.error(err)
       let reason
-      console.log(err)
       err.reason ? reason = err.reason : reason = swapResult
       return { txSuccess: false, message: reason }
     }

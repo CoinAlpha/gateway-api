@@ -5,14 +5,11 @@ import express from 'express';
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
 
 import Balancer from '../services/balancer';
-
-// require('dotenv').config()
-const debug = require('debug')('router')
+import { logger } from '../services/logger';
 
 const router = express.Router()
 const balancer = new Balancer(process.env.ETHEREUM_CHAIN)
 
-const denomMultiplier = 1e18
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
 
@@ -43,15 +40,26 @@ router.post('/gas-limit', async (req, res) => {
       }
   */
   const paramData = getParamData(req.body)
-  const swaps = paramData.maxSwaps
-  const maxSwaps = typeof swaps === 'undefined' || parseInt(swaps) === 0 ? balancer.maxSwaps : parseInt(swaps)
-  const gasLimit = estimateGasLimit(maxSwaps)
 
-  res.status(200).json({
-    network: balancer.network,
-    gasLimit: gasLimit,
-    timestamp: Date.now(),
-  })
+  try {
+    const swaps = paramData.maxSwaps
+    const maxSwaps = typeof swaps === 'undefined' || parseInt(swaps) === 0 ? balancer.maxSwaps : parseInt(swaps)
+    const gasLimit = estimateGasLimit(maxSwaps)
+
+    res.status(200).json({
+      network: balancer.network,
+      gasLimit: gasLimit,
+      timestamp: Date.now(),
+    })
+  } catch (err) {
+    logger.error(req.originalUrl, { message: err })
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+  }
 })
 
 router.post('/sell-price', async (req, res) => {
@@ -62,6 +70,8 @@ router.post('/sell-price', async (req, res) => {
         "base":"0x....."
         "amount":0.1
         "maxSwaps":4
+        "base_decimals":18
+        "quote_decimals":18
       }
   */
   const initTime = Date.now()
@@ -69,7 +79,9 @@ router.post('/sell-price', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount = new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const baseDenomMultiplier = 10 ** paramData.base_decimals
+  const quoteDenomMultiplier = 10 ** paramData.quote_decimals
+  const amount = new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
   let maxSwaps
   if (paramData.maxSwaps) {
     maxSwaps = parseInt(paramData.maxSwaps)
@@ -93,8 +105,8 @@ router.post('/sell-price', async (req, res) => {
         base: baseTokenAddress,
         quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
-        expectedOut: parseInt(expectedOut) / denomMultiplier,
-        price: expectedOut / amount,
+        expectedOut: parseInt(expectedOut) / quoteDenomMultiplier,
+        price: expectedOut / amount * baseDenomMultiplier / quoteDenomMultiplier,
         gasLimit: gasLimit,
         swaps: swaps,
       })
@@ -105,6 +117,7 @@ router.post('/sell-price', async (req, res) => {
       })
     }
   } catch (err) {
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -122,6 +135,8 @@ router.post('/buy-price', async (req, res) => {
         "base":"0x....."
         "amount":0.1
         "maxSwaps":4
+        "base_decimals":18
+        "quote_decimals":18
       }
   */
   const initTime = Date.now()
@@ -129,7 +144,9 @@ router.post('/buy-price', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const baseDenomMultiplier = 10 ** paramData.base_decimals
+  const quoteDenomMultiplier = 10 ** paramData.quote_decimals
+  const amount =  new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
   let maxSwaps
   if (paramData.maxSwaps) {
     maxSwaps = parseInt(paramData.maxSwaps)
@@ -153,8 +170,8 @@ router.post('/buy-price', async (req, res) => {
         base: baseTokenAddress,
         quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
-        expectedIn: parseInt(expectedIn) / denomMultiplier,
-        price: expectedIn / amount,
+        expectedIn: parseInt(expectedIn) / quoteDenomMultiplier,
+        price: expectedIn / amount * baseDenomMultiplier / quoteDenomMultiplier,
         gasLimit: gasLimit,
         swaps: swaps,
       })
@@ -165,6 +182,7 @@ router.post('/buy-price', async (req, res) => {
       })
     }
   } catch (err) {
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -181,6 +199,8 @@ router.post('/sell', async (req, res) => {
         "quote":"0x....."
         "base":"0x....."
         "amount":0.1
+        "base_decimals":18
+        "quote_decimals":18
         "minPrice":1
         "gasPrice":10
         "maxSwaps":4
@@ -194,7 +214,9 @@ router.post('/sell', async (req, res) => {
   const wallet = new ethers.Wallet(privateKey, balancer.provider)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const baseDenomMultiplier = 10 ** paramData.base_decimals
+  const quoteDenomMultiplier = 10 ** paramData.quote_decimals
+  const amount =  new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
 
   let maxPrice
   if (paramData.maxPrice) {
@@ -209,8 +231,8 @@ router.post('/sell', async (req, res) => {
     maxSwaps = parseInt(paramData.maxSwaps)
   }
 
-  const minAmountOut = maxPrice / amount * denomMultiplier
-  debug('minAmountOut', minAmountOut)
+  const minAmountOut = maxPrice / amount *  baseDenomMultiplier
+  logger.debug('minAmountOut', minAmountOut)
 
   try {
     // fetch the optimal pool mix from balancer-sor
@@ -221,8 +243,8 @@ router.post('/sell', async (req, res) => {
       maxSwaps,
     )
 
-    const price = expectedOut / amount
-    debug(`Price: ${price.toString()}`)
+    const price = expectedOut / amount  * baseDenomMultiplier / quoteDenomMultiplier
+    logger.info(`Price: ${price.toString()}`)
     if (!maxPrice || price >= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const tx = await balancer.swapExactIn(
@@ -231,7 +253,7 @@ router.post('/sell', async (req, res) => {
         baseTokenAddress,   // tokenIn is base asset
         quoteTokenAddress,  // tokenOut is quote asset
         amount.toString(),
-        parseInt(expectedOut) / denomMultiplier,
+        parseInt(expectedOut) / quoteDenomMultiplier,
         gasPrice,
       )
 
@@ -243,7 +265,7 @@ router.post('/sell', async (req, res) => {
         base: baseTokenAddress,
         quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
-        expectedOut: expectedOut / denomMultiplier,
+        expectedOut: expectedOut / quoteDenomMultiplier,
         price: price,
         txHash: tx.hash,
       })
@@ -252,9 +274,10 @@ router.post('/sell', async (req, res) => {
         error: swapLessThanMaxPriceError,
         message: `Swap price ${price} lower than maxPrice ${maxPrice}`
       })
-      debug(`Swap price ${price} lower than maxPrice ${maxPrice}`)
+      logger.debug(`Swap price ${price} lower than maxPrice ${maxPrice}`)
     }
   } catch (err) {
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({
@@ -271,6 +294,8 @@ router.post('/buy', async (req, res) => {
         "quote":"0x....."
         "base":"0x....."
         "amount":0.1
+        "base_decimals":18
+        "quote_decimals":18
         "maxPrice":1
         "gasPrice":10
         "maxSwaps":4
@@ -284,7 +309,9 @@ router.post('/buy', async (req, res) => {
   const wallet = new ethers.Wallet(privateKey, balancer.provider)
   const baseTokenAddress = paramData.base
   const quoteTokenAddress = paramData.quote
-  const amount =  new BigNumber(parseInt(paramData.amount * denomMultiplier))
+  const baseDenomMultiplier = 10 ** paramData.base_decimals
+  const quoteDenomMultiplier = 10 ** paramData.quote_decimals
+  const amount =  new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
 
   let maxPrice
   if (paramData.maxPrice) {
@@ -308,8 +335,8 @@ router.post('/buy', async (req, res) => {
       maxSwaps,
     )
 
-    const price = expectedIn / amount
-    debug(`Price: ${price.toString()}`)
+    const price = expectedIn / amount * baseDenomMultiplier / quoteDenomMultiplier
+    logger.info(`Price: ${price.toString()}`)
     if (!maxPrice || price <= maxPrice) {
       // pass swaps to exchange-proxy to complete trade
       const tx = await balancer.swapExactOut(
@@ -329,7 +356,7 @@ router.post('/buy', async (req, res) => {
         base: baseTokenAddress,
         quote: quoteTokenAddress,
         amount: parseFloat(paramData.amount),
-        expectedIn: expectedIn / denomMultiplier,
+        expectedIn: expectedIn / quoteDenomMultiplier,
         price: price,
         txHash: tx.hash,
       })
@@ -338,9 +365,10 @@ router.post('/buy', async (req, res) => {
         error: swapMoreThanMaxPriceError,
         message: `Swap price ${price} exceeds maxPrice ${maxPrice}`
       })
-      debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
+      logger.debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
     }
   } catch (err) {
+    logger.error(req.originalUrl, { message: err })
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(500).json({

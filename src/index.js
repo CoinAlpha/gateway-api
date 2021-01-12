@@ -2,17 +2,17 @@
 
 // absolute imports
 import https from 'https'
-import debug from 'debug'
 import dotenv from 'dotenv'
 import fs from 'fs'
 
 // relative imports
 import app from './app'
+import { logger } from './services/logger'
 
 // terminate if environment not found
 const result = dotenv.config();
 if (result.error) {
-  console.log(result.error);
+  logger.info(result.error);
   process.exit(1);
 }
 
@@ -71,8 +71,8 @@ const onError = error => {
 const onListening = () => {
   const addr = server.address()
   const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
-  // console.error('bind', bind)
-  debug('listening on ' + bind)
+  console.log('listening on ' + bind)
+  logger.debug('listening on ' + bind)
 }
 
 // listen on provided port, on all network interfaces.
@@ -80,6 +80,12 @@ server.listen(port)
 server.on('error', onError)
 server.on('listening', onListening)
 
-console.log('server: gateway-api | port:', port)
-console.log(' - ethereum-chain:', ethereumChain)
-console.log(' - terra-chain:', terraChain)
+const serverConfig = {
+  app: 'gateway-api',
+  port: port,
+  ethereumChain: ethereumChain,
+  terraChain: terraChain
+}
+
+logger.info(JSON.stringify(serverConfig))
+console.log(serverConfig)

@@ -20,6 +20,9 @@ npm-debug.log
 # distribution files
 dist/
 
+# misc
+logs/
+
 # cert
 *.pem
 *.srl

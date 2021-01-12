@@ -2,10 +2,10 @@
 
 import express from 'express'
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
+import { logger } from '../services/logger';
 
 import Terra from '../services/terra';
 
-const debug = require('debug')('router')
 const router = express.Router();
 const terra = new Terra()
 
@@ -36,7 +36,6 @@ router.post('/balances', async (req, res) => {
 
   const paramData = getParamData(req.body)
   const address = paramData.address
-  debug(paramData)
 
   let balances = {}
 
@@ -50,6 +49,7 @@ router.post('/balances', async (req, res) => {
         balances[symbol] = amount
       })
     })
+    logger.info('terra.route - Get Account Balance', { message: address })
     res.status(200).json({
       network: network,
       timestamp: initTime,
@@ -57,6 +57,7 @@ router.post('/balances', async (req, res) => {
       balances: balances,
     })
   } catch (err) {
+    logger.error(req.originalUrl, { message: err })
     let message
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
@@ -116,6 +117,7 @@ router.post('/price', async (req, res) => {
       }
     )
   } catch (err) {
+    logger.error(req.originalUrl, { message: err })
     let message
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
@@ -174,10 +176,12 @@ router.post('/trade', async (req, res) => {
       amount: amount,
     }
     Object.assign(swapResult, tokenSwaps);
+    logger.info(`terra.route - ${tradeType}: ${baseToken}-${quoteToken} - Amount: ${amount}`)
     res.status(200).json(
       swapResult
     )
   } catch (err) {
+    logger.error(req.originalUrl, { message: err })
     let message
     let reason
     err.reason ? reason = err.reason : reason = statusMessages.operation_error
