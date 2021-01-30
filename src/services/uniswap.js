@@ -107,17 +107,17 @@ export default class Uniswap {
       const route = await this.fetch_route(tIn, tOut);
       const trade = uni.Trade.exactIn(route, tokenAmountIn);
       if ( trade !== undefined ){
-        const expectedOut = trade.minimumAmountOut(this.allowedSlippage);
+        const expectedAmount = trade.minimumAmountOut(this.allowedSlippage);
         this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;
-        return { trade, expectedOut }
+        return { trade, expectedAmount }
       }
       return "Can't find route to swap, kindly update "
     }
     const trade = uni.Trade.bestTradeExactIn(this.pairs, tokenAmountIn, this.tokenList[tokenOut], { maxHops: 5 })[0];
     if (trade === undefined){trade = this.cachedRoutes[tIn.symbol + tOut.Symbol];}
     else{this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;}
-    const expectedOut = trade.minimumAmountOut(this.allowedSlippage);
-    return { trade, expectedOut }
+    const expectedAmount = trade.minimumAmountOut(this.allowedSlippage);
+    return { trade, expectedAmount }
   }
 
   async priceSwapOut (tokenIn, tokenOut, tokenOutAmount) {
@@ -129,17 +129,17 @@ export default class Uniswap {
       const route = await this.fetch_route(tIn, tOut);
       const trade = uni.Trade.exactOut(route, tokenAmountOut);
       if ( trade !== undefined ){
-        const expectedIn = trade.maximumAmountIn(this.allowedSlippage);
+        const expectedAmount = trade.maximumAmountIn(this.allowedSlippage);
         this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;
-        return { trade, expectedIn }
+        return { trade, expectedAmount }
       }
       return
     }
     const trade = uni.Trade.bestTradeExactOut(this.pairs, this.tokenList[tokenIn], tokenAmountOut, { maxHops: 5 })[0];
     if (trade === undefined){trade = this.cachedRoutes[tIn.symbol + tOut.Symbol];}
     else{this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;}
-    const expectedIn = trade.maximumAmountIn(this.allowedSlippage);
-    return { trade, expectedIn }
+    const expectedAmount = trade.maximumAmountIn(this.allowedSlippage);
+    return { trade, expectedAmount }
   }
 
   async swapExactIn (wallet, trade, tokenAddress, gasPrice) {

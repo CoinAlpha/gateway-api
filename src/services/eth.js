@@ -1,4 +1,5 @@
 import { logger } from './logger';
+import axios from 'axios'
 
 require('dotenv').config()
 const fs = require('fs');
@@ -13,13 +14,16 @@ export default class Ethereum {
     const providerUrl = process.env.ETHEREUM_RPC_URL
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
     this.network = network
-
+    this.spenders = {
+      balancer: process.env.EXCHANGE_PROXY,
+      uniswap: process.env.UNISWAP_ROUTER
+    }
+    this.tokenListUrl = process.env.ETHEREUM_TOKEN_LIST_URL
     if (network === 'kovan') {
       // for kovan testing only
       this.erc20KovanTokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
     } else if (network === 'mainnet') {
-      // contract list no longer maintained here. changed to accept contract address via request data
-      // this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_hummingbot.json'))
+      this.erc20MainnetTokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_mainnet.json'))
     } else {
       throw Error(`Invalid network ${network}`)
     }
@@ -122,5 +126,41 @@ export default class Ethereum {
       err.reason ? reason = err.reason : reason = 'error deposit'
       return reason
     }
+  }
+
+  // get remote token list
+  async getTokenList (tokenListUrl) {
+    try {
+      axios.get(tokenListUrl)
+        .then(function (response) {
+          // handle success
+          const tokenList = response.data
+          return tokenList
+        })
+        .catch(function (error) {
+          // handle error
+          console.log(error);
+        })
+    } catch (err) {
+      logger.error(err)
+      let reason
+      err.reason ? reason = err.reason : reason = 'error remote token list retrieval'
+      return reason
+    }
+  }
+
+  getERC20TokenAddresses (tokenSymbol) {
+    let tokenList
+    if (this.network === 'kovan') {
+      tokenList = this.erc20KovanTokens.tokens
+    } else if (this.network === 'mainnet') {
+      tokenList = this.erc20MainnetTokens.tokens
+    } else {
+      throw Error(`Invalid network ${this.network}`)
+    }
+    const tokenContractAddress = tokenList.filter(obj => {
+      return obj.symbol === tokenSymbol
+    })
+    return tokenContractAddress[0]
   }
 }

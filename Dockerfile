@@ -5,6 +5,14 @@ RUN apk add --no-cache tzdata
 
 # Set labels
 LABEL application="gateway-api"
+LABEL branch=${BRANCH}
+LABEL commit=${COMMIT}
+LABEL date=${BUILD_DATE}
+
+# Set ENV variables
+ENV COMMIT_BRANCH=${BRANCH}
+ENV COMMIT_SHA=${COMMIT}
+ENV BUILD_DATE=${DATE}
 
 # app directory
 WORKDIR /usr/src/app

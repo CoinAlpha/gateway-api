@@ -11,7 +11,6 @@ const MULTI_KOVAN = ' 0x2cc8688C5f75E365aaEEb4ea8D6a480405A48D2A';
 const EXCHANGE_PROXY = '0x3E66B66Fd1d0b02fDa6C811Da9E0547970DB2f21';
 const EXCHANGE_PROXY_KOVAN = '0x4e67bf5bD28Dd4b570FBAFe11D0633eCbA2754Ec';
 const MAX_UINT = ethers.constants.MaxUint256;
-const MAX_SWAPS = 4;
 const GAS_BASE = 200688;
 const GAS_PER_SWAP = 100000;
 
@@ -23,7 +22,7 @@ export default class Balancer {
     this.subgraphUrl = process.env.REACT_APP_SUBGRAPH_URL
     this.gasBase = GAS_BASE
     this.gasPerSwap = GAS_PER_SWAP
-    this.maxSwaps = MAX_SWAPS
+    this.maxSwaps = process.env.BALANCER_MAX_SWAPS
 
     switch (network) {
       case 'mainnet':
@@ -41,23 +40,29 @@ export default class Balancer {
     }
   }
 
-  async priceSwapIn (tokenIn, tokenOut, tokenInAmount, maxSwaps = MAX_SWAPS) {
+  async fetchPool (tokenIn, tokenOut) {
+    // console.log('fetchPool', tokenIn, tokenOut)
+
+    const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
+    this.cachedPools = pools
+
+    if (pools.pools.length === 0) {
+      logger.debug('>>> No pools contain the tokens provided.', { message: this.network });
+      return {};
+    }
+    logger.debug('>>> Pools Retrieved.', { message: this.network })
+  }
+
+  async priceSwapIn (tokenIn, tokenOut, tokenInAmount, maxSwaps = this.maxSwaps) {
     // Fetch all the pools that contain the tokens provided
     try {
-      const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
-      if (pools.pools.length === 0) {
-        logger.debug('No pools contain the tokens provided.', { message: this.network })
-        return {};
-      }
-      logger.debug('Pools Retrieved.', { message: this.network })
-
       // Get current on-chain data about the fetched pools
       let poolData
       if (this.network === 'mainnet') {
-        poolData = await sor.parsePoolDataOnChain(pools.pools, tokenIn, tokenOut, this.multiCall, this.provider)
+        poolData = await sor.parsePoolDataOnChain(this.cachedPools.pools, tokenIn, tokenOut, this.multiCall, this.provider)
       } else {
         // Kovan multicall throws an ENS error
-        poolData = await sor.parsePoolData(pools.pools, tokenIn, tokenOut)
+        poolData = await sor.parsePoolData(this.cachedPools.pools, tokenIn, tokenOut)
       }
 
       // Parse the pools and pass them to smart order outer to get the swaps needed
@@ -70,8 +75,8 @@ export default class Balancer {
       )
 
       const swapsFormatted = sor.formatSwapsExactAmountIn(sorSwaps, MAX_UINT, 0)
-      const expectedOut = sor.calcTotalOutput(swapsFormatted, poolData)
-      logger.debug(`Expected Out: ${expectedOut.toString()} (${tokenOut})`);
+      const expectedAmount = sor.calcTotalOutput(swapsFormatted, poolData)
+      logger.debug(`Expected Out: ${expectedAmount.toString()} (${tokenOut})`);
 
       // Create correct swap format for new proxy
       let swaps = [];
@@ -86,7 +91,7 @@ export default class Balancer {
         };
         swaps.push(swap);
       }
-      return { swaps, expectedOut }
+      return { swaps, expectedAmount }
     } catch (err) {
       logger.error(err)
       let reason
@@ -95,22 +100,16 @@ export default class Balancer {
     }
   }
 
-  async priceSwapOut (tokenIn, tokenOut, tokenOutAmount, maxSwaps = MAX_SWAPS) {
+  async priceSwapOut (tokenIn, tokenOut, tokenOutAmount, maxSwaps = this.maxSwaps) {
     // Fetch all the pools that contain the tokens provided
     try {
-      const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
-      if (pools.pools.length === 0) {
-        logger.debug('No pools contain the tokens provided.', { message: this.network });
-        return {};
-      }
-      logger.debug('Pools Retrieved.', { message: this.network })
       // Get current on-chain data about the fetched pools
       let poolData
       if (this.network === 'mainnet') {
-        poolData = await sor.parsePoolDataOnChain(pools.pools, tokenIn, tokenOut, this.multiCall, this.provider)
+        poolData = await sor.parsePoolDataOnChain(this.cachedPools.pools, tokenIn, tokenOut, this.multiCall, this.provider)
       } else {
         // Kovan multicall throws an ENS error
-        poolData = await sor.parsePoolData(pools.pools, tokenIn, tokenOut)
+        poolData = await sor.parsePoolData(this.cachedPools.pools, tokenIn, tokenOut)
       }
 
       // Parse the pools and pass them to smart order outer to get the swaps needed
@@ -122,8 +121,8 @@ export default class Balancer {
         0                                     // costOutputToken: BigNumber
       )
       const swapsFormatted = sor.formatSwapsExactAmountOut(sorSwaps, MAX_UINT, MAX_UINT)
-      const expectedIn = sor.calcTotalInput(swapsFormatted, poolData)
-      logger.debug(`Expected In: ${expectedIn.toString()} (${tokenIn})`);
+      const expectedAmount = sor.calcTotalInput(swapsFormatted, poolData)
+      logger.debug(`Expected In: ${expectedAmount.toString()} (${tokenIn})`);
 
       // Create correct swap format for new proxy
       let swaps = [];
@@ -138,7 +137,7 @@ export default class Balancer {
         };
         swaps.push(swap);
       }
-      return { swaps, expectedIn }
+      return { swaps, expectedAmount }
     } catch (err) {
       logger.error(err)
       let reason

@@ -4,11 +4,15 @@ import express from 'express';
 
 import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
 
+import Ethereum from '../services/eth';
 import Balancer from '../services/balancer';
+// import Fees from '../services/fees';
 import { logger } from '../services/logger';
 
 const router = express.Router()
+const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 const balancer = new Balancer(process.env.ETHEREUM_CHAIN)
+// const fees = new Fees()
 
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
@@ -62,51 +66,149 @@ router.post('/gas-limit', async (req, res) => {
   }
 })
 
-router.post('/sell-price', async (req, res) => {
+router.post('/start', async (req, res) => {
   /*
-    POST: /sell-price
+    POST: /eth/balancer/start
       x-www-form-urlencoded: {
-        "quote":"0x....."
-        "base":"0x....."
+        "quote":"BAT"
+        "base":"USDC"
         "amount":0.1
-        "maxSwaps":4
-        "base_decimals":18
-        "quote_decimals":18
+        "gasPrice":30
+      }
+  */
+  const initTime = Date.now()
+  const paramData = getParamData(req.body)
+  const baseTokenSymbol = paramData.base.toUpperCase()
+  const quoteTokenSymbol = paramData.quote.toUpperCase()
+  const privateKey = paramData.secret
+  const gasPrice = paramData.gasPrice
+
+  // get token contract address and decimal
+  const baseTokenContractInfo = eth.getERC20TokenAddresses(baseTokenSymbol)
+  const quoteTokenContractInfo = eth.getERC20TokenAddresses(quoteTokenSymbol)
+
+  // check allowance
+  const spender = eth.spenders.balancer
+  let wallet
+  try {
+    wallet = new ethers.Wallet(privateKey, eth.provider)
+  } catch (err) {
+    logger.error(req.originalUrl, { message: err })
+    let reason
+    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+    return
+  }
+
+  const tokenAddressList = {}
+  tokenAddressList[baseTokenContractInfo.address] = baseTokenContractInfo.decimals
+  tokenAddressList[quoteTokenContractInfo.address] = quoteTokenContractInfo.decimals
+
+  const allowance = {}
+  let decimals
+  let approvalAmount
+
+  try {
+    // await fees.getETHGasStationFee().then(fee => {
+    //   ethGasStationFee['fast'] = fee
+    // })
+
+    Promise.all(
+      Object.keys(tokenAddressList).map(async (key, index) =>
+      allowance[key] = await eth.getERC20Allowance(wallet, spender, key, tokenAddressList[key])
+      )).then(() => {
+      const approvals = {}
+      Promise.all(
+        Object.keys(allowance).map(async (address, index) => {
+          decimals = tokenAddressList[address]
+          paramData.approvalAmount
+            ? approvalAmount = ethers.utils.parseUnits(paramData.approvalAmount, decimals)
+            : approvalAmount = ethers.utils.parseUnits('1000000000', decimals) // approve for 1 billion units if no amount specified
+          approvals[address] = allowance[address] === 0 ? await eth.approveERC20(wallet, spender, address, approvalAmount, gasPrice) : ''
+        })).then(() => {
+      })
+    })
+  } catch (err) {
+    logger.error(req.originalUrl, { message: err })
+    let reason
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    res.status(500).json({
+      error: reason,
+      message: err
+    })
+    return
+  }
+
+  // update pool
+  await balancer.fetchPool(baseTokenContractInfo.address, quoteTokenContractInfo.address)
+
+  const result = {
+    network: eth.network,
+    timestamp: initTime,
+    latency: latency(initTime, Date.now()),
+    success: true,
+    base: baseTokenContractInfo,
+    quote: quoteTokenContractInfo,
+    pools: balancer.cachedPools.pools.length,
+  }
+  console.log(balancer.cachedPools)
+  res.status(200).json(result)
+})
+
+router.post('/price', async (req, res) => {
+  /*
+    POST: /eth/balancer/price
+      x-www-form-urlencoded: {
+        "quote":"BAT"
+        "base":"USDC"
+        "amount":0.1
+        "side":buy
       }
   */
   const initTime = Date.now()
   // params: base (required), quote (required), amount (required)
   const paramData = getParamData(req.body)
-  const baseTokenAddress = paramData.base
-  const quoteTokenAddress = paramData.quote
-  const baseDenomMultiplier = 10 ** paramData.base_decimals
-  const quoteDenomMultiplier = 10 ** paramData.quote_decimals
+  const baseTokenContractInfo = eth.getERC20TokenAddresses(paramData.base)
+  const quoteTokenContractInfo = eth.getERC20TokenAddresses(paramData.quote)
+  const baseTokenAddress = baseTokenContractInfo.address
+  const quoteTokenAddress = quoteTokenContractInfo.address
+  const baseDenomMultiplier = 10 ** baseTokenContractInfo.decimals
+  const quoteDenomMultiplier = 10 ** quoteTokenContractInfo.decimals
   const amount = new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
-  let maxSwaps
-  if (paramData.maxSwaps) {
-    maxSwaps = parseInt(paramData.maxSwaps)
-  }
+  const maxSwaps = balancer.maxSwaps
+  const side = paramData.side
 
   try {
     // fetch the optimal pool mix from balancer-sor
-    const { swaps, expectedOut } = await balancer.priceSwapIn(
-      baseTokenAddress,     // tokenIn is base asset
-      quoteTokenAddress,    // tokenOut is quote asset
-      amount,
-      maxSwaps,
-    )
+    const { swaps, expectedAmount } = side === 'buy'
+      ? await balancer.priceSwapOut(
+        quoteTokenAddress,    // tokenIn is quote asset
+        baseTokenAddress,     // tokenOut is base asset
+        amount,
+        maxSwaps,
+      )
+      : await balancer.priceSwapIn(
+        baseTokenAddress,     // tokenIn is base asset
+        quoteTokenAddress,    // tokenOut is quote asset
+        amount,
+        maxSwaps,
+      )
 
-    if (swaps != null && expectedOut != null) {
+    if (swaps != null && expectedAmount != null) {
       const gasLimit = estimateGasLimit(swaps.length)
       res.status(200).json({
         network: balancer.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        base: baseTokenAddress,
-        quote: quoteTokenAddress,
+        base: baseTokenContractInfo,
+        quote: quoteTokenContractInfo,
         amount: parseFloat(paramData.amount),
-        expectedOut: parseInt(expectedOut) / quoteDenomMultiplier,
-        price: expectedOut / amount * baseDenomMultiplier / quoteDenomMultiplier,
+        side: side,
+        expectedAmount: parseInt(expectedAmount) / quoteDenomMultiplier,
+        price: expectedAmount / amount * baseDenomMultiplier / quoteDenomMultiplier,
         gasLimit: gasLimit,
         swaps: swaps,
       })
@@ -127,245 +229,128 @@ router.post('/sell-price', async (req, res) => {
   }
 })
 
-router.post('/buy-price', async (req, res) => {
+router.post('/trade', async (req, res) => {
   /*
-    POST: /buy-price
+      POST: /trade
       x-www-form-urlencoded: {
-        "quote":"0x....."
-        "base":"0x....."
+        "quote":"BAT"
+        "base":"USDC"
         "amount":0.1
-        "maxSwaps":4
-        "base_decimals":18
-        "quote_decimals":18
-      }
-  */
-  const initTime = Date.now()
-  // params: base (required), quote (required), amount (required)
-  const paramData = getParamData(req.body)
-  const baseTokenAddress = paramData.base
-  const quoteTokenAddress = paramData.quote
-  const baseDenomMultiplier = 10 ** paramData.base_decimals
-  const quoteDenomMultiplier = 10 ** paramData.quote_decimals
-  const amount =  new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
-  let maxSwaps
-  if (paramData.maxSwaps) {
-    maxSwaps = parseInt(paramData.maxSwaps)
-  }
-
-  try {
-    // fetch the optimal pool mix from balancer-sor
-    const { swaps, expectedIn } = await balancer.priceSwapOut(
-      quoteTokenAddress,    // tokenIn is quote asset
-      baseTokenAddress,     // tokenOut is base asset
-      amount,
-      maxSwaps,
-    )
-
-    if (swaps != null && expectedIn != null) {
-      const gasLimit = estimateGasLimit(swaps.length)
-      res.status(200).json({
-        network: balancer.network,
-        timestamp: initTime,
-        latency: latency(initTime, Date.now()),
-        base: baseTokenAddress,
-        quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
-        expectedIn: parseInt(expectedIn) / quoteDenomMultiplier,
-        price: expectedIn / amount * baseDenomMultiplier / quoteDenomMultiplier,
-        gasLimit: gasLimit,
-        swaps: swaps,
-      })
-    } else { // no pool available
-      res.status(200).json({
-        error: statusMessages.no_pool_available,
-        message: ''
-      })
-    }
-  } catch (err) {
-    logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
-    res.status(500).json({
-      error: reason,
-      message: err
-    })
-  }
-})
-
-router.post('/sell', async (req, res) => {
-  /*
-      POST: /sell
-      x-www-form-urlencoded: {
-        "quote":"0x....."
-        "base":"0x....."
-        "amount":0.1
-        "base_decimals":18
-        "quote_decimals":18
-        "minPrice":1
+        "limitPrice":1
         "gasPrice":10
-        "maxSwaps":4
+        "side":{buy|sell}
         "privateKey":{{privateKey}}
       }
   */
   const initTime = Date.now()
-  // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, balancer.provider)
-  const baseTokenAddress = paramData.base
-  const quoteTokenAddress = paramData.quote
-  const baseDenomMultiplier = 10 ** paramData.base_decimals
-  const quoteDenomMultiplier = 10 ** paramData.quote_decimals
-  const amount =  new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
 
-  let maxPrice
-  if (paramData.maxPrice) {
-    maxPrice = parseFloat(paramData.maxPrice)
+  const baseTokenContractInfo = eth.getERC20TokenAddresses(paramData.base)
+  const quoteTokenContractInfo = eth.getERC20TokenAddresses(paramData.quote)
+  const baseTokenAddress = baseTokenContractInfo.address
+  const quoteTokenAddress = quoteTokenContractInfo.address
+  const baseDenomMultiplier = 10 ** baseTokenContractInfo.decimals
+  const quoteDenomMultiplier = 10 ** quoteTokenContractInfo.decimals
+  const amount = new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
+
+  const maxSwaps = balancer.maxSwaps
+  const side = paramData.side
+
+  let limitPrice
+  if (paramData.limitPrice) {
+    limitPrice = parseFloat(paramData.limitPrice)
   }
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
   }
-  let maxSwaps
-  if (paramData.maxSwaps) {
-    maxSwaps = parseInt(paramData.maxSwaps)
-  }
-
-  const minAmountOut = maxPrice / amount *  baseDenomMultiplier
-  logger.debug('minAmountOut', minAmountOut)
 
   try {
     // fetch the optimal pool mix from balancer-sor
-    const { swaps, expectedOut } = await balancer.priceSwapIn(
-      baseTokenAddress,     // tokenIn is base asset
-      quoteTokenAddress,    // tokenOut is quote asset
-      amount,
-      maxSwaps,
-    )
-
-    const price = expectedOut / amount  * baseDenomMultiplier / quoteDenomMultiplier
-    logger.info(`Price: ${price.toString()}`)
-    if (!maxPrice || price >= maxPrice) {
-      // pass swaps to exchange-proxy to complete trade
-      const tx = await balancer.swapExactIn(
-        wallet,
-        swaps,
-        baseTokenAddress,   // tokenIn is base asset
-        quoteTokenAddress,  // tokenOut is quote asset
-        amount.toString(),
-        parseInt(expectedOut) / quoteDenomMultiplier,
-        gasPrice,
+    const { swaps, expectedAmount } = side === 'buy'
+      ? await balancer.priceSwapOut(
+        quoteTokenAddress,    // tokenIn is quote asset
+        baseTokenAddress,     // tokenOut is base asset
+        amount,
+        maxSwaps,
       )
+      : await balancer.priceSwapIn(
+        baseTokenAddress,     // tokenIn is base asset
+        quoteTokenAddress,    // tokenOut is quote asset
+        amount,
+        maxSwaps,
+      )
+    if (side === 'buy') {
+      const price = expectedAmount / amount * baseDenomMultiplier / quoteDenomMultiplier
+      logger.info(`Price: ${price.toString()}`)
+      if (!limitPrice || price <= limitPrice) {
+        // pass swaps to exchange-proxy to complete trade
+        const tx = await balancer.swapExactOut(
+          wallet,
+          swaps,
+          quoteTokenAddress,   // tokenIn is quote asset
+          baseTokenAddress,    // tokenOut is base asset
+          expectedAmount.toString(),
+          gasPrice,
+        )
 
-      // submit response
-      res.status(200).json({
-        network: balancer.network,
-        timestamp: initTime,
-        latency: latency(initTime, Date.now()),
-        base: baseTokenAddress,
-        quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
-        expectedOut: expectedOut / quoteDenomMultiplier,
-        price: price,
-        txHash: tx.hash,
-      })
-    } else {
-      res.status(200).json({
-        error: swapLessThanMaxPriceError,
-        message: `Swap price ${price} lower than maxPrice ${maxPrice}`
-      })
-      logger.debug(`Swap price ${price} lower than maxPrice ${maxPrice}`)
-    }
-  } catch (err) {
-    logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
-    res.status(500).json({
-      error: reason,
-      message: err
-    })
-  }
-})
-
-router.post('/buy', async (req, res) => {
-  /*
-      POST: /buy
-      x-www-form-urlencoded: {
-        "quote":"0x....."
-        "base":"0x....."
-        "amount":0.1
-        "base_decimals":18
-        "quote_decimals":18
-        "maxPrice":1
-        "gasPrice":10
-        "maxSwaps":4
-        "privateKey":{{privateKey}}
+        // submit response
+        res.status(200).json({
+          network: balancer.network,
+          timestamp: initTime,
+          latency: latency(initTime, Date.now()),
+          base: baseTokenContractInfo,
+          quote: quoteTokenContractInfo,
+          amount: parseFloat(paramData.amount),
+          expectedIn: expectedAmount / quoteDenomMultiplier,
+          price: price,
+          txHash: tx.hash,
+        })
+      } else {
+        res.status(200).json({
+          error: swapMoreThanMaxPriceError,
+          message: `Swap price ${price} exceeds limitPrice ${limitPrice}`
+        })
+        logger.debug(`Swap price ${price} exceeds limitPrice ${limitPrice}`)
       }
-  */
-  const initTime = Date.now()
-  // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
-  const paramData = getParamData(req.body)
-  const privateKey = paramData.privateKey
-  const wallet = new ethers.Wallet(privateKey, balancer.provider)
-  const baseTokenAddress = paramData.base
-  const quoteTokenAddress = paramData.quote
-  const baseDenomMultiplier = 10 ** paramData.base_decimals
-  const quoteDenomMultiplier = 10 ** paramData.quote_decimals
-  const amount =  new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
-
-  let maxPrice
-  if (paramData.maxPrice) {
-    maxPrice = parseFloat(paramData.maxPrice)
-  }
-  let gasPrice
-  if (paramData.gasPrice) {
-    gasPrice = parseFloat(paramData.gasPrice)
-  }
-  let maxSwaps
-  if (paramData.maxSwaps) {
-    maxSwaps = parseInt(paramData.maxSwaps)
-  }
-
-  try {
-    // fetch the optimal pool mix from balancer-sor
-    const { swaps, expectedIn } = await balancer.priceSwapOut(
-      quoteTokenAddress,    // tokenIn is quote asset
-      baseTokenAddress,     // tokenOut is base asset
-      amount,
-      maxSwaps,
-    )
-
-    const price = expectedIn / amount * baseDenomMultiplier / quoteDenomMultiplier
-    logger.info(`Price: ${price.toString()}`)
-    if (!maxPrice || price <= maxPrice) {
-      // pass swaps to exchange-proxy to complete trade
-      const tx = await balancer.swapExactOut(
-        wallet,
-        swaps,
-        quoteTokenAddress,   // tokenIn is quote asset
-        baseTokenAddress,    // tokenOut is base asset
-        expectedIn.toString(),
-        gasPrice,
-      )
-
-      // submit response
-      res.status(200).json({
-        network: balancer.network,
-        timestamp: initTime,
-        latency: latency(initTime, Date.now()),
-        base: baseTokenAddress,
-        quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
-        expectedIn: expectedIn / quoteDenomMultiplier,
-        price: price,
-        txHash: tx.hash,
-      })
     } else {
-      res.status(200).json({
-        error: swapMoreThanMaxPriceError,
-        message: `Swap price ${price} exceeds maxPrice ${maxPrice}`
-      })
-      logger.debug(`Swap price ${price} exceeds maxPrice ${maxPrice}`)
+      // sell
+      const minAmountOut = limitPrice / amount *  baseDenomMultiplier
+      logger.debug('minAmountOut', minAmountOut)
+      const price = expectedAmount / amount  * baseDenomMultiplier / quoteDenomMultiplier
+      logger.info(`Price: ${price.toString()}`)
+      if (!limitPrice || price >= limitPrice) {
+        // pass swaps to exchange-proxy to complete trade
+        const tx = await balancer.swapExactIn(
+          wallet,
+          swaps,
+          baseTokenAddress,   // tokenIn is base asset
+          quoteTokenAddress,  // tokenOut is quote asset
+          amount.toString(),
+          parseInt(expectedAmount) / quoteDenomMultiplier,
+          gasPrice,
+        )
+        // submit response
+        res.status(200).json({
+          network: balancer.network,
+          timestamp: initTime,
+          latency: latency(initTime, Date.now()),
+          base: baseTokenContractInfo,
+          quote: quoteTokenContractInfo,
+          amount: parseFloat(paramData.amount),
+          expectedOut: expectedAmount / quoteDenomMultiplier,
+          price: price,
+          txHash: tx.hash,
+        })
+      } else {
+        res.status(200).json({
+          error: swapLessThanMaxPriceError,
+          message: `Swap price ${price} lower than limitPrice ${limitPrice}`
+        })
+        logger.debug(`Swap price ${price} lower than limitPrice ${limitPrice}`)
+      }
     }
   } catch (err) {
     logger.error(req.originalUrl, { message: err })

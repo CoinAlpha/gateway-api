@@ -39,13 +39,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(validateAccess)
 
-// mount all routes to this path
-app.use('/uniswap', uniswapRoutes);
+// mount routes to specific path
 app.use('/api', apiRoutes);
 app.use('/eth', ethRoutes);
-// app.use('/celo', celoRoutes);
+app.use('/eth/uniswap', uniswapRoutes);
+app.use('/eth/balancer', balancerRoutes);
 app.use('/terra', terraRoutes);
-app.use('/balancer', balancerRoutes);
+// app.use('/celo', celoRoutes);
 
 app.get('/', (req, res, next) => {
   res.send('ok')

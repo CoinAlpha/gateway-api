@@ -1,7 +1,7 @@
 import { ethers, BigNumber } from 'ethers';
 import express from 'express';
 
-import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
+import { getParamData, latency, statusMessages } from '../services/utils';
 import Ethereum from '../services/eth';
 import { logger } from '../services/logger';
 
@@ -11,6 +11,18 @@ const spenders = {
   balancer: process.env.EXCHANGE_PROXY,
   uniswap: process.env.UNISWAP_ROUTER
 }
+
+router.post('/', async (req, res) => {
+  /*
+    POST /
+  */
+  res.status(200).json({
+    network: eth.network,
+    rpcUrl: eth.provider.connection.url,
+    connection: true,
+    timestamp: Date.now(),
+  })
+})
 
 router.post('/balances', async (req, res) => {
   /*
@@ -36,10 +48,14 @@ router.post('/balances', async (req, res) => {
     })
     return
   }
-  let tokenAddressList
-  if (paramData.tokenAddressList) {
-    tokenAddressList = JSON.parse(paramData.tokenAddressList)
-  }
+
+  // populate token contract info using token symbol list
+  const tokenAddressList = {}
+  const tokenList = JSON.parse(paramData.tokenList)
+  tokenList.forEach(symbol => {
+    const tokenContractInfo = eth.getERC20TokenAddresses(symbol)
+    tokenAddressList[tokenContractInfo.address] = tokenContractInfo.decimals
+  });
 
   const balances = {}
   balances.ETH = await eth.getETHBalance(wallet, privateKey)
@@ -93,10 +109,14 @@ router.post('/allowances', async (req, res) => {
     })
     return
   }
-  let tokenAddressList
-  if (paramData.tokenAddressList) {
-    tokenAddressList = JSON.parse(paramData.tokenAddressList)
-  }
+
+  // populate token contract info using token symbol list
+  const tokenAddressList = {}
+  const tokenList = JSON.parse(paramData.tokenList)
+  tokenList.forEach(symbol => {
+    const tokenContractInfo = eth.getERC20TokenAddresses(symbol)
+    tokenAddressList[tokenContractInfo.address] = tokenContractInfo.decimals
+  });
 
   const approvals = {}
   try {
@@ -270,10 +290,12 @@ router.post('/approve', async (req, res) => {
     })
     return
   }
-  const tokenAddress = paramData.tokenAddress
-  let amount, decimals
-  paramData.decimals ? decimals = paramData.decimals
-                     : decimals = 18
+  const token = paramData.token
+  const tokenContractInfo = eth.getERC20TokenAddresses(token)
+  const tokenAddress = tokenContractInfo.address
+  const decimals = tokenContractInfo.decimals
+
+  let amount
   paramData.amount  ? amount = ethers.utils.parseUnits(paramData.amount, decimals)
                     : amount = ethers.utils.parseUnits('1000000000', decimals) // approve for 1 billion units if no amount specified
   let gasPrice
@@ -284,7 +306,7 @@ router.post('/approve', async (req, res) => {
   try {
     // call approve function
     const approval = await eth.approveERC20(wallet, spender, tokenAddress, amount, gasPrice)
-    logger.info('eth.route - Approving allowance', { message: tokenAddress })
+    // console.log('eth.route - Approving allowance', { message: approval })
     // submit response
     res.status(200).json({
       network: eth.network,
@@ -361,7 +383,7 @@ router.post('/get-weth', async (req, res) => {
   }
 })
 
-router.post('/get-receipt', async (req, res) => {
+router.post('/poll', async (req, res) => {
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const txHash = paramData.txHash

@@ -251,7 +251,6 @@ export default class Terra {
 
       const offerAmount = parseInt((swaps.offer.amount) * DENOM_UNIT)
       const offerCoin = new Coin(offerDenom, offerAmount)
-      // debug('offerCoin', offerCoin, offerAmount, 'gasPrice', gasPrice)
 
       // Create and Sign Transaction
       const msgSwap = new MsgSwap(address, offerCoin, swapDenom);
@@ -281,7 +280,6 @@ export default class Terra {
           tokenSwap.txSuccess = !swapSuccess
           throw new Error(`encountered an error while running the transaction: ${txResult.code} ${txResult.codespace}`);
         }
-
         const txHash = txResult.txhash
         const events = JSON.parse(txResult.raw_log)[0].events
         const swap = events.find(obj => {
