@@ -343,7 +343,7 @@ router.post('/price', async (req, res) => {
       })
     } else { // no pool available
       res.status(200).json({
-        error: statusMessages.no_pool_available,
+        info: statusMessages.no_pool_available,
         message: ''
       })
     }

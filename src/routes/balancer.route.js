@@ -154,7 +154,7 @@ router.post('/start', async (req, res) => {
     quote: quoteTokenContractInfo,
     pools: balancer.cachedPools.pools.length,
   }
-  console.log(balancer.cachedPools)
+  console.log('caching swap pools', balancer.cachedPools.length)
   res.status(200).json(result)
 })
 
@@ -181,6 +181,8 @@ router.post('/price', async (req, res) => {
   const maxSwaps = balancer.maxSwaps
   const side = paramData.side
 
+  console.log('balancer.cachedPools', balancer.cachedPools.length)
+
   try {
     // fetch the optimal pool mix from balancer-sor
     const { swaps, expectedAmount } = side === 'buy'
@@ -199,6 +201,7 @@ router.post('/price', async (req, res) => {
 
     if (swaps != null && expectedAmount != null) {
       const gasLimit = estimateGasLimit(swaps.length)
+
       res.status(200).json({
         network: balancer.network,
         timestamp: initTime,
@@ -214,7 +217,7 @@ router.post('/price', async (req, res) => {
       })
     } else { // no pool available
       res.status(200).json({
-        error: statusMessages.no_pool_available,
+        info: statusMessages.no_pool_available,
         message: ''
       })
     }
