@@ -41,6 +41,17 @@
 						},
 						{
 							"name": "eth/balances",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
 							"request": {
 								"method": "POST",
 								"header": [],
@@ -291,13 +302,7 @@
 								"header": [],
 								"body": {
 									"mode": "urlencoded",
-									"urlencoded": [
-										{
-											"key": "maxSwaps",
-											"value": "3",
-											"type": "text"
-										}
-									],
+									"urlencoded": [],
 									"options": {
 										"raw": {
 											"language": "json"
@@ -335,11 +340,11 @@
 										},
 										{
 											"key": "quote",
-											"value": "usdc",
+											"value": "dai",
 											"type": "text"
 										},
 										{
-											"key": "secret",
+											"key": "privateKey",
 											"value": "{{privateKey}}",
 											"type": "text"
 										},
@@ -387,17 +392,17 @@
 										},
 										{
 											"key": "quote",
-											"value": "USDC",
+											"value": "dai",
 											"type": "text"
 										},
 										{
 											"key": "amount",
-											"value": "1",
+											"value": "10",
 											"type": "text"
 										},
 										{
 											"key": "side",
-											"value": "sell",
+											"value": "buy",
 											"type": "text"
 										}
 									]
@@ -578,11 +583,11 @@
 										},
 										{
 											"key": "quote",
-											"value": "DAI",
+											"value": "USDC",
 											"type": "text"
 										},
 										{
-											"key": "secret",
+											"key": "privateKey",
 											"value": "{{privateKey}}",
 											"type": "text"
 										},
