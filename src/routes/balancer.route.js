@@ -80,7 +80,7 @@ router.post('/start', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseTokenSymbol = paramData.base.toUpperCase()
   const quoteTokenSymbol = paramData.quote.toUpperCase()
-  const privateKey = paramData.secret
+  const privateKey = paramData.privateKey
   const gasPrice = paramData.gasPrice
 
   // get token contract address and decimal
