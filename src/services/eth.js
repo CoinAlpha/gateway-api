@@ -159,7 +159,7 @@ export default class Ethereum {
       throw Error(`Invalid network ${this.network}`)
     }
     const tokenContractAddress = tokenList.filter(obj => {
-      return obj.symbol === tokenSymbol
+      return obj.symbol === tokenSymbol.toUpperCase()
     })
     return tokenContractAddress[0]
   }

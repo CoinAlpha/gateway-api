@@ -41,8 +41,6 @@ export default class Balancer {
   }
 
   async fetchPool (tokenIn, tokenOut) {
-    // console.log('fetchPool', tokenIn, tokenOut)
-
     const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
     this.cachedPools = pools
 
@@ -51,6 +49,7 @@ export default class Balancer {
       return {};
     }
     logger.debug('>>> Pools Retrieved.', { message: this.network })
+    setTimeout(this.fetchPool.bind(this), 15000); // update every x seconds
   }
 
   async priceSwapIn (tokenIn, tokenOut, tokenInAmount, maxSwaps = this.maxSwaps) {

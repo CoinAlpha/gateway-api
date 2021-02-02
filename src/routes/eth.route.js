@@ -355,7 +355,7 @@ router.post('/get-weth', async (req, res) => {
     return
   }
   const amount = ethers.utils.parseEther(paramData.amount)
-  const tokenAddress = eth.erc20KovanTokens['WETH']
+  const tokenAddress = eth.getERC20TokenAddresses('WETH').address
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)

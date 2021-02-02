@@ -155,7 +155,7 @@ router.post('/start', async (req, res) => {
   const tokenList = orderType === 'buy'
     ? { in: baseTokenContractInfo.address, out: quoteTokenContractInfo.address }
     : { in: quoteTokenContractInfo.address, out: baseTokenContractInfo.address }
-  await uniswap.fetch_route(tokenList.in, tokenList.out)
+  await this.update_tokens([tokenList.in, tokenList.out])
 
   const result = {
     network: eth.network,

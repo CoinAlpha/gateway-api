@@ -154,7 +154,7 @@ router.post('/start', async (req, res) => {
     quote: quoteTokenContractInfo,
     pools: balancer.cachedPools.pools.length,
   }
-  console.log('caching swap pools', balancer.cachedPools.length)
+  console.log('caching swap pools (total)', balancer.cachedPools.pools.length)
   res.status(200).json(result)
 })
 
@@ -180,8 +180,6 @@ router.post('/price', async (req, res) => {
   const amount = new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
   const maxSwaps = balancer.maxSwaps
   const side = paramData.side
-
-  console.log('balancer.cachedPools', balancer.cachedPools.length)
 
   try {
     // fetch the optimal pool mix from balancer-sor
