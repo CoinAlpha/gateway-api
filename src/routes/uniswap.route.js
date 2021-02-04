@@ -251,7 +251,7 @@ router.post('/trade', async (req, res) => {
     } else {
       // sell
       const price = trade.executionPrice.toSignificant(8)
-      logger.debug(`Price: ${price.toString()}`)
+      logger.info(`Price: ${price.toString()}`)
       if (!limitPrice || price >= limitPrice) {
         // pass swaps to exchange-proxy to complete trade
         const tx = await uniswap.swapExactIn(

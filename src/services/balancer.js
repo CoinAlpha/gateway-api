@@ -22,7 +22,7 @@ export default class Balancer {
     this.subgraphUrl = process.env.REACT_APP_SUBGRAPH_URL
     this.gasBase = GAS_BASE
     this.gasPerSwap = GAS_PER_SWAP
-    this.maxSwaps = process.env.BALANCER_MAX_SWAPS
+    this.maxSwaps = process.env.BALANCER_MAX_SWAPS || 4
 
     switch (network) {
       case 'mainnet':
@@ -41,6 +41,7 @@ export default class Balancer {
   }
 
   async fetchPool (tokenIn, tokenOut) {
+
     const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut)
     this.cachedPools = pools
 

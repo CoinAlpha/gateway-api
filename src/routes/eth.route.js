@@ -328,61 +328,6 @@ router.post('/approve', async (req, res) => {
   }
 })
 
-// Faucet to get test tokens
-router.post('/get-weth', async (req, res) => {
-  /*
-      POST: /get-weth
-      x-www-form-urlencoded: {
-        gasPrice:{gasPrice}
-        amount:{{amount}}
-        privateKey:{{privateKey}}
-      }
-  */
-  const initTime = Date.now()
-  const paramData = getParamData(req.body)
-  const privateKey = paramData.privateKey
-  let wallet
-  try {
-    wallet = new ethers.Wallet(privateKey, eth.provider)
-  } catch (err) {
-    logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason ? reason = err.reason : reason = 'Error getting wallet'
-    res.status(500).json({
-      error: reason,
-      message: err
-    })
-    return
-  }
-  const amount = ethers.utils.parseEther(paramData.amount)
-  const tokenAddress = eth.getERC20TokenAddresses('WETH').address
-  let gasPrice
-  if (paramData.gasPrice) {
-    gasPrice = parseFloat(paramData.gasPrice)
-  }
-
-  try {
-    // call deposit function
-    const response = await eth.deposit(wallet, tokenAddress, amount, gasPrice)
-
-    // submit response
-    res.status(200).json({
-      network: eth.network,
-      timestamp: initTime,
-      amount: parseFloat(amount),
-      result: response
-    })
-  } catch (err) {
-    logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
-    res.status(500).json({
-      error: reason,
-      message: err
-    })
-  }
-})
-
 router.post('/poll', async (req, res) => {
   const initTime = Date.now()
   const paramData = getParamData(req.body)
@@ -407,5 +352,60 @@ router.post('/poll', async (req, res) => {
   })
   return txReceipt
 })
+
+// Kovan faucet to get test tokens (wip) & weth conversion
+// router.post('/get-weth', async (req, res) => {
+//   /*
+//       POST: /get-weth
+//       x-www-form-urlencoded: {
+//         gasPrice:{gasPrice}
+//         amount:{{amount}}
+//         privateKey:{{privateKey}}
+//       }
+//   */
+//   const initTime = Date.now()
+//   const paramData = getParamData(req.body)
+//   const privateKey = paramData.privateKey
+//   let wallet
+//   try {
+//     wallet = new ethers.Wallet(privateKey, eth.provider)
+//   } catch (err) {
+//     logger.error(req.originalUrl, { message: err })
+//     let reason
+//     err.reason ? reason = err.reason : reason = 'Error getting wallet'
+//     res.status(500).json({
+//       error: reason,
+//       message: err
+//     })
+//     return
+//   }
+//   const amount = ethers.utils.parseEther(paramData.amount)
+//   const tokenAddress = eth.getERC20TokenAddresses('WETH').address
+//   let gasPrice
+//   if (paramData.gasPrice) {
+//     gasPrice = parseFloat(paramData.gasPrice)
+//   }
+
+//   try {
+//     // call deposit function
+//     const response = await eth.deposit(wallet, tokenAddress, amount, gasPrice)
+
+//     // submit response
+//     res.status(200).json({
+//       network: eth.network,
+//       timestamp: initTime,
+//       amount: parseFloat(amount),
+//       result: response
+//     })
+//   } catch (err) {
+//     logger.error(req.originalUrl, { message: err })
+//     let reason
+//     err.reason ? reason = err.reason : reason = statusMessages.operation_error
+//     res.status(500).json({
+//       error: reason,
+//       message: err
+//     })
+//   }
+// })
 
 module.exports = router;
