@@ -86,7 +86,12 @@ export const loadConfig = () => {
     ethereum_rpc_url: process.env.ETHEREUM_RPC_URL,
     ethereum_chain: process.env.ETHEREUM_CHAIN,
     exchange_proxy: process.env.EXCHANGE_PROXY,
+    ethereum_token_list_url: process.env.ETHEREUM_TOKEN_LIST_URL,
+    enable_eth_gas_station: process.env.ENABLE_ETH_GAS_STATION,
+    eth_gas_station_gas_level: process.env.ETH_GAS_STATION_GAS_LEVEL,
+    eth_gas_station_refresh_time: process.env.ETH_GAS_STATION_REFRESH_TIME,
     react_app_subgraph_url: process.env.REACT_APP_SUBGRAPH_URL,
+    balancer_max_swaps: process.env.BALANCER_MAX_SWAPS,
     uniswap_router: process.env.UNISWAP_ROUTER,
     terra_lcd_url: process.env.TERRA_LCD_URL,
     terra_chain: process.env.TERRA_CHAIN

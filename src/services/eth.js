@@ -13,6 +13,7 @@ export default class Ethereum {
     // network defaults to kovan
     const providerUrl = process.env.ETHEREUM_RPC_URL
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
+    this.erc20TokenListURL = process.env.ETHEREUM_TOKEN_LIST_URL
     this.network = network
     this.spenders = {
       balancer: process.env.EXCHANGE_PROXY,
@@ -23,6 +24,7 @@ export default class Ethereum {
       // for kovan testing only
       this.erc20KovanTokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
     } else if (network === 'mainnet') {
+      // this.erc20MainnetTokens = this.getERC20TokenList()
       this.erc20MainnetTokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_mainnet.json'))
     } else {
       throw Error(`Invalid network ${network}`)
@@ -128,29 +130,30 @@ export default class Ethereum {
     }
   }
 
-  // get remote token list
-  async getTokenList (tokenListUrl) {
+  // get ERC20 Token List
+  async getERC20TokenList () {
+    console.log(this.erc20MainnetTokens, 'tokenListRequested', this.tokenListRequested)
     try {
-      axios.get(tokenListUrl)
-        .then(function (response) {
-          // handle success
-          const tokenList = response.data
-          return tokenList
-        })
-        .catch(function (error) {
-          // handle error
-          console.log(error);
-        })
+      if (this.erc20MainnetTokens === undefined || this.erc20MainnetTokens === null || this.erc20MainnetTokens === {}) {
+        console.log('getERC20TokenList... ', this.erc20TokenListURL)
+        const response = await axios.get(this.erc20TokenListURL)
+        if (response.status === 200 && response.data) {
+          console.log(response.data.tokens[1].symbol)
+          this.erc20MainnetTokens = response.data.tokens
+        }
+      }
     } catch (err) {
+      console.log(err);
       logger.error(err)
       let reason
-      err.reason ? reason = err.reason : reason = 'error remote token list retrieval'
+      err.reason ? reason = err.reason : reason = 'error ERC 20 Token List'
       return reason
     }
   }
 
   getERC20TokenAddresses (tokenSymbol) {
     let tokenList
+
     if (this.network === 'kovan') {
       tokenList = this.erc20KovanTokens.tokens
     } else if (this.network === 'mainnet') {

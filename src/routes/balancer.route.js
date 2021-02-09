@@ -6,13 +6,13 @@ import { getParamData, latency, reportConnectionError, statusMessages } from '..
 
 import Ethereum from '../services/eth';
 import Balancer from '../services/balancer';
-// import Fees from '../services/fees';
+import Fees from '../services/fees';
 import { logger } from '../services/logger';
 
 const router = express.Router()
 const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 const balancer = new Balancer(process.env.ETHEREUM_CHAIN)
-// const fees = new Fees()
+const fees = new Fees()
 
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
@@ -81,7 +81,12 @@ router.post('/start', async (req, res) => {
   const baseTokenSymbol = paramData.base.toUpperCase()
   const quoteTokenSymbol = paramData.quote.toUpperCase()
   const privateKey = paramData.privateKey
-  const gasPrice = paramData.gasPrice
+  let gasPrice
+  if (paramData.gasPrice) {
+    gasPrice = parseFloat(paramData.gasPrice)
+  } else {
+    gasPrice = fees.ethGasPrice
+  }
 
   // get token contract address and decimal
   const baseTokenContractInfo = eth.getERC20TokenAddresses(baseTokenSymbol)
@@ -112,9 +117,7 @@ router.post('/start', async (req, res) => {
   let approvalAmount
 
   try {
-    // await fees.getETHGasStationFee().then(fee => {
-    //   ethGasStationFee['fast'] = fee
-    // })
+    await fees.getETHGasStationFee()
 
     Promise.all(
       Object.keys(tokenAddressList).map(async (key, index) =>
@@ -152,6 +155,7 @@ router.post('/start', async (req, res) => {
     success: true,
     base: baseTokenContractInfo,
     quote: quoteTokenContractInfo,
+    gasPrice: fees.ethGasPrice,
     pools: balancer.cachedPools.pools.length,
   }
   console.log('caching swap pools (total)', balancer.cachedPools.pools.length)
@@ -180,6 +184,12 @@ router.post('/price', async (req, res) => {
   const amount = new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
   const maxSwaps = balancer.maxSwaps
   const side = paramData.side
+  let gasPrice
+  if (paramData.gasPrice) {
+    gasPrice = parseFloat(paramData.gasPrice)
+  } else {
+    gasPrice = fees.ethGasPrice
+  }
 
   try {
     // fetch the optimal pool mix from balancer-sor
@@ -211,6 +221,7 @@ router.post('/price', async (req, res) => {
         expectedAmount: parseInt(expectedAmount) / quoteDenomMultiplier,
         price: expectedAmount / amount * baseDenomMultiplier / quoteDenomMultiplier,
         gasLimit: gasLimit,
+        gasPrice: gasPrice,
         swaps: swaps,
       })
     } else { // no pool available
@@ -266,6 +277,8 @@ router.post('/trade', async (req, res) => {
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
+  } else {
+    gasPrice = fees.ethGasPrice
   }
 
   try {
@@ -307,6 +320,7 @@ router.post('/trade', async (req, res) => {
           amount: parseFloat(paramData.amount),
           expectedIn: expectedAmount / quoteDenomMultiplier,
           price: price,
+          gasPrice: gasPrice,
           txHash: tx.hash,
         })
       } else {

@@ -5,6 +5,7 @@ import { getParamData, latency, statusMessages } from '../services/utils';
 import { logger } from '../services/logger';
 import Ethereum from '../services/eth';
 import Uniswap from '../services/uniswap';
+import Fees from '../services/fees';
 
 require('dotenv').config()
 
@@ -13,6 +14,7 @@ const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 const uniswap = new Uniswap(process.env.ETHEREUM_CHAIN)
 uniswap.generate_tokens()
 setTimeout(uniswap.update_pairs.bind(uniswap), 2000)
+const fees = new Fees()
 
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'
@@ -90,7 +92,12 @@ router.post('/start', async (req, res) => {
   const quoteTokenSymbol = paramData.quote.toUpperCase()
   const orderType = paramData.side
   const privateKey = paramData.privateKey
-  const gasPrice = paramData.gasPrice
+  let gasPrice
+  if (paramData.gasPrice) {
+    gasPrice = parseFloat(paramData.gasPrice)
+  } else {
+    gasPrice = fees.ethGasPrice
+  }
 
   // get token contract address and decimal
   const baseTokenContractInfo = eth.getERC20TokenAddresses(baseTokenSymbol)
@@ -121,9 +128,7 @@ router.post('/start', async (req, res) => {
   let approvalAmount
 
   try {
-    // await fees.getETHGasStationFee().then(fee => {
-    //   ethGasStationFee['fast'] = fee
-    // })
+    await fees.getETHGasStationFee()
 
     Promise.all(
       Object.keys(tokenAddressList).map(async (key, index) =>
@@ -155,7 +160,7 @@ router.post('/start', async (req, res) => {
   const tokenList = orderType === 'buy'
     ? { in: baseTokenContractInfo.address, out: quoteTokenContractInfo.address }
     : { in: quoteTokenContractInfo.address, out: baseTokenContractInfo.address }
-  await this.update_tokens([tokenList.in, tokenList.out])
+  await uniswap.update_tokens([tokenList.in, tokenList.out])
 
   const result = {
     network: eth.network,
@@ -164,6 +169,7 @@ router.post('/start', async (req, res) => {
     success: true,
     base: baseTokenContractInfo,
     quote: quoteTokenContractInfo,
+    gasPrice: fees.ethGasPrice,
     pools: uniswap.cachedRoutes.length,
   }
   res.status(200).json(result)
@@ -202,6 +208,8 @@ router.post('/trade', async (req, res) => {
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
+  } else {
+    gasPrice = fees.ethGasPrice
   }
 
   try {
@@ -239,6 +247,7 @@ router.post('/trade', async (req, res) => {
           amount: amount,
           expectedIn: expectedAmount.toSignificant(8),
           price: price,
+          gasPrice: gasPrice,
           txHash: tx.hash,
         })
       } else {
@@ -267,9 +276,10 @@ router.post('/trade', async (req, res) => {
           latency: latency(initTime, Date.now()),
           base: baseTokenAddress,
           quote: quoteTokenAddress,
-          amount: amount,
+          amount: parseFloat(paramData.amount),
           expectedOut: expectedAmount.toSignificant(8),
-          price: price,
+          price: parseFloat(price),
+          gasPrice: gasPrice,
           txHash: tx.hash,
         })
       } else {
@@ -310,6 +320,13 @@ router.post('/price', async (req, res) => {
   const baseTokenAddress = baseTokenContractInfo.address
   const quoteTokenAddress = quoteTokenContractInfo.address
   const side = paramData.side
+  const gasLimit = estimateGasLimit()
+  let gasPrice
+  if (paramData.gasPrice) {
+    gasPrice = parseFloat(paramData.gasPrice)
+  } else {
+    gasPrice = fees.ethGasPrice
+  }
 
   try {
     // fetch the optimal pool mix from uniswap
@@ -336,9 +353,11 @@ router.post('/price', async (req, res) => {
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount: amount,
-        expectedAmount: expectedAmount.toSignificant(8),
-        price: price,
+        amount: parseFloat(paramData.amount),
+        expectedAmount: parseFloat(expectedAmount.toSignificant(8)),
+        price: parseFloat(price),
+        gasLimit: gasLimit,
+        gasPrice: gasPrice,
         trade: trade,
       })
     } else { // no pool available

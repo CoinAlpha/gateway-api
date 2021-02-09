@@ -45,7 +45,7 @@
     "nodemon": "^2.0.4"
   },
   "engines": {
-    "node" : "10.x"
+    "node": "10.x"
   },
   "type": "module"
 }
