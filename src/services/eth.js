@@ -19,16 +19,9 @@ export default class Ethereum {
       balancer: process.env.EXCHANGE_PROXY,
       uniswap: process.env.UNISWAP_ROUTER
     }
+    // update token list
     this.tokenListUrl = process.env.ETHEREUM_TOKEN_LIST_URL
-    if (network === 'kovan') {
-      // for kovan testing only
-      this.erc20KovanTokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
-    } else if (network === 'mainnet') {
-      // this.erc20MainnetTokens = this.getERC20TokenList()
-      this.erc20MainnetTokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_mainnet.json'))
-    } else {
-      throw Error(`Invalid network ${network}`)
-    }
+    this.getERC20TokenList()
   }
 
   // get ETH balance
@@ -132,16 +125,23 @@ export default class Ethereum {
 
   // get ERC20 Token List
   async getERC20TokenList () {
-    console.log(this.erc20MainnetTokens, 'tokenListRequested', this.tokenListRequested)
+    let tokenListSource
     try {
-      if (this.erc20MainnetTokens === undefined || this.erc20MainnetTokens === null || this.erc20MainnetTokens === {}) {
-        console.log('getERC20TokenList... ', this.erc20TokenListURL)
-        const response = await axios.get(this.erc20TokenListURL)
-        if (response.status === 200 && response.data) {
-          console.log(response.data.tokens[1].symbol)
-          this.erc20MainnetTokens = response.data.tokens
+      if (this.network === 'kovan') {
+        tokenListSource = 'src/static/erc20_tokens_kovan.json'
+        this.erc20TokenList = JSON.parse(fs.readFileSync(tokenListSource))
+      } else if (this.network === 'mainnet') {
+        tokenListSource = this.erc20TokenListURL
+        if (this.erc20TokenList === undefined || this.erc20TokenList === null || this.erc20TokenList === {}) {
+          const response = await axios.get(tokenListSource)
+          if (response.status === 200 && response.data) {
+            this.erc20TokenList = response.data
+          }
         }
+      } else {
+        throw Error(`Invalid network ${this.network}`)
       }
+      // console.log('get ERC20 Token List', this.network, 'source', tokenListSource)
     } catch (err) {
       console.log(err);
       logger.error(err)
@@ -152,16 +152,7 @@ export default class Ethereum {
   }
 
   getERC20TokenAddresses (tokenSymbol) {
-    let tokenList
-
-    if (this.network === 'kovan') {
-      tokenList = this.erc20KovanTokens.tokens
-    } else if (this.network === 'mainnet') {
-      tokenList = this.erc20MainnetTokens.tokens
-    } else {
-      throw Error(`Invalid network ${this.network}`)
-    }
-    const tokenContractAddress = tokenList.filter(obj => {
+    const tokenContractAddress = this.erc20TokenList.tokens.filter(obj => {
       return obj.symbol === tokenSymbol.toUpperCase()
     })
     return tokenContractAddress[0]
