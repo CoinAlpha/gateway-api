@@ -30,36 +30,33 @@ const config = {
     filename: `${getLogPath()}/logs_gateway_app.log.%DATE%`,
     datePattern: 'YYYY-MM-DD',
     handleExceptions: true,
+    handleRejections: true
   },
   error: {
     level: 'error',
     filename: `${getLogPath()}/logs_gateway_error.log.%DATE%`,
     datePattern: 'YYYY-MM-DD',
     handleExceptions: false,
-  },
-  rejection: {
-    level: 'error',
-    filename: `${getLogPath()}/logs_gateway_rejection.log.%DATE%`,
-    datePattern: 'YYYY-MM-DD',
-    handleExceptions: true,
+    handleRejections: true
   },
   debug: {
     level: 'debug',
     filename: `${getLogPath()}/logs_gateway_debug.log.%DATE%`,
     datePattern: 'YYYY-MM-DD',
     handleExceptions: false,
+    handleRejections: false
   },
 }
 
 const allLogsFileTransport = new winston.transports.DailyRotateFile(config.file)
 const errorLogsFileTransport = new winston.transports.DailyRotateFile(config.error)
 const debugTransport = new winston.transports.DailyRotateFile(config.debug)
-const rejectionTransport = new winston.transports.DailyRotateFile(config.rejection)
+// const rejectionTransport = new winston.transports.DailyRotateFile(config.rejection)
 
 const options = {
   format: logFormat,
   transports: [allLogsFileTransport, errorLogsFileTransport, debugTransport],
-  rejectionHandlers: [rejectionTransport],
+  // rejectionHandlers: [rejectionTransport],
   exitOnError: false,
 }
 
