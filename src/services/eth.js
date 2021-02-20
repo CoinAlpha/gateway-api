@@ -1,6 +1,7 @@
 import { logger } from './logger';
 import axios from 'axios'
 
+const debug = require('debug')('router')
 require('dotenv').config()
 const fs = require('fs');
 const ethers = require('ethers')
@@ -21,7 +22,7 @@ export default class Ethereum {
     }
     // update token list
     this.tokenListUrl = process.env.ETHEREUM_TOKEN_LIST_URL
-    this.getERC20TokenList()
+    this.getERC20TokenList() // erc20TokenList
   }
 
   // get ETH balance
@@ -132,6 +133,11 @@ export default class Ethereum {
         this.erc20TokenList = JSON.parse(fs.readFileSync(tokenListSource))
       } else if (this.network === 'mainnet') {
         tokenListSource = this.erc20TokenListURL
+        if (this.tokenListSource === undefined || this.tokenListSource === null) {
+          const errMessage = 'Token List source not found'
+          logger.error('ERC20 Token List Error', { message: errMessage})
+          console.log('eth - Error: ', errMessage)
+        }
         if (this.erc20TokenList === undefined || this.erc20TokenList === null || this.erc20TokenList === {}) {
           const response = await axios.get(tokenListSource)
           if (response.status === 200 && response.data) {
@@ -141,7 +147,7 @@ export default class Ethereum {
       } else {
         throw Error(`Invalid network ${this.network}`)
       }
-      // console.log('get ERC20 Token List', this.network, 'source', tokenListSource)
+      console.log('get ERC20 Token List', this.network, 'source', tokenListSource)
     } catch (err) {
       console.log(err);
       logger.error(err)

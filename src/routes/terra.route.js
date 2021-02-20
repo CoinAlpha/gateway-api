@@ -6,6 +6,7 @@ import { logger } from '../services/logger';
 
 import Terra from '../services/terra';
 
+const debug = require('debug')('router')
 const router = express.Router();
 const terra = new Terra()
 
@@ -49,7 +50,7 @@ router.post('/balances', async (req, res) => {
         balances[symbol] = amount
       })
     })
-    logger.info('terra.route - Get Account Balance', { message: address })
+    logger.info('terra.route - Get Account Balance')
     res.status(200).json({
       network: network,
       timestamp: initTime,

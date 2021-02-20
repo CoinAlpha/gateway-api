@@ -1,6 +1,5 @@
 import { getLocalDate } from './utils'
 require('dotenv').config()
-// const fecha = require('fecha')
 const appRoot = require('app-root-path')
 const winston = require('winston')
 require('winston-daily-rotate-file');
@@ -31,32 +30,14 @@ const config = {
     datePattern: 'YYYY-MM-DD',
     handleExceptions: true,
     handleRejections: true
-  },
-  error: {
-    level: 'error',
-    filename: `${getLogPath()}/logs_gateway_error.log.%DATE%`,
-    datePattern: 'YYYY-MM-DD',
-    handleExceptions: false,
-    handleRejections: true
-  },
-  debug: {
-    level: 'debug',
-    filename: `${getLogPath()}/logs_gateway_debug.log.%DATE%`,
-    datePattern: 'YYYY-MM-DD',
-    handleExceptions: false,
-    handleRejections: false
-  },
+  }
 }
 
 const allLogsFileTransport = new winston.transports.DailyRotateFile(config.file)
-const errorLogsFileTransport = new winston.transports.DailyRotateFile(config.error)
-const debugTransport = new winston.transports.DailyRotateFile(config.debug)
-// const rejectionTransport = new winston.transports.DailyRotateFile(config.rejection)
 
 const options = {
   format: logFormat,
-  transports: [allLogsFileTransport, errorLogsFileTransport, debugTransport],
-  // rejectionHandlers: [rejectionTransport],
+  transports: [allLogsFileTransport],
   exitOnError: false,
 }
 

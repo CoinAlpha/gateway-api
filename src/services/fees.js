@@ -3,6 +3,7 @@ import axios from 'axios'
 
 require('dotenv').config()
 
+const debug = require('debug')('router')
 // constants
 const ethGasStationHost = 'https://ethgasstation.info'
 // const ethGasStation = process.env.ETH_GAS_STATION

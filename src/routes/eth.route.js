@@ -5,6 +5,7 @@ import { getParamData, latency, statusMessages } from '../services/utils';
 import Ethereum from '../services/eth';
 import { logger } from '../services/logger';
 
+const debug = require('debug')('router')
 const router = express.Router()
 const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 const spenders = {
@@ -29,7 +30,7 @@ router.post('/balances', async (req, res) => {
       POST: /balances
       x-www-form-urlencoded: {
         privateKey:{{privateKey}}
-        tokenAddressList:{{tokenAddressList}}
+        tokenList:{{tokenList}}
       }
   */
   const initTime = Date.now()
@@ -50,21 +51,24 @@ router.post('/balances', async (req, res) => {
   }
 
   // populate token contract info using token symbol list
-  const tokenAddressList = {}
+  const tokenContractList = []
   const tokenList = JSON.parse(paramData.tokenList)
   tokenList.forEach(symbol => {
     const tokenContractInfo = eth.getERC20TokenAddresses(symbol)
-    tokenAddressList[tokenContractInfo.address] = tokenContractInfo.decimals
+    tokenContractList[symbol] = tokenContractInfo
   });
 
   const balances = {}
   balances.ETH = await eth.getETHBalance(wallet, privateKey)
   try {
     Promise.all(
-      Object.keys(tokenAddressList).map(async (key, index) =>
-        balances[key] = await eth.getERC20Balance(wallet, key, tokenAddressList[key])
+      Object.keys(tokenContractList).map(async (symbol, index) => {
+          const address = tokenContractList[symbol].address
+          const decimals = tokenContractList[symbol].decimals
+          balances[symbol] = await eth.getERC20Balance(wallet, address, decimals)
+        }
       )).then(() => {
-        logger.info('eth.route - Get Account Balance', { message: JSON.stringify(tokenAddressList) })
+        console.log('eth.route - Get Account Balance', { message: JSON.stringify(tokenList) })
         res.status(200).json({
         network: eth.network,
         timestamp: initTime,
@@ -111,20 +115,23 @@ router.post('/allowances', async (req, res) => {
   }
 
   // populate token contract info using token symbol list
-  const tokenAddressList = {}
+  const tokenContractList = []
   const tokenList = JSON.parse(paramData.tokenList)
   tokenList.forEach(symbol => {
     const tokenContractInfo = eth.getERC20TokenAddresses(symbol)
-    tokenAddressList[tokenContractInfo.address] = tokenContractInfo.decimals
+    tokenContractList[symbol] = tokenContractInfo
   });
 
   const approvals = {}
   try {
     Promise.all(
-      Object.keys(tokenAddressList).map(async (key, index) =>
-      approvals[key] = await eth.getERC20Allowance(wallet, spender, key, tokenAddressList[key])
-      )).then(() => {
-      logger.info('eth.route - Getting allowances', { message: JSON.stringify(tokenAddressList) })
+      Object.keys(tokenContractList).map(async (symbol, index) => {
+        const address = tokenContractList[symbol].address
+        const decimals = tokenContractList[symbol].decimals
+        approvals[symbol] = await eth.getERC20Allowance(wallet, spender, address, decimals)
+      }
+    )).then(() => {
+      logger.info('eth.route - Getting allowances', { message: JSON.stringify(tokenList) })
       res.status(200).json({
         network: eth.network,
         timestamp: initTime,

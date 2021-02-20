@@ -1,5 +1,6 @@
 import { logger } from './logger';
 
+const debug = require('debug')('router')
 const uni = require('@uniswap/sdk')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/uniswap_v2_router_abi.json')
@@ -162,7 +163,7 @@ export default class Uniswap {
       }
     )
 
-    logger.debug(`Tx Hash: ${tx.hash}`);
+    debug(`Tx Hash: ${tx.hash}`);
     return tx
   }
 
@@ -186,7 +187,7 @@ export default class Uniswap {
       }
     )
 
-    logger.debug(`Tx Hash: ${tx.hash}`);
+    debug(`Tx Hash: ${tx.hash}`);
     return tx
   }
 }

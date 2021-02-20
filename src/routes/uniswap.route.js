@@ -9,6 +9,7 @@ import Fees from '../services/fees';
 
 require('dotenv').config()
 
+const debug = require('debug')('router')
 const router = express.Router()
 const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 const uniswap = new Uniswap(process.env.ETHEREUM_CHAIN)
