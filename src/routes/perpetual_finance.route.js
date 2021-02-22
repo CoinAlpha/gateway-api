@@ -396,7 +396,7 @@ router.post('/receipt', async (req, res) => {
   const txReceipt = await perpFi.provider.getTransactionReceipt(txHash)
   const receipt = {}
   const confirmed = txReceipt && txReceipt.blockNumber ? true : false
-  if (txReceipt.blockNumber) {
+  if (txReceipt !== null) {
     receipt.gasUsed = ethers.utils.formatEther(txReceipt.gasUsed)
     receipt.blockNumber = txReceipt.blockNumber
     receipt.confirmations = txReceipt.confirmations

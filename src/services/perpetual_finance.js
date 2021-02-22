@@ -12,8 +12,8 @@ const TetherTokenArtifact = require("@perp/contract/build/contracts/TetherToken.
 
 const GAS_LIMIT = 150688;
 const DEFAULT_DECIMALS = 18
-const CONTRACT_ADDRESSES = "https://metadata.perp.exchange/"
-const XDAI_PROVIDER = "https://rpc.xdaichain.com"
+const CONTRACT_ADDRESSES = 'https://metadata.perp.exchange/'
+const XDAI_PROVIDER = 'https://dai.poa.network'
 const PNL_OPTION_SPOT_PRICE = 0
 
 const sleep = (milliseconds) => {
@@ -24,7 +24,7 @@ const sleep = (milliseconds) => {
 export default class PerpetualFinance {
   constructor (network = 'mainnet') {
     this.providerUrl = XDAI_PROVIDER
-    this.network = process.env.ETHEREUM_CHAIN
+    this.network = network
     this.provider = new Ethers.providers.JsonRpcProvider(this.providerUrl)
     this.gasLimit = GAS_LIMIT
     this.contractAddressesUrl = CONTRACT_ADDRESSES
@@ -140,7 +140,7 @@ export default class PerpetualFinance {
     try {
       const quoteAssetAmount = { d: Ethers.utils.parseUnits(margin, DEFAULT_DECIMALS) }
       const leverage = { d: Ethers.utils.parseUnits(levrg, DEFAULT_DECIMALS) }
-      const minBaseAssetAmount = { d: "0" } // "0" can be automatically converted
+      const minBaseAssetAmount = { d: Ethers.utils.parseUnits("0", DEFAULT_DECIMALS) }
       const clearingHouse = new Ethers.Contract(this.ClearingHouse, ClearingHouseArtifact.abi, wallet)
       const tx = await clearingHouse.openPosition(
         this.amm[pair],
@@ -149,6 +149,7 @@ export default class PerpetualFinance {
         leverage,
         minBaseAssetAmount
       )
+      console.log(tx)
       return tx
     } catch (err) {
       logger.error(err)
@@ -161,8 +162,9 @@ export default class PerpetualFinance {
   //close Position
   async closePosition(wallet, pair) {
     try {
-      const minimalQuoteAsset = {d: "0"}
+      const minimalQuoteAsset = { d: Ethers.utils.parseUnits("0", DEFAULT_DECIMALS) }
       const clearingHouse = new Ethers.Contract(this.ClearingHouse, ClearingHouseArtifact.abi, wallet)
+      console.log(this.amm[pair])
       const tx = await clearingHouse.closePosition(this.amm[pair], minimalQuoteAsset)
       return tx
     } catch (err) {
@@ -243,9 +245,9 @@ export default class PerpetualFinance {
       await Promise.allSettled([amm.getUnderlyingTwapPrice(3600),
                                 amm.getTwapPrice(3600),
                                 amm.nextFundingTime()])
-              .then(values => {funding.indexPrice = Ethers.utils.formatUnits(values[0].value.d);
-                              funding.markPrice = Ethers.utils.formatUnits(values[1].value.d);
-                              funding.nextFundingTime = values[2].value.toString();})
+              .then(values => {funding.indexPrice = parseFloat(Ethers.utils.formatUnits(values[0].value.d));
+                              funding.markPrice = parseFloat(Ethers.utils.formatUnits(values[1].value.d));
+                              funding.nextFundingTime = parseInt(values[2].value.toString());})
 
       funding.rate = ((funding.markPrice - funding.indexPrice) / 24) / funding.indexPrice
       return funding
