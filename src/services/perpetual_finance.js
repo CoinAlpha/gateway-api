@@ -136,11 +136,11 @@ export default class PerpetualFinance {
   }
 
   //open Position
-  async openPosition(side, margin, levrg, pair, wallet) {
+  async openPosition(side, margin, levrg, pair, minBaseAmount, wallet) {
     try {
       const quoteAssetAmount = { d: Ethers.utils.parseUnits(margin, DEFAULT_DECIMALS) }
       const leverage = { d: Ethers.utils.parseUnits(levrg, DEFAULT_DECIMALS) }
-      const minBaseAssetAmount = { d: Ethers.utils.parseUnits("0", DEFAULT_DECIMALS) }
+      const minBaseAssetAmount = { d: Ethers.utils.parseUnits(minBaseAmount, DEFAULT_DECIMALS) }
       const clearingHouse = new Ethers.Contract(this.ClearingHouse, ClearingHouseArtifact.abi, wallet)
       const tx = await clearingHouse.openPosition(
         this.amm[pair],
@@ -149,7 +149,6 @@ export default class PerpetualFinance {
         leverage,
         minBaseAssetAmount
       )
-      console.log(tx)
       return tx
     } catch (err) {
       logger.error(err)
@@ -160,11 +159,10 @@ export default class PerpetualFinance {
   }
 
   //close Position
-  async closePosition(wallet, pair) {
+  async closePosition(wallet, pair, minimalQuote) {
     try {
-      const minimalQuoteAsset = { d: Ethers.utils.parseUnits("0", DEFAULT_DECIMALS) }
+      const minimalQuoteAsset = { d: Ethers.utils.parseUnits(minimalQuote, DEFAULT_DECIMALS) }
       const clearingHouse = new Ethers.Contract(this.ClearingHouse, ClearingHouseArtifact.abi, wallet)
-      console.log(this.amm[pair])
       const tx = await clearingHouse.closePosition(this.amm[pair], minimalQuoteAsset)
       return tx
     } catch (err) {
@@ -179,17 +177,24 @@ export default class PerpetualFinance {
   async getPosition(wallet,  pair) {
     try {
       const positionValues = {}
-      const clearingHouseViewer = new Ethers.Contract(this.ClearingHouseViewer, ClearingHouseViewerArtifact.abi, wallet)
-      await Promise.allSettled([clearingHouseViewer.getPersonalPositionWithFundingPayment(this.amm[pair],
-                                                                                          wallet.address),
-                                clearingHouseViewer.getUnrealizedPnl(this.amm[pair],
-                                                                     wallet.address,
-                                                                     Ethers.BigNumber.from(PNL_OPTION_SPOT_PRICE))])
-              .then(values => {positionValues.openNotional = Ethers.utils.formatUnits(values[0].value.openNotional.d, DEFAULT_DECIMALS);
-                              positionValues.size = Ethers.utils.formatUnits(values[0].value.size.d, DEFAULT_DECIMALS);
-                              positionValues.pnl = Ethers.utils.formatUnits(values[1].value.d);})
+      const clearingHouse = new Ethers.Contract(this.ClearingHouse, ClearingHouseArtifact.abi, wallet)
+      let  premIndex = 0
+      await Promise.allSettled([clearingHouse.getPosition(this.amm[pair],
+                                                          wallet.address),
+                                clearingHouse.getLatestCumulativePremiumFraction(this.amm[pair]),
+                                clearingHouse.getPositionNotionalAndUnrealizedPnl(this.amm[pair],
+                                                                                  wallet.address,
+                                                                                  Ethers.BigNumber.from(PNL_OPTION_SPOT_PRICE))])
+                  .then(values => {positionValues.openNotional = Ethers.utils.formatUnits(values[0].value.openNotional.d, DEFAULT_DECIMALS);
+                                   positionValues.size = Ethers.utils.formatUnits(values[0].value.size.d, DEFAULT_DECIMALS);
+                                   positionValues.margin = Ethers.utils.formatUnits(values[0].value.margin.d, DEFAULT_DECIMALS);
+                                   positionValues.cumulativePremiumFraction = Ethers.utils.formatUnits(values[0].value.lastUpdatedCumulativePremiumFraction.d, DEFAULT_DECIMALS);
+                                   premIndex = Ethers.utils.formatUnits(values[1].value.d, DEFAULT_DECIMALS);
+                                   positionValues.pnl = Ethers.utils.formatUnits(values[2].value.unrealizedPnl.d, DEFAULT_DECIMALS);
+                                   positionValues.positionNotional = Ethers.utils.formatUnits(values[2].value.positionNotional.d, DEFAULT_DECIMALS);})
 
       positionValues.entryPrice = Math.abs(positionValues.openNotional / positionValues.size)
+      positionValues.fundingPayment = (premIndex - positionValues.cumulativePremiumFraction) * positionValues.size * -1
       return positionValues
     } catch (err) {
       logger.error(err)

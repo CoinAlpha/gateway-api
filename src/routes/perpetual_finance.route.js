@@ -191,6 +191,7 @@ router.post('/open', async (req, res) => {
         pair:{{pair}}
         margin:{{margin}}
         leverage:{{leverage}}
+        minBaseAssetAmount:{{minBaseAssetAmount}}
         privateKey:{{privateKey}}
       }
   */
@@ -200,6 +201,8 @@ router.post('/open', async (req, res) => {
   const pair = paramData.pair
   const margin = paramData.margin
   const leverage = paramData.leverage
+  const minBaseAssetAmount = paramData.minBaseAssetAmount
+  console.log(minBaseAssetAmount)
   const privateKey = paramData.privateKey
   let wallet
   try {
@@ -217,7 +220,7 @@ router.post('/open', async (req, res) => {
 
   try {
     // call openPosition function
-    const tx = await perpFi.openPosition(side, margin, leverage, pair, wallet)
+    const tx = await perpFi.openPosition(side, margin, leverage, pair, minBaseAssetAmount, wallet)
     logger.info('perpFi.route - Opening position')
     // submit response
     res.status(200).json({
@@ -227,6 +230,7 @@ router.post('/open', async (req, res) => {
       margin: margin,
       side: side,
       leverage: leverage,
+      minBaseAssetAmount: minBaseAssetAmount,
       txHash: tx.hash
     })
   } catch (err) {
@@ -244,12 +248,14 @@ router.post('/close', async (req, res) => {
   /*
       POST: /close
       x-www-form-urlencoded: {
+        minimalQuoteAsset:{{minimalQuoteAsset}}
         privateKey:{{privateKey}}
         pair:{{pair}}
       }
   */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
+  const minimalQuoteAsset = paramData.minimalQuoteAsset
   const privateKey = paramData.privateKey
   const pair = paramData.pair
   let wallet
@@ -268,13 +274,14 @@ router.post('/close', async (req, res) => {
 
   try {
     // call closePosition function
-    const tx = await perpFi.closePosition(wallet, pair)
+    const tx = await perpFi.closePosition(wallet, pair, minimalQuoteAsset)
     logger.info('perpFi.route - Closing position')
     // submit response
     res.status(200).json({
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
+      minimalQuoteAsset: minimalQuoteAsset,
       txHash: tx.hash
     })
   } catch (err) {
@@ -489,7 +496,7 @@ router.post('/funding', async (req, res) => {
   const pair = paramData.pair
 
   try {
-    // call getFee function
+    // call getFundingRate function
     const fr = await perpFi.getFundingRate(pair)
     logger.info('perpFi.route - Getting funding info')
     // submit response
