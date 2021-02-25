@@ -8,6 +8,7 @@ const ethers = require('ethers')
 const abi = require('../static/abi')
 
 // constants
+const APPROVAL_GAS_LIMIT = process.env.ETH_APPROVAL_GAS_LIMIT || 50000;
 
 export default class Ethereum {
   constructor (network = 'mainnet') {
@@ -21,7 +22,6 @@ export default class Ethereum {
       uniswap: process.env.UNISWAP_ROUTER
     }
     // update token list
-    this.tokenListUrl = process.env.ETHEREUM_TOKEN_LIST_URL
     this.getERC20TokenList() // erc20TokenList
   }
 
@@ -72,7 +72,7 @@ export default class Ethereum {
   async approveERC20 (wallet, spender, tokenAddress, amount, gasPrice = this.gasPrice, gasLimit) {
     try {
       // fixate gas limit to prevent overwriting
-      const approvalGasLimit = 50000
+      const approvalGasLimit = APPROVAL_GAS_LIMIT
       // instantiate a contract and pass in wallet, which act on behalf of that signer
       const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, wallet)
       return await contract.approve(
@@ -133,7 +133,7 @@ export default class Ethereum {
         this.erc20TokenList = JSON.parse(fs.readFileSync(tokenListSource))
       } else if (this.network === 'mainnet') {
         tokenListSource = this.erc20TokenListURL
-        if (this.tokenListSource === undefined || this.tokenListSource === null) {
+        if (tokenListSource === undefined || tokenListSource === null) {
           const errMessage = 'Token List source not found'
           logger.error('ERC20 Token List Error', { message: errMessage})
           console.log('eth - Error: ', errMessage)

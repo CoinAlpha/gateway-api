@@ -7,10 +7,10 @@ const proxyArtifact = require('../static/uniswap_v2_router_abi.json')
 const routeTokens = require('../static/uniswap_route_tokens.json')
 
 // constants
-const ROUTER = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
-const GAS_LIMIT = 150688;
-const TTL = 60;
-const UPDATE_PERIOD = 300000;  // stop updating pair after 5 minutes from last request
+const ROUTER = process.env.UNISWAP_ROUTER
+const GAS_LIMIT = process.env.UNISWAP_GAS_LIMIT || 150688;
+const TTL = process.env.UNISWAP_TTL || 60;
+const UPDATE_PERIOD = process.env.UNISWAP_UPDATE_PERIOD || 300000;  // stop updating pair after 5 minutes from last request
 
 export default class Uniswap {
   constructor (network = 'mainnet') {

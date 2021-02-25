@@ -9,11 +9,9 @@ const proxyArtifact = require('../static/ExchangeProxy.json')
 // constants
 const MULTI = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441';
 const MULTI_KOVAN = ' 0x2cc8688C5f75E365aaEEb4ea8D6a480405A48D2A';
-const EXCHANGE_PROXY = '0x3E66B66Fd1d0b02fDa6C811Da9E0547970DB2f21';
-const EXCHANGE_PROXY_KOVAN = '0x4e67bf5bD28Dd4b570FBAFe11D0633eCbA2754Ec';
 const MAX_UINT = ethers.constants.MaxUint256;
-const GAS_BASE = 200688;
-const GAS_PER_SWAP = 100000;
+const GAS_BASE = process.env.BALANCER_GAS_BASE || 200688;
+const GAS_PER_SWAP = process.env.BALANCER_GAS_PER_SWAP || 100000;
 
 export default class Balancer {
   constructor (network = 'kovan') {
@@ -24,14 +22,13 @@ export default class Balancer {
     this.gasBase = GAS_BASE
     this.gasPerSwap = GAS_PER_SWAP
     this.maxSwaps = process.env.BALANCER_MAX_SWAPS || 4
+    this.exchangeProxy = process.env.EXCHANGE_PROXY;
 
     switch (network) {
       case 'mainnet':
-        this.exchangeProxy = EXCHANGE_PROXY;
         this.multiCall = MULTI;
         break;
       case 'kovan':
-        this.exchangeProxy = EXCHANGE_PROXY_KOVAN;
         this.multiCall = MULTI_KOVAN;
         break;
       default:

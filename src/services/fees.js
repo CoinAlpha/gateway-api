@@ -6,10 +6,11 @@ require('dotenv').config()
 const debug = require('debug')('router')
 // constants
 const ethGasStationHost = 'https://ethgasstation.info'
-// const ethGasStation = process.env.ETH_GAS_STATION
+const ethGasStationEnabled = process.env.ENABLE_ETH_GAS_STATION || false
 const ethGasStationApiKey = process.env.ETH_GAS_STATION_API_KEY
+const ethManualGasPrice = parseInt(process.env.MANUAL_GAS_PRICE)
 const ethGasStationURL = ethGasStationHost + '/api/ethgasAPI.json?api-key=' + ethGasStationApiKey
-const defaultRefreshInterval = 60
+const defaultRefreshInterval = 120
 
 export default class Fees {
   constructor () {
@@ -20,10 +21,14 @@ export default class Fees {
   // get ETH Gas Station
   async getETHGasStationFee (gasLevel = this.ethGasStationGasLevel) {
     try {
-      const response = await axios.get(ethGasStationURL)
-      // divite by 10 to convert it to Gwei)
-      this.ethGasPrice = response.data[gasLevel] / 10
-      console.log(`get ETHGasStation gas price (${gasLevel}): ${this.ethGasPrice} / interval: ${this.ethGasStationRefreshTime / 1000} sec`)
+      if (ethGasStationEnabled === true || ethGasStationEnabled.toLowerCase() === 'true') {
+        const response = await axios.get(ethGasStationURL)
+        // divite by 10 to convert it to Gwei)
+        this.ethGasPrice = response.data[gasLevel] / 10
+        console.log(`get ETHGasStation gas price (${gasLevel}): ${this.ethGasPrice} / interval: ${this.ethGasStationRefreshTime / 1000} sec`)  
+      } else {
+        this.ethGasPrice = ethManualGasPrice
+      }
     } catch (err) {
       console.log(err);
       logger.error(err)
