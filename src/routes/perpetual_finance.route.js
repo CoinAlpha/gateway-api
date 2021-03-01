@@ -9,8 +9,7 @@ require('dotenv').config()
 
 const router = express.Router()
 const perpFi = new PerpetualFinance(process.env.ETHEREUM_CHAIN)
-// perpFi.generate_tokens()
-// setTimeout(perpFi.update_pairs.bind(perpFi), 2000)
+setTimeout(perpFi.update_price_loop.bind(perpFi), 2000)
 
 const getErrorMessage = (err) => {
   /*

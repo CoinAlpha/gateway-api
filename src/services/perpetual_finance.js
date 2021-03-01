@@ -10,15 +10,12 @@ const ClientBridgeArtifact = require("@perp/contract/build/contracts/ClientBridg
 const ClearingHouseViewerArtifact = require("@perp/contract/build/contracts/ClearingHouseViewer.json")
 const TetherTokenArtifact = require("@perp/contract/build/contracts/TetherToken.json")
 
-const GAS_LIMIT = 150688;
-const DEFAULT_DECIMALS = 18
-const CONTRACT_ADDRESSES = 'https://metadata.perp.exchange/'
-const XDAI_PROVIDER = 'https://dai.poa.network'
-const PNL_OPTION_SPOT_PRICE = 0
-
-const sleep = (milliseconds) => {
-  return new Promise(resolve => setTimeout(resolve, milliseconds))
-}
+const GAS_LIMIT = 150688;  // 1,147,912
+const DEFAULT_DECIMALS = 18;
+const CONTRACT_ADDRESSES = 'https://metadata.perp.exchange/';
+const XDAI_PROVIDER = 'https://dai.poa.network';
+const PNL_OPTION_SPOT_PRICE = 0;
+const UPDATE_PERIOD = 60000;  // stop updating prices after 30 secs from last request
 
 
 export default class PerpetualFinance {
@@ -29,6 +26,9 @@ export default class PerpetualFinance {
     this.gasLimit = GAS_LIMIT
     this.contractAddressesUrl = CONTRACT_ADDRESSES
     this.amm = {}
+    this.priceCache = {}
+    this.cacheExpirary = {}
+    this.pairAmountCache = {}
 
 
     switch (network) {
@@ -69,6 +69,27 @@ export default class PerpetualFinance {
       return false
     }
 
+  }
+
+  async update_price_loop() {
+    if (Object.keys(this.cacheExpirary).length > 0) {
+      for (let pair in this.cacheExpirary){
+        if (this.cacheExpirary[pair] <= Date.now()) {
+          delete this.cacheExpirary[pair];
+          delete this.priceCache[pair];
+        }
+      }
+
+      for (let pair in this.cacheExpirary){
+        let amm = new Ethers.Contract(this.amm[pair], AmmArtifact.abi, this.provider)
+        await Promise.allSettled([amm.getInputPrice(0, {d: Ethers.utils.parseUnits(this.pairAmountCache[pair], DEFAULT_DECIMALS) }),
+                                  amm.getOutputPrice(0, {d: Ethers.utils.parseUnits(this.pairAmountCache[pair], DEFAULT_DECIMALS) })])
+                     .then(values => {if (!this.priceCache.hasOwnProperty(pair)) { this.priceCache[pair] = [] };
+                                      this.priceCache[pair][0] = this.pairAmountCache[pair] / Ethers.utils.formatUnits(values[0].value.d);
+                                      this.priceCache[pair][1] = Ethers.utils.formatUnits(values[1].value.d) / this.pairAmountCache[pair];})}
+
+      }
+      setTimeout(this.update_price_loop.bind(this), 2000); // update every 2 seconds
   }
 
   // get XDai balance
@@ -194,7 +215,7 @@ export default class PerpetualFinance {
                                    positionValues.positionNotional = Ethers.utils.formatUnits(values[2].value.positionNotional.d, DEFAULT_DECIMALS);})
 
       positionValues.entryPrice = Math.abs(positionValues.openNotional / positionValues.size)
-      positionValues.fundingPayment = (premIndex - positionValues.cumulativePremiumFraction) * positionValues.size * -1
+      positionValues.fundingPayment = (premIndex - positionValues.cumulativePremiumFraction) * positionValues.size  // * -1
       return positionValues
     } catch (err) {
       logger.error(err)
@@ -224,13 +245,21 @@ export default class PerpetualFinance {
   async getPrice(side, amount, pair) {
     try {
       let price
-      const amm = new Ethers.Contract(this.amm[pair], AmmArtifact.abi, this.provider)
-      if (side === "buy") {
-      price = await amm.getInputPrice(0, {d: Ethers.utils.parseUnits(amount, DEFAULT_DECIMALS) })
-      price =  amount / Ethers.utils.formatUnits(price.d)
+      this.cacheExpirary[pair] = Date.now() + UPDATE_PERIOD
+      this.pairAmountCache[pair] = amount
+      if (!this.priceCache.hasOwnProperty(pair)){
+        const amm = new Ethers.Contract(this.amm[pair], AmmArtifact.abi, this.provider)
+        if (side === "buy") {
+        price = await amm.getInputPrice(0, {d: Ethers.utils.parseUnits(amount, DEFAULT_DECIMALS) })
+        price =  amount / Ethers.utils.formatUnits(price.d)
+      } else {
+        price = await amm.getOutputPrice(0, {d: Ethers.utils.parseUnits(amount, DEFAULT_DECIMALS) })
+        price = Ethers.utils.formatUnits(price.d) / amount
+      }
     } else {
-      price = await amm.getOutputPrice(0, {d: Ethers.utils.parseUnits(amount, DEFAULT_DECIMALS) })
-      price = Ethers.utils.formatUnits(price.d) / amount
+      if (side === "buy") {
+        price = this.priceCache[pair][0]
+      } else { price = this.priceCache[pair][1] }
     }
       return price
     } catch (err) {
