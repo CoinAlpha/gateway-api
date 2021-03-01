@@ -3,6 +3,7 @@ import express from 'express';
 
 import { getParamData, latency, statusMessages } from '../services/utils';
 import Ethereum from '../services/eth';
+import Fees from '../services/fees';
 import { logger } from '../services/logger';
 
 const debug = require('debug')('router')
@@ -12,6 +13,7 @@ const spenders = {
   balancer: process.env.EXCHANGE_PROXY,
   uniswap: process.env.UNISWAP_ROUTER
 }
+const fees = new Fees()
 
 router.post('/', async (req, res) => {
   /*
@@ -308,6 +310,8 @@ router.post('/approve', async (req, res) => {
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
+  } else {
+    gasPrice = fees.ethGasPrice
   }
 
   try {

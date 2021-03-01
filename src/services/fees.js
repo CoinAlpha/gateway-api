@@ -16,10 +16,11 @@ export default class Fees {
   constructor () {
     this.ethGasStationGasLevel = process.env.ETH_GAS_STATION_GAS_LEVEL
     this.ethGasStationRefreshTime = (process.env.ETH_GAS_STATION_REFRESH_TIME || defaultRefreshInterval) * 1000
+    this.getETHGasStationFee(this.ethGasStationGasLevel, 0)
   }
 
   // get ETH Gas Station
-  async getETHGasStationFee (gasLevel = this.ethGasStationGasLevel) {
+  async getETHGasStationFee (gasLevel = this.ethGasStationGasLevel, interval = defaultRefreshInterval) {
     try {
       if (ethGasStationEnabled === true || ethGasStationEnabled.toLowerCase() === 'true') {
         const response = await axios.get(ethGasStationURL)
@@ -29,6 +30,7 @@ export default class Fees {
       } else {
         this.ethGasPrice = ethManualGasPrice
       }
+      console.log('>>getETHGasStationFee ', this.ethGasPrice)
     } catch (err) {
       console.log(err);
       logger.error(err)
@@ -36,6 +38,8 @@ export default class Fees {
       err.reason ? reason = err.reason : reason = 'error ETH gas fee lookup'
       return reason
     }
-    setTimeout(this.getETHGasStationFee.bind(this), this.ethGasStationRefreshTime); // update every x seconds
+    if (interval > 0) { // set to '0' for one-time retrieval
+      setTimeout(this.getETHGasStationFee.bind(this), this.ethGasStationRefreshTime); // update every x seconds
+    }
   }
 }

@@ -184,7 +184,7 @@ router.post('/price', async (req, res) => {
   const quoteDenomMultiplier = 10 ** quoteTokenContractInfo.decimals
   const amount = new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
   const maxSwaps = balancer.maxSwaps
-  const side = paramData.side
+  const side = paramData.side.toUpperCase()
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
@@ -194,7 +194,7 @@ router.post('/price', async (req, res) => {
 
   try {
     // fetch the optimal pool mix from balancer-sor
-    const { swaps, expectedAmount } = side === 'buy'
+    const { swaps, expectedAmount } = side === 'BUY'
       ? await balancer.priceSwapOut(
         quoteTokenAddress,    // tokenIn is quote asset
         baseTokenAddress,     // tokenOut is base asset
@@ -210,8 +210,7 @@ router.post('/price', async (req, res) => {
 
     if (swaps != null && expectedAmount != null) {
       const gasLimit = estimateGasLimit(swaps.length)
-
-      res.status(200).json({
+      const result = {
         network: balancer.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
@@ -224,7 +223,8 @@ router.post('/price', async (req, res) => {
         gasLimit: gasLimit,
         gasPrice: gasPrice,
         swaps: swaps,
-      })
+      }
+      res.status(200).json(result)
     } else { // no pool available
       res.status(200).json({
         info: statusMessages.no_pool_available,
@@ -269,7 +269,7 @@ router.post('/trade', async (req, res) => {
   const amount = new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
 
   const maxSwaps = balancer.maxSwaps
-  const side = paramData.side
+  const side = paramData.side.toUpperCase()
 
   let limitPrice
   if (paramData.limitPrice) {
@@ -284,7 +284,7 @@ router.post('/trade', async (req, res) => {
 
   try {
     // fetch the optimal pool mix from balancer-sor
-    const { swaps, expectedAmount } = side === 'buy'
+    const { swaps, expectedAmount } = side === 'BUY'
       ? await balancer.priceSwapOut(
         quoteTokenAddress,    // tokenIn is quote asset
         baseTokenAddress,     // tokenOut is base asset
@@ -297,7 +297,7 @@ router.post('/trade', async (req, res) => {
         amount,
         maxSwaps,
       )
-    if (side === 'buy') {
+    if (side === 'BUY') {
       const price = expectedAmount / amount * baseDenomMultiplier / quoteDenomMultiplier
       logger.info(`Price: ${price.toString()}`)
       if (!limitPrice || price <= limitPrice) {
@@ -358,6 +358,7 @@ router.post('/trade', async (req, res) => {
           amount: parseFloat(paramData.amount),
           expectedOut: expectedAmount / quoteDenomMultiplier,
           price: price,
+          gasPrice: gasPrice,
           txHash: tx.hash,
         })
       } else {

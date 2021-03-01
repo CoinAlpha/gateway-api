@@ -200,7 +200,7 @@ router.post('/trade', async (req, res) => {
   const quoteTokenContractInfo = eth.getERC20TokenAddresses(paramData.quote)
   const baseTokenAddress = baseTokenContractInfo.address
   const quoteTokenAddress = quoteTokenContractInfo.address
-  const side = paramData.side
+  const side = paramData.side.toUpperCase()
 
   let limitPrice
   if (paramData.limitPrice) {
@@ -215,7 +215,7 @@ router.post('/trade', async (req, res) => {
 
   try {
     // fetch the optimal pool mix from uniswap
-    const { trade, expectedAmount } = side === 'buy'
+    const { trade, expectedAmount } = side === 'BUY'
       ? await uniswap.priceSwapOut(
         quoteTokenAddress,    // tokenIn is quote asset
         baseTokenAddress,     // tokenOut is base asset
@@ -227,7 +227,7 @@ router.post('/trade', async (req, res) => {
         amount
       )
 
-    if (side === 'buy') {
+    if (side === 'BUY') {
       const price = trade.executionPrice.invert().toSignificant(8)
       logger.info(`uniswap.route - Price: ${price.toString()}`)
       if (!limitPrice || price <= limitPrice) {
@@ -320,7 +320,7 @@ router.post('/price', async (req, res) => {
   const quoteTokenContractInfo = eth.getERC20TokenAddresses(paramData.quote)
   const baseTokenAddress = baseTokenContractInfo.address
   const quoteTokenAddress = quoteTokenContractInfo.address
-  const side = paramData.side
+  const side = paramData.side.toUpperCase()
   const gasLimit = estimateGasLimit()
   let gasPrice
   if (paramData.gasPrice) {
@@ -331,7 +331,7 @@ router.post('/price', async (req, res) => {
 
   try {
     // fetch the optimal pool mix from uniswap
-    const { trade, expectedAmount } = side === 'buy'
+    const { trade, expectedAmount } = side === 'BUY'
       ? await uniswap.priceSwapOut(
         quoteTokenAddress,    // tokenIn is quote asset
         baseTokenAddress,     // tokenOut is base asset
@@ -344,7 +344,7 @@ router.post('/price', async (req, res) => {
       )
 
     if (trade !== null && expectedAmount !== null) {
-      const price = side === 'buy'
+      const price = side === 'BUY'
         ? trade.executionPrice.invert().toSignificant(8)
         : trade.executionPrice.toSignificant(8)
 
@@ -373,7 +373,7 @@ router.post('/price', async (req, res) => {
     let errCode = 500
     if (Object.keys(err).includes('isInsufficientReservesError')) {
       errCode = 200
-      reason = statusMessages.insufficient_reserves + ' in ' + side.toUpperCase() + ' at Uniswap'
+      reason = statusMessages.insufficient_reserves + ' in ' + side + ' at Uniswap'
     } else if (Object.getOwnPropertyNames(err).includes('message')) {
       reason = getErrorMessage(err.message)
       if (reason === statusMessages.no_pool_available) {
