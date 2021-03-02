@@ -146,6 +146,9 @@ router.post('/start', async (req, res) => {
     return
   }
 
+  const gasLimit = estimateGasLimit(balancer.maxSwaps)
+  const gasCost = await fees.getGasCost(gasPrice, gasLimit)
+
   // update pool
   await balancer.fetchPool(baseTokenContractInfo.address, quoteTokenContractInfo.address)
 
@@ -156,7 +159,9 @@ router.post('/start', async (req, res) => {
     success: true,
     base: baseTokenContractInfo,
     quote: quoteTokenContractInfo,
-    gasPrice: fees.ethGasPrice,
+    gasPrice: gasPrice,
+    gasLimit: gasLimit,
+    gasCost: gasCost,
     pools: balancer.cachedPools.pools.length,
   }
   console.log('caching swap pools (total)', balancer.cachedPools.pools.length)
@@ -210,6 +215,8 @@ router.post('/price', async (req, res) => {
 
     if (swaps != null && expectedAmount != null) {
       const gasLimit = estimateGasLimit(swaps.length)
+      const gasCost = await fees.getGasCost(gasPrice, gasLimit)
+
       const result = {
         network: balancer.network,
         timestamp: initTime,
@@ -220,8 +227,9 @@ router.post('/price', async (req, res) => {
         side: side,
         expectedAmount: parseInt(expectedAmount) / quoteDenomMultiplier,
         price: expectedAmount / amount * baseDenomMultiplier / quoteDenomMultiplier,
-        gasLimit: gasLimit,
         gasPrice: gasPrice,
+        gasLimit: gasLimit,
+        gasCost: gasCost,
         swaps: swaps,
       }
       res.status(200).json(result)
@@ -297,6 +305,10 @@ router.post('/trade', async (req, res) => {
         amount,
         maxSwaps,
       )
+
+    const gasLimit = estimateGasLimit(swaps.length)
+    const gasCost = await fees.getGasCost(gasPrice, gasLimit)
+
     if (side === 'BUY') {
       const price = expectedAmount / amount * baseDenomMultiplier / quoteDenomMultiplier
       logger.info(`Price: ${price.toString()}`)
@@ -322,6 +334,8 @@ router.post('/trade', async (req, res) => {
           expectedIn: expectedAmount / quoteDenomMultiplier,
           price: price,
           gasPrice: gasPrice,
+          gasLimit: gasLimit,
+          gasCost: gasCost,
           txHash: tx.hash,
         })
       } else {
@@ -359,6 +373,8 @@ router.post('/trade', async (req, res) => {
           expectedOut: expectedAmount / quoteDenomMultiplier,
           price: price,
           gasPrice: gasPrice,
+          gasLimit: gasLimit,
+          gasCost: gasCost,
           txHash: tx.hash,
         })
       } else {

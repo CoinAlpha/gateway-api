@@ -1,5 +1,6 @@
 import { logger } from './logger';
 import axios from 'axios'
+import BigNumber from 'bignumber.js'
 
 require('dotenv').config()
 
@@ -11,6 +12,7 @@ const ethGasStationApiKey = process.env.ETH_GAS_STATION_API_KEY
 const ethManualGasPrice = parseInt(process.env.MANUAL_GAS_PRICE)
 const ethGasStationURL = ethGasStationHost + '/api/ethgasAPI.json?api-key=' + ethGasStationApiKey
 const defaultRefreshInterval = 120
+const denom = BigNumber('1e+9')
 
 export default class Fees {
   constructor () {
@@ -29,8 +31,8 @@ export default class Fees {
         console.log(`get ETHGasStation gas price (${gasLevel}): ${this.ethGasPrice} / interval: ${this.ethGasStationRefreshTime / 1000} sec`)  
       } else {
         this.ethGasPrice = ethManualGasPrice
+        console.log(`get manual fixed gas price: ${this.ethGasPrice} / interval: ${this.ethGasStationRefreshTime / 1000} sec`)  
       }
-      console.log('>>getETHGasStationFee ', this.ethGasPrice)
     } catch (err) {
       console.log(err);
       logger.error(err)
@@ -42,4 +44,10 @@ export default class Fees {
       setTimeout(this.getETHGasStationFee.bind(this), this.ethGasStationRefreshTime); // update every x seconds
     }
   }
+
+  // get gas cost
+  async getGasCost (gasPrice, gasLimit, inGwei = false) {
+    const cost = gasPrice * gasLimit
+    return inGwei ? cost : cost / denom
+  } 
 }

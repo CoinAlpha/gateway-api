@@ -116,7 +116,7 @@ router.post('/price', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseToken = paramData.base
   const quoteToken = paramData.quote
-  const tradeType = paramData.side
+  const tradeType = paramData.side.toUpperCase()
   const amount = parseFloat(paramData.amount)
 
   let exchangeRate
@@ -177,7 +177,7 @@ router.post('/trade', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseToken = paramData.base
   const quoteToken = paramData.quote
-  const tradeType = paramData.side
+  const tradeType = paramData.side.toUpperCase()
   const amount = parseFloat(paramData.amount)
   const gasPrice = parseFloat(paramData.gas_price) || terra.lcd.config.gasPrices.uluna
   const gasAdjustment = paramData.gas_adjustment || terra.lcd.config.gasAdjustment

@@ -91,7 +91,7 @@ router.post('/start', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseTokenSymbol = paramData.base.toUpperCase()
   const quoteTokenSymbol = paramData.quote.toUpperCase()
-  const orderType = paramData.side
+  const orderType = paramData.side.toUpperCase()
   const privateKey = paramData.privateKey
   let gasPrice
   if (paramData.gasPrice) {
@@ -157,8 +157,11 @@ router.post('/start', async (req, res) => {
     return
   }
 
+  const gasLimit = estimateGasLimit()
+  const gasCost = await fees.getGasCost(gasPrice, gasLimit)
+
   // update pool
-  const tokenList = orderType === 'buy'
+  const tokenList = orderType === 'BUY'
     ? { in: baseTokenContractInfo.address, out: quoteTokenContractInfo.address }
     : { in: quoteTokenContractInfo.address, out: baseTokenContractInfo.address }
   await uniswap.update_tokens([tokenList.in, tokenList.out])
@@ -170,7 +173,9 @@ router.post('/start', async (req, res) => {
     success: true,
     base: baseTokenContractInfo,
     quote: quoteTokenContractInfo,
-    gasPrice: fees.ethGasPrice,
+    gasPrice: gasPrice,
+    gasLimit: gasLimit,
+    gasCost: gasCost,
     pools: uniswap.cachedRoutes.length,
   }
   res.status(200).json(result)
@@ -212,6 +217,8 @@ router.post('/trade', async (req, res) => {
   } else {
     gasPrice = fees.ethGasPrice
   }
+  const gasLimit = estimateGasLimit()
+  const gasCost = await fees.getGasCost(gasPrice, gasLimit)
 
   try {
     // fetch the optimal pool mix from uniswap
@@ -249,6 +256,8 @@ router.post('/trade', async (req, res) => {
           expectedIn: expectedAmount.toSignificant(8),
           price: price,
           gasPrice: gasPrice,
+          gasLimit, gasLimit,
+          gasCost, gasCost,
           txHash: tx.hash,
         })
       } else {
@@ -281,6 +290,8 @@ router.post('/trade', async (req, res) => {
           expectedOut: expectedAmount.toSignificant(8),
           price: parseFloat(price),
           gasPrice: gasPrice,
+          gasLimit, gasLimit,
+          gasCost: gasCost,
           txHash: tx.hash,
         })
       } else {
@@ -321,13 +332,14 @@ router.post('/price', async (req, res) => {
   const baseTokenAddress = baseTokenContractInfo.address
   const quoteTokenAddress = quoteTokenContractInfo.address
   const side = paramData.side.toUpperCase()
-  const gasLimit = estimateGasLimit()
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
   } else {
     gasPrice = fees.ethGasPrice
   }
+  const gasLimit = estimateGasLimit()
+  const gasCost = await fees.getGasCost(gasPrice, gasLimit)
 
   try {
     // fetch the optimal pool mix from uniswap
@@ -357,8 +369,9 @@ router.post('/price', async (req, res) => {
         amount: parseFloat(paramData.amount),
         expectedAmount: parseFloat(expectedAmount.toSignificant(8)),
         price: parseFloat(price),
-        gasLimit: gasLimit,
         gasPrice: gasPrice,
+        gasLimit: gasLimit,
+        gasCost: gasCost,
         trade: trade,
       })
     } else { // no pool available
