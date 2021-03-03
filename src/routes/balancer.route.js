@@ -217,26 +217,31 @@ router.post('/price', async (req, res) => {
       const gasLimit = estimateGasLimit(swaps.length)
       const gasCost = await fees.getGasCost(gasPrice, gasLimit)
 
+      const tradeAmount = parseFloat(amount)
+      const expectedTradeAmount = parseInt(expectedAmount) / quoteDenomMultiplier
+      const tradePrice = expectedAmount / amount * baseDenomMultiplier / quoteDenomMultiplier
+
       const result = {
         network: balancer.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         base: baseTokenContractInfo,
         quote: quoteTokenContractInfo,
-        amount: parseFloat(paramData.amount),
+        amount: tradeAmount,
         side: side,
-        expectedAmount: parseInt(expectedAmount) / quoteDenomMultiplier,
-        price: expectedAmount / amount * baseDenomMultiplier / quoteDenomMultiplier,
+        expectedAmount: expectedTradeAmount,
+        price: tradePrice,
         gasPrice: gasPrice,
         gasLimit: gasLimit,
         gasCost: gasCost,
         swaps: swaps,
       }
+      debug(`Price ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | ${expectedTradeAmount}(@${tradePrice}) - ${gasPrice}/${gasLimit}/${gasCost} ETH`)
       res.status(200).json(result)
     } else { // no pool available
       res.status(200).json({
         info: statusMessages.no_pool_available,
-        message: ''
+        message: statusMessages.no_pool_available
       })
     }
   } catch (err) {

@@ -341,6 +341,7 @@ router.post('/price', async (req, res) => {
   const gasLimit = estimateGasLimit()
   const gasCost = await fees.getGasCost(gasPrice, gasLimit)
 
+  
   try {
     // fetch the optimal pool mix from uniswap
     const { trade, expectedAmount } = side === 'BUY'
@@ -360,20 +361,26 @@ router.post('/price', async (req, res) => {
         ? trade.executionPrice.invert().toSignificant(8)
         : trade.executionPrice.toSignificant(8)
 
-      res.status(200).json({
+      const tradeAmount = parseFloat(amount)
+      const expectedTradeAmount = parseFloat(expectedAmount.toSignificant(8))
+      const tradePrice = parseFloat(price)
+  
+      const result = {
         network: uniswap.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount: parseFloat(paramData.amount),
-        expectedAmount: parseFloat(expectedAmount.toSignificant(8)),
-        price: parseFloat(price),
+        amount: tradeAmount,
+        expectedAmount: expectedTradeAmount,
+        price: tradePrice,
         gasPrice: gasPrice,
         gasLimit: gasLimit,
         gasCost: gasCost,
         trade: trade,
-      })
+      }
+      debug(`Price ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | ${expectedTradeAmount} | ${tradePrice} - ${gasPrice}/${gasLimit}/${gasCost} ETH`)
+      res.status(200).json(result)
     } else { // no pool available
       res.status(200).json({
         info: statusMessages.no_pool_available,
@@ -391,6 +398,10 @@ router.post('/price', async (req, res) => {
       reason = getErrorMessage(err.message)
       if (reason === statusMessages.no_pool_available) {
         errCode = 200
+        res.status(errCode).json({
+          info: reason,
+          message: err
+        })
       }
     } else {
       err.reason ? reason = err.reason : reason = statusMessages.operation_error
