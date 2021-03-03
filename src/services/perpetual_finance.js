@@ -10,7 +10,7 @@ const ClientBridgeArtifact = require("@perp/contract/build/contracts/ClientBridg
 const ClearingHouseViewerArtifact = require("@perp/contract/build/contracts/ClearingHouseViewer.json")
 const TetherTokenArtifact = require("@perp/contract/build/contracts/TetherToken.json")
 
-const GAS_LIMIT = 150688;  // 1,147,912
+const GAS_LIMIT = 2000000;  // 1,147,912
 const DEFAULT_DECIMALS = 18;
 const CONTRACT_ADDRESSES = 'https://metadata.perp.exchange/';
 const XDAI_PROVIDER = 'https://dai.poa.network';
@@ -168,7 +168,8 @@ export default class PerpetualFinance {
         side,
         quoteAssetAmount,
         leverage,
-        minBaseAssetAmount
+        minBaseAssetAmount,
+        { gasLimit: this.gasLimit }
       )
       return tx
     } catch (err) {
@@ -184,7 +185,7 @@ export default class PerpetualFinance {
     try {
       const minimalQuoteAsset = { d: Ethers.utils.parseUnits(minimalQuote, DEFAULT_DECIMALS) }
       const clearingHouse = new Ethers.Contract(this.ClearingHouse, ClearingHouseArtifact.abi, wallet)
-      const tx = await clearingHouse.closePosition(this.amm[pair], minimalQuoteAsset)
+      const tx = await clearingHouse.closePosition(this.amm[pair], minimalQuoteAsset, { gasLimit: this.gasLimit } )
       return tx
     } catch (err) {
       logger.error(err)
