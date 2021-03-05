@@ -89,7 +89,7 @@ export default class PerpetualFinance {
                                       this.priceCache[pair][1] = Ethers.utils.formatUnits(values[1].value.d) / this.pairAmountCache[pair];})}
 
       }
-      setTimeout(this.update_price_loop.bind(this), 2000); // update every 2 seconds
+      setTimeout(this.update_price_loop.bind(this), 10000); // update every 10 seconds
   }
 
   // get XDai balance
