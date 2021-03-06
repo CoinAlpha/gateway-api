@@ -10,7 +10,7 @@ const ClientBridgeArtifact = require("@perp/contract/build/contracts/ClientBridg
 const ClearingHouseViewerArtifact = require("@perp/contract/build/contracts/ClearingHouseViewer.json")
 const TetherTokenArtifact = require("@perp/contract/build/contracts/TetherToken.json")
 
-const GAS_LIMIT = 2000000;  // 1,147,912
+const GAS_LIMIT = 2123456;
 const DEFAULT_DECIMALS = 18;
 const CONTRACT_ADDRESSES = 'https://metadata.perp.exchange/';
 const XDAI_PROVIDER = 'https://dai.poa.network';
