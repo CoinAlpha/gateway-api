@@ -93,6 +93,16 @@ router.post('/start', async (req, res) => {
   const baseTokenContractInfo = eth.getERC20TokenAddresses(baseTokenSymbol)
   const quoteTokenContractInfo = eth.getERC20TokenAddresses(quoteTokenSymbol)
 
+  //  check for valid token symbols
+  if (baseTokenContractInfo === undefined || quoteTokenContractInfo === undefined) {
+    const undefinedToken = baseTokenContractInfo === undefined ? baseTokenSymbol : quoteTokenSymbol
+    res.status(500).json({
+      error: `Token ${undefinedToken} contract address not found`,
+      message: `Token contract address not found for ${undefinedToken}. Check token list source`,
+    })
+    return
+  }
+
   // check allowance
   const spender = eth.spenders.balancer
   let wallet
@@ -236,7 +246,7 @@ router.post('/price', async (req, res) => {
         gasCost: gasCost,
         swaps: swaps,
       }
-      debug(`Price ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | ${expectedTradeAmount}(@${tradePrice}) - ${gasPrice}/${gasLimit}/${gasCost} ETH`)
+      debug(`Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`)
       res.status(200).json(result)
     } else { // no pool available
       res.status(200).json({
