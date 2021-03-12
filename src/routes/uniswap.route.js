@@ -169,11 +169,6 @@ router.post('/start', async (req, res) => {
   const gasLimit = estimateGasLimit()
   const gasCost = await fees.getGasCost(gasPrice, gasLimit)
 
-  // update pool
-  const tokenList = orderType === 'BUY'
-    ? { in: baseTokenContractInfo.address, out: quoteTokenContractInfo.address }
-    : { in: quoteTokenContractInfo.address, out: baseTokenContractInfo.address }
-  await uniswap.update_tokens([tokenList.in, tokenList.out])
 
   const result = {
     network: eth.network,
@@ -185,7 +180,6 @@ router.post('/start', async (req, res) => {
     gasPrice: gasPrice,
     gasLimit: gasLimit,
     gasCost: gasCost,
-    pools: uniswap.cachedRoutes.length,
   }
   res.status(200).json(result)
 })
