@@ -65,9 +65,15 @@ router.post('/balances', async (req, res) => {
   try {
     Promise.all(
       Object.keys(tokenContractList).map(async (symbol, index) => {
-          const address = tokenContractList[symbol].address
-          const decimals = tokenContractList[symbol].decimals
-          balances[symbol] = await eth.getERC20Balance(wallet, address, decimals)
+          if (tokenContractList[symbol] !== undefined) {
+            const address = tokenContractList[symbol].address
+            const decimals = tokenContractList[symbol].decimals
+            balances[symbol] = await eth.getERC20Balance(wallet, address, decimals)
+          } else {
+            const err = `Token contract info for ${symbol} not found`
+            logger.error('Token info not found', { message: err })
+            debug(err)
+          }
         }
       )).then(() => {
         console.log('eth.route - Get Account Balance', { message: JSON.stringify(tokenList) })

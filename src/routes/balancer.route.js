@@ -159,9 +159,6 @@ router.post('/start', async (req, res) => {
   const gasLimit = estimateGasLimit(balancer.maxSwaps)
   const gasCost = await fees.getGasCost(gasPrice, gasLimit)
 
-  // update pool
-  await balancer.fetchPool(baseTokenContractInfo.address, quoteTokenContractInfo.address)
-
   const result = {
     network: eth.network,
     timestamp: initTime,
@@ -172,9 +169,8 @@ router.post('/start', async (req, res) => {
     gasPrice: gasPrice,
     gasLimit: gasLimit,
     gasCost: gasCost,
-    pools: balancer.cachedPools.pools.length,
   }
-  console.log('caching swap pools (total)', balancer.cachedPools.pools.length)
+  console.log('Initializing balancer')
   res.status(200).json(result)
 })
 
