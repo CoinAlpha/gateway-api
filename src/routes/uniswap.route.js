@@ -114,7 +114,7 @@ router.post('/start', async (req, res) => {
   }
 
   // check allowance
-  const spender = eth.spenders.balancer
+  const spender = eth.spenders.uniswap
   let wallet
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
