@@ -1,4 +1,5 @@
 import { logger } from './logger';
+import { getNonceManager } from './utils';
 
 require('dotenv').config()
 const fs = require('fs');
@@ -74,7 +75,8 @@ export default class Ethereum {
       // fixate gas limit to prevent overwriting
       const approvalGasLimit = 50000
       // instantiate a contract and pass in wallet, which act on behalf of that signer
-      const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, wallet)
+      const signer = await getNonceManager(wallet)
+      const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, signer)
       return await contract.approve(
         spender,
         amount, {
@@ -109,7 +111,8 @@ export default class Ethereum {
   async deposit (wallet, tokenAddress, amount, gasPrice = this.gasPrice, gasLimit = this.approvalGasLimit) {
     // deposit ETH to a contract address
     try {
-      const contract = new ethers.Contract(tokenAddress, abi.KovanWETHAbi, wallet)
+      const signer = await getNonceManager(wallet)
+      const contract = new ethers.Contract(tokenAddress, abi.KovanWETHAbi, signer)
       return await contract.deposit(
         { value: amount,
           gasPrice: gasPrice * 1e9,

@@ -1,4 +1,5 @@
 import { logger } from './logger';
+import { getNonceManager } from './utils';
 
 const uni = require('@uniswap/sdk')
 const ethers = require('ethers')
@@ -152,7 +153,8 @@ export default class Uniswap {
       }
     )
 
-    const contract = new ethers.Contract(this.router, proxyArtifact.abi, wallet)
+    const signer = await getNonceManager(wallet)
+    const contract = new ethers.Contract(this.router, proxyArtifact.abi, signer)
     const tx = await contract.[result.methodName](
       ...result.args,
       {
@@ -176,7 +178,8 @@ export default class Uniswap {
       }
     )
 
-    const contract = new ethers.Contract(this.router, proxyArtifact.abi, wallet)
+    const signer = await getNonceManager(wallet)
+    const contract = new ethers.Contract(this.router, proxyArtifact.abi, signer)
     const tx = await contract.[result.methodName](
       ...result.args,
       {

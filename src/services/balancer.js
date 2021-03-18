@@ -1,4 +1,5 @@
 import { logger } from '../services/logger';
+import { getNonceManager } from './utils';
 require('dotenv').config() // DO NOT REMOVE. needed to configure REACT_APP_SUBGRAPH_URL used by @balancer-labs/sor
 const sor = require('@balancer-labs/sor')
 const BigNumber = require('bignumber.js')
@@ -150,7 +151,8 @@ export default class Balancer {
   async swapExactIn (wallet, swaps, tokenIn, tokenOut, amountIn, minAmountOut, gasPrice) {
     logger.debug(`Number of swaps: ${swaps.length}`)
     try {
-      const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
+      const signer = await getNonceManager(wallet)
+      const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, signer)
       const tx = await contract.batchSwapExactIn(
         swaps,
         tokenIn,
@@ -175,7 +177,8 @@ export default class Balancer {
   async swapExactOut (wallet, swaps, tokenIn, tokenOut, expectedIn, gasPrice) {
     logger.debug(`Number of swaps: ${swaps.length}`)
     try {
-      const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, wallet)
+      const signer = await getNonceManager(wallet)
+      const contract = new ethers.Contract(this.exchangeProxy, proxyArtifact.abi, signer)
       const tx = await contract.batchSwapExactOut(
         swaps,
         tokenIn,
