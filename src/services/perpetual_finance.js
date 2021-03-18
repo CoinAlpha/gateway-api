@@ -1,4 +1,5 @@
 import { logger } from './logger';
+import { getNonceManager } from './utils';
 
 const fetch = require('cross-fetch');
 
@@ -144,7 +145,8 @@ export default class PerpetualFinance {
   async approve (wallet, amount) {
     try {
       // instantiate a contract and pass in wallet
-      const layer2Usdc = new Ethers.Contract(this.xUsdcAddr, TetherTokenArtifact.abi, wallet)
+      const signer = await getNonceManager(wallet)
+      const layer2Usdc = new Ethers.Contract(this.xUsdcAddr, TetherTokenArtifact.abi, signer)
       const tx = await layer2Usdc.approve(this.ClearingHouse, Ethers.utils.parseUnits(amount, DEFAULT_DECIMALS))
       // TO-DO: We may want to supply custom gasLimit value above
       return tx.hash
@@ -162,7 +164,8 @@ export default class PerpetualFinance {
       const quoteAssetAmount = { d: Ethers.utils.parseUnits(margin, DEFAULT_DECIMALS) }
       const leverage = { d: Ethers.utils.parseUnits(levrg, DEFAULT_DECIMALS) }
       const minBaseAssetAmount = { d: Ethers.utils.parseUnits(minBaseAmount, DEFAULT_DECIMALS) }
-      const clearingHouse = new Ethers.Contract(this.ClearingHouse, ClearingHouseArtifact.abi, wallet)
+      const signer = await getNonceManager(wallet)
+      const clearingHouse = new Ethers.Contract(this.ClearingHouse, ClearingHouseArtifact.abi, signer)
       const tx = await clearingHouse.openPosition(
         this.amm[pair],
         side,
@@ -184,7 +187,8 @@ export default class PerpetualFinance {
   async closePosition(wallet, pair, minimalQuote) {
     try {
       const minimalQuoteAsset = { d: Ethers.utils.parseUnits(minimalQuote, DEFAULT_DECIMALS) }
-      const clearingHouse = new Ethers.Contract(this.ClearingHouse, ClearingHouseArtifact.abi, wallet)
+      const signer = await getNonceManager(wallet)
+      const clearingHouse = new Ethers.Contract(this.ClearingHouse, ClearingHouseArtifact.abi, signer)
       const tx = await clearingHouse.closePosition(this.amm[pair], minimalQuoteAsset, { gasLimit: this.gasLimit } )
       return tx
     } catch (err) {
