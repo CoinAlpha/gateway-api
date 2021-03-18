@@ -77,21 +77,17 @@ router.post('/gas-limit', async (req, res) => {
   }
 })
 
-router.post('/start', async (req, res) => {
+router.get('/start', async (req, res) => {
   /*
     POST: /eth/uniswap/start
       x-www-form-urlencoded: {
-        "quote":"BAT"
-        "base":"DAI"
-        "amount":0.1
+        "pairs":"[ETH-USDT, ...]"
         "gasPrice":30
       }
   */
   const initTime = Date.now()
-  const paramData = getParamData(req.body)
-  const baseTokenSymbol = paramData.base.toUpperCase()
-  const quoteTokenSymbol = paramData.quote.toUpperCase()
-  const privateKey = paramData.privateKey
+  const paramData = getParamData(req.query)
+  const pairs = JSON.parse(paramData.pairs)
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
@@ -99,71 +95,24 @@ router.post('/start', async (req, res) => {
     gasPrice = fees.ethGasPrice
   }
 
-  // get token contract address and decimal
-  const baseTokenContractInfo = eth.getERC20TokenAddresses(baseTokenSymbol)
-  const quoteTokenContractInfo = eth.getERC20TokenAddresses(quoteTokenSymbol)
-  
-  // check for valid token symbols
-  if (baseTokenContractInfo === undefined || quoteTokenContractInfo === undefined) {
-    const undefinedToken = baseTokenContractInfo === undefined ? baseTokenSymbol : quoteTokenSymbol
-    res.status(500).json({
-      error: `Token ${undefinedToken} contract address not found`,
-      message: `Token contract address not found for ${undefinedToken}. Check token list source`,
-    })
-    return
-  }
+  // get token contract address and cache paths
+  for (let pair of pairs){
+    pair = pair.split("-")
+    const baseTokenSymbol = pair[0]
+    const quoteTokenSymbol = pair[1]
+    const baseTokenContractInfo = eth.getERC20TokenAddresses(baseTokenSymbol)
+    const quoteTokenContractInfo = eth.getERC20TokenAddresses(quoteTokenSymbol)
 
-  // check allowance
-  const spender = eth.spenders.uniswap
-  let wallet
-  try {
-    wallet = new ethers.Wallet(privateKey, eth.provider)
-  } catch (err) {
-    logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason ? reason = err.reason : reason = 'Error getting wallet'
-    res.status(500).json({
-      error: reason,
-      message: err
-    })
-    return
-  }
-
-  const tokenAddressList = {}
-  tokenAddressList[baseTokenContractInfo.address] = baseTokenContractInfo.decimals
-  tokenAddressList[quoteTokenContractInfo.address] = quoteTokenContractInfo.decimals
-
-  const allowance = {}
-  let decimals
-  let approvalAmount
-
-  try {
-    await fees.getETHGasStationFee()
-
-    Promise.all(
-      Object.keys(tokenAddressList).map(async (key, index) =>
-      allowance[key] = await eth.getERC20Allowance(wallet, spender, key, tokenAddressList[key])
-      )).then(() => {
-      const approvals = {}
-      Promise.all(
-        Object.keys(allowance).map(async (address, index) => {
-          decimals = tokenAddressList[address]
-          paramData.approvalAmount
-            ? approvalAmount = ethers.utils.parseUnits(paramData.approvalAmount, decimals)
-            : approvalAmount = ethers.utils.parseUnits('1000000000', decimals) // approve for 1 billion units if no amount specified
-          approvals[address] = allowance[address] === 0 ? await eth.approveERC20(wallet, spender, address, approvalAmount, gasPrice) : ''
-        })).then(() => {
+    // check for valid token symbols
+    if (baseTokenContractInfo === undefined || quoteTokenContractInfo === undefined) {
+      const undefinedToken = baseTokenContractInfo === undefined ? baseTokenSymbol : quoteTokenSymbol
+      res.status(500).json({
+        error: `Token ${undefinedToken} contract address not found`,
+        message: `Token contract address not found for ${undefinedToken}. Check token list source`,
       })
-    })
-  } catch (err) {
-    logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
-    res.status(500).json({
-      error: reason,
-      message: err
-    })
-    return
+      return
+    }
+    await Promise.allSettled([uniswap.update_tokens([baseTokenContractInfo.address, quoteTokenContractInfo.address])])
   }
 
   const gasLimit = estimateGasLimit()
@@ -175,8 +124,7 @@ router.post('/start', async (req, res) => {
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
     success: true,
-    base: baseTokenContractInfo,
-    quote: quoteTokenContractInfo,
+    pairs: pairs,
     gasPrice: gasPrice,
     gasLimit: gasLimit,
     gasCost: gasCost,
@@ -344,7 +292,7 @@ router.post('/price', async (req, res) => {
   const gasLimit = estimateGasLimit()
   const gasCost = await fees.getGasCost(gasPrice, gasLimit)
 
-  
+
   try {
     // fetch the optimal pool mix from uniswap
     const { trade, expectedAmount } = side === 'BUY'
@@ -367,7 +315,7 @@ router.post('/price', async (req, res) => {
       const tradeAmount = parseFloat(amount)
       const expectedTradeAmount = parseFloat(expectedAmount.toSignificant(8))
       const tradePrice = parseFloat(price)
-  
+
       const result = {
         network: uniswap.network,
         timestamp: initTime,
