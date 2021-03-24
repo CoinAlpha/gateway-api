@@ -9,7 +9,7 @@ const routeTokens = require('../static/uniswap_route_tokens.json')
 // constants
 const ROUTER = process.env.UNISWAP_ROUTER
 const GAS_LIMIT = process.env.UNISWAP_GAS_LIMIT || 150688;
-const TTL = process.env.UNISWAP_TTL || 60;
+const TTL = process.env.UNISWAP_TTL || 300;
 const UPDATE_PERIOD = process.env.UNISWAP_UPDATE_PERIOD || 300000;  // stop updating pair after 5 minutes from last request
 
 export default class Uniswap {

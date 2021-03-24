@@ -77,16 +77,16 @@ router.post('/gas-limit', async (req, res) => {
   }
 })
 
-router.get('/start', async (req, res) => {
+router.post('/start', async (req, res) => {
   /*
     POST: /eth/uniswap/start
       x-www-form-urlencoded: {
-        "pairs":"[ETH-USDT, ...]"
+        "pairs":'["ETH-USDT", ...]'
         "gasPrice":30
       }
   */
   const initTime = Date.now()
-  const paramData = getParamData(req.query)
+  const paramData = getParamData(req.body)
   const pairs = JSON.parse(paramData.pairs)
   let gasPrice
   if (paramData.gasPrice) {
@@ -112,7 +112,7 @@ router.get('/start', async (req, res) => {
       })
       return
     }
-    await Promise.allSettled([uniswap.update_tokens([baseTokenContractInfo.address, quoteTokenContractInfo.address])])
+    await Promise.allSettled([uniswap.extend_update_pairs([baseTokenContractInfo.address, quoteTokenContractInfo.address])])
   }
 
   const gasLimit = estimateGasLimit()
