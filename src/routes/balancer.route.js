@@ -67,7 +67,7 @@ router.post('/gas-limit', async (req, res) => {
   }
 })
 
-router.post('/start', async (req, res) => {
+router.get('/start', async (req, res) => {
     /*
     POST: /eth/balancer/start
       x-www-form-urlencoded: {
@@ -76,7 +76,7 @@ router.post('/start', async (req, res) => {
       }
   */
   const initTime = Date.now()
-  const paramData = getParamData(req.body)
+  const paramData = getParamData(req.query)
   const pairs = JSON.parse(paramData.pairs)
   let gasPrice
   if (paramData.gasPrice) {
