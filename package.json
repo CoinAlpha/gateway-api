@@ -16,6 +16,7 @@
     "@balancer-labs/sor": "^0.3.3",
     "@terra-money/terra.js": "^0.5.8",
     "@uniswap/sdk": "^3.0.3",
+    "mathsjs": "^1.4.0",
     "app-root-path": "^3.0.0",
     "axios": "^0.21.1",
     "bignumber.js": "^9.0.0",

@@ -1,6 +1,7 @@
 import { logger } from './logger';
 
 const debug = require('debug')('router')
+const math =  require('mathjs')
 const uni = require('@uniswap/sdk')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/uniswap_v2_router_abi.json')
@@ -18,8 +19,8 @@ export default class Uniswap {
     this.network = process.env.ETHEREUM_CHAIN
     this.provider = new ethers.providers.JsonRpcProvider(this.providerUrl)
     this.router = ROUTER;
-    this.allowedSlippage = new uni.Percent(process.env.UNISWAP_ALLOWED_SLIPPAGE, '100')
-    console.log(this.allowedSlippage)
+    this.slippage = math.fraction(process.env.UNISWAP_ALLOWED_SLIPPAGE)
+    this.allowedSlippage = new uni.Percent(this.slippage.n, (this.slippage.d * 100))
     this.pairsCacheTime = process.env.UNISWAP_PAIRS_CACHE_TIME
     this.gasLimit = GAS_LIMIT
     this.expireTokenPairUpdate = UPDATE_PERIOD
