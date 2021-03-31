@@ -4,10 +4,16 @@
 
 import { logger } from './logger';
 import { statusMessages } from './utils';
+const debug = require('debug')('router')
 
 export const validateAccess = (req, res, next) => {
   const cert = req.connection.getPeerCertificate()
   if (req.client.authorized) {
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+    const method = req.method
+    const url = req.url
+    const requestInfo = 'Request from IP: ' + ip + ' ' + method + ' ' + url
+    console.log(requestInfo)
     next()
   } else if (cert.subject) {
     logger.error(statusMessages.ssl_cert_invalid)

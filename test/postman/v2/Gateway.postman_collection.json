@@ -1,0 +1,1001 @@
+{
+	"info": {
+		"_postman_id": "e39af94e-6095-479e-8ba0-66930b12e364",
+		"name": "Gateway",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "v2",
+			"item": [
+				{
+					"name": "ethereum",
+					"item": [
+						{
+							"name": "eth",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [],
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "eth/balances",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "tokenList",
+											"value": "[\"BAT\",\"USDC\",\"DAI\",\"WETH\",\"ZRX\"]",
+											"type": "text"
+										},
+										{
+											"key": "privateKey",
+											"value": "{{privateKey}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/balances",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"balances"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "eth/allowances",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "tokenList",
+											"value": "[\"BAT\",\"USDC\",\"DAI\",\"WETH\",\"ZRX\"]",
+											"type": "text"
+										},
+										{
+											"key": "connector",
+											"value": "balancer",
+											"type": "text"
+										},
+										{
+											"key": "privateKey",
+											"value": "{{privateKey}}",
+											"type": "text"
+										}
+									],
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/allowances",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"allowances"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "eth/approve",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "token",
+											"value": "ZRX",
+											"type": "text"
+										},
+										{
+											"key": "privateKey",
+											"value": "{{privateKey}}",
+											"type": "text"
+										},
+										{
+											"key": "gasPrice",
+											"value": "23",
+											"type": "text"
+										},
+										{
+											"key": "connector",
+											"value": "balancer",
+											"type": "text"
+										},
+										{
+											"key": "amount",
+											"value": "999",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/approve",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"approve"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "eth/get-weth",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "gasPrice",
+											"value": "31",
+											"type": "text"
+										},
+										{
+											"key": "amount",
+											"value": "0.03",
+											"type": "text"
+										},
+										{
+											"key": "privateKey",
+											"value": "{{privateKey}}",
+											"type": "text"
+										},
+										{
+											"key": "tokenAddress",
+											"value": "{{WETH}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/get-weth",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"get-weth"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "eth/poll",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "txHash",
+											"value": "{{txHash}}",
+											"type": "text"
+										}
+									],
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/poll",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"poll"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "balancer",
+					"item": [
+						{
+							"name": "eth/balancer",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [],
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/balancer",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"balancer"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "eth/balancer/gas-limit",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [],
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/balancer/gas-limit",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"balancer",
+										"gas-limit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "eth/balancer/start",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "base",
+											"value": "BAT",
+											"type": "text"
+										},
+										{
+											"key": "quote",
+											"value": "dai",
+											"type": "text"
+										},
+										{
+											"key": "privateKey",
+											"value": "{{privateKey}}",
+											"type": "text"
+										},
+										{
+											"key": "approvalAmount",
+											"value": "1",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "gasPrice",
+											"value": "50",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/balancer/start",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"balancer",
+										"start"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "eth/balancer/price",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "base",
+											"value": "BAT",
+											"type": "text"
+										},
+										{
+											"key": "quote",
+											"value": "dai",
+											"type": "text"
+										},
+										{
+											"key": "amount",
+											"value": "10",
+											"type": "text"
+										},
+										{
+											"key": "side",
+											"value": "buy",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/balancer/price",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"balancer",
+										"price"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "eth/balancer/trade",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "base",
+											"value": "BAT",
+											"type": "text"
+										},
+										{
+											"key": "quote",
+											"value": "USDC",
+											"type": "text"
+										},
+										{
+											"key": "amount",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "limitPrice",
+											"value": "0.19767217120251",
+											"type": "text"
+										},
+										{
+											"key": "gasPrice",
+											"value": "37",
+											"type": "text"
+										},
+										{
+											"key": "privateKey",
+											"value": "{{privateKey}}",
+											"type": "text"
+										},
+										{
+											"key": "side",
+											"value": "sell",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/balancer/trade",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"balancer",
+										"trade"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "uniswap",
+					"item": [
+						{
+							"name": "eth/uniswap",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [],
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/uniswap",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"uniswap"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "eth/uniswap/gas-limit",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [],
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/uniswap/gas-limit",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"uniswap",
+										"gas-limit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "eth/uniswap/start",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "base",
+											"value": "WETH",
+											"type": "text"
+										},
+										{
+											"key": "quote",
+											"value": "USDC",
+											"type": "text"
+										},
+										{
+											"key": "privateKey",
+											"value": "{{privateKey}}",
+											"type": "text"
+										},
+										{
+											"key": "approvalAmount",
+											"value": "1",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "gasPrice",
+											"value": "50",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/uniswap/start",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"uniswap",
+										"start"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "eth/uniswap/price",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "base",
+											"value": "WETH",
+											"type": "text"
+										},
+										{
+											"key": "quote",
+											"value": "DAI",
+											"type": "text"
+										},
+										{
+											"key": "amount",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "side",
+											"value": "buy",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/uniswap/price",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"uniswap",
+										"price"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "eth/uniswap/trade",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "base",
+											"value": "BAT",
+											"type": "text"
+										},
+										{
+											"key": "quote",
+											"value": "DAI",
+											"type": "text"
+										},
+										{
+											"key": "amount",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "limitPrice",
+											"value": "0.19767217120251",
+											"type": "text"
+										},
+										{
+											"key": "gasPrice",
+											"value": "37",
+											"type": "text"
+										},
+										{
+											"key": "privateKey",
+											"value": "{{privateKey}}",
+											"type": "text"
+										},
+										{
+											"key": "side",
+											"value": "sell",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/eth/uniswap/trade",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"eth",
+										"uniswap",
+										"trade"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "terra",
+					"item": [
+						{
+							"name": "terra",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "address",
+											"value": "{{address}}",
+											"type": "text"
+										}
+									],
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/terra",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"terra"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "terra/balances",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "address",
+											"value": "{{terraWalletAddress}}",
+											"type": "text"
+										}
+									],
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/terra/balances",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"terra",
+										"balances"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "terra/start",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "base",
+											"value": "LUNA",
+											"type": "text"
+										},
+										{
+											"key": "quote",
+											"value": "UST",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/terra/start",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"terra",
+										"start"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "terra/price",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "base",
+											"value": "UST",
+											"type": "text"
+										},
+										{
+											"key": "quote",
+											"value": "KRT",
+											"type": "text"
+										},
+										{
+											"key": "side",
+											"value": "buy",
+											"type": "text"
+										},
+										{
+											"key": "amount",
+											"value": "1",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/terra/price",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"terra",
+										"price"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "terra/trade",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "base",
+											"value": "UST",
+											"type": "text"
+										},
+										{
+											"key": "quote",
+											"value": "KRT",
+											"type": "text"
+										},
+										{
+											"key": "side",
+											"value": "buy",
+											"type": "text"
+										},
+										{
+											"key": "amount",
+											"value": "10",
+											"type": "text"
+										},
+										{
+											"key": "privateKey",
+											"value": "{{terraSeeds}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "https://localhost:{{port}}/terra/trade",
+									"protocol": "https",
+									"host": [
+										"localhost"
+									],
+									"port": "{{port}}",
+									"path": [
+										"terra",
+										"trade"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "/api",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/api",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"api"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
