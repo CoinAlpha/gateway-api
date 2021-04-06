@@ -6,6 +6,7 @@ import { logger } from '../services/logger';
 
 import Terra from '../services/terra';
 
+const debug = require('debug')('router')
 const router = express.Router();
 const terra = new Terra()
 
@@ -49,7 +50,7 @@ router.post('/balances', async (req, res) => {
         balances[symbol] = amount
       })
     })
-    logger.info('terra.route - Get Account Balance', { message: address })
+    logger.info('terra.route - Get Account Balance')
     res.status(200).json({
       network: network,
       timestamp: initTime,
@@ -75,13 +76,38 @@ router.post('/balances', async (req, res) => {
   }
 })
 
+router.post('/start', async (req, res) => {
+  /*
+    POST: /terra/start
+      x-www-form-urlencoded: {
+        "base":"UST"
+        "quote":"KRT"
+        "amount":1
+      }
+  */
+  const initTime = Date.now()
+  const paramData = getParamData(req.body)
+  const baseTokenSymbol = paramData.base
+  const quoteTokenSymbol = paramData.quote
+
+  const result = {
+    network: network,
+    timestamp: initTime,
+    latency: latency(initTime, Date.now()),
+    success: true,
+    base: baseTokenSymbol,
+    quote: quoteTokenSymbol,
+  }
+  res.status(200).json(result)
+})
+
 router.post('/price', async (req, res) => {
   /*
     POST:
     x-www-form-urlencoded: {
       "base":"UST"
       "quote":"KRT"
-      "trade_type":"buy" or "sell"
+      "side":"buy" or "sell"
       "amount":1
     }
   */
@@ -90,7 +116,7 @@ router.post('/price', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseToken = paramData.base
   const quoteToken = paramData.quote
-  const tradeType = paramData.trade_type
+  const tradeType = paramData.side.toUpperCase()
   const amount = parseFloat(paramData.amount)
 
   let exchangeRate
@@ -141,7 +167,7 @@ router.post('/trade', async (req, res) => {
       data: {
         "base":"UST"
         "quote":"KRT"
-        "trade_type":"buy" or "sell"
+        "side":"buy" or "sell"
         "amount":1
         "secret": "mysupersecret"
       }
@@ -151,11 +177,11 @@ router.post('/trade', async (req, res) => {
   const paramData = getParamData(req.body)
   const baseToken = paramData.base
   const quoteToken = paramData.quote
-  const tradeType = paramData.trade_type
+  const tradeType = paramData.side.toUpperCase()
   const amount = parseFloat(paramData.amount)
   const gasPrice = parseFloat(paramData.gas_price) || terra.lcd.config.gasPrices.uluna
   const gasAdjustment = paramData.gas_adjustment || terra.lcd.config.gasAdjustment
-  const secret = paramData.secret
+  const secret = paramData.privateKey
 
   let tokenSwaps
 
