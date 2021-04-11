@@ -38,6 +38,8 @@ export default class PerpetualFinance {
       case 'kovan':
         this.contractAddressesUrl += 'staging.json';
         break;
+      case 'xdai':
+        this.contractAddressesUrl += 'production.json';
       default:
         const err = `Invalid network ${network}`
         logger.error(err)

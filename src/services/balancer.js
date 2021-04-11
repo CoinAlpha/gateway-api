@@ -9,6 +9,7 @@ const proxyArtifact = require('../static/ExchangeProxy.json')
 // constants
 const MULTI = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441';
 const MULTI_KOVAN = ' 0x2cc8688C5f75E365aaEEb4ea8D6a480405A48D2A';
+const MULTI_XDAI = '0xb5b692a88bdfc81ca69dcb1d924f59f0413a602a'
 const MAX_UINT = ethers.constants.MaxUint256;
 const GAS_BASE = process.env.BALANCER_GAS_BASE || 200688;
 const GAS_PER_SWAP = process.env.BALANCER_GAS_PER_SWAP || 100000;
@@ -32,6 +33,9 @@ export default class Balancer {
       case 'kovan':
         this.multiCall = MULTI_KOVAN;
         break;
+      case 'xdai':
+        this.multiCall = MULTI_XDAI;
+        break
       default:
         const err = `Invalid network ${network}`
         logger.error(err)

@@ -38,6 +38,9 @@ export default class Uniswap {
       case 'kovan':
         this.chainID = uni.ChainId.KOVAN;
         break;
+      case 'xdai':
+        this.chainID = uni.ChainId.XDAI;
+        break;
       default:
         const err = `Invalid network ${network}`
         logger.error(err)
