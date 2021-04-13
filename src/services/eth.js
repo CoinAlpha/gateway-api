@@ -131,7 +131,10 @@ export default class Ethereum {
       if (this.network === 'kovan') {
         tokenListSource = 'src/static/erc20_tokens_kovan.json'
         this.erc20TokenList = JSON.parse(fs.readFileSync(tokenListSource))
-      } else if (this.network === 'mainnet') {
+      } else {
+        if (this.network !== 'ethereum') {
+          logger.warn('Attempting to load EVM-compatible network: ', this.network)
+        }
         tokenListSource = this.erc20TokenListURL
         if (tokenListSource === undefined || tokenListSource === null) {
           const errMessage = 'Token List source not found'
@@ -144,8 +147,6 @@ export default class Ethereum {
             this.erc20TokenList = response.data
           }
         }
-      } else {
-        throw Error(`Invalid network ${this.network}`)
       }
       console.log('get ERC20 Token List', this.network, 'source', tokenListSource)
     } catch (err) {
