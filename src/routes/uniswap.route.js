@@ -12,6 +12,7 @@ require('dotenv').config()
 const debug = require('debug')('router')
 const router = express.Router()
 const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
+const gasTokenSymbol = process.env.ETHEREUM_GAS_TOKEN_SYMBOL
 const uniswap = new Uniswap(process.env.ETHEREUM_CHAIN)
 uniswap.generate_tokens()
 setTimeout(uniswap.update_pairs.bind(uniswap), 2000)
@@ -330,7 +331,7 @@ router.post('/price', async (req, res) => {
         gasCost: gasCost,
         trade: trade,
       }
-      debug(`Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`)
+      debug(`Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ${gasTokenSymbol}`)
       res.status(200).json(result)
     } else { // no pool available
       res.status(200).json({

@@ -9,6 +9,7 @@ import { logger } from '../services/logger';
 const debug = require('debug')('router')
 const router = express.Router()
 const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
+const gasSymbol = process.env.ETHEREUM_GAS_TOKEN_SYMBOL || 'ETH'
 const spenders = {
   balancer: process.env.EXCHANGE_PROXY,
   uniswap: process.env.UNISWAP_ROUTER
@@ -61,7 +62,7 @@ router.post('/balances', async (req, res) => {
   });
 
   const balances = {}
-  balances.ETH = await eth.getETHBalance(wallet, privateKey)
+  balances[gasSymbol] = await eth.getETHBalance(wallet, privateKey)
   try {
     Promise.all(
       Object.keys(tokenContractList).map(async (symbol, index) => {
@@ -194,7 +195,7 @@ router.post('/balances-2', async (req, res) => {
   }
 
   const balances = {}
-  balances.ETH = await eth.getETHBalance(wallet, privateKey)
+  balances[gasSymbol]  = await eth.getETHBalance(wallet, privateKey)
   try {
     Promise.all(
       tokenAddressList.map(async (value, index) =>
