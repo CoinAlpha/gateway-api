@@ -2,7 +2,7 @@ import { logger } from './logger';
 
 const debug = require('debug')('router')
 const math =  require('mathjs')
-const uni = require('@uniswap/sdk')
+const uni = require('uniswap-xdai-sdk')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/uniswap_v2_router_abi.json')
 const routeTokens = require('../static/uniswap_route_tokens.json')

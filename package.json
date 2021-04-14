@@ -15,7 +15,6 @@
     "@balancer-labs/sor": "^0.3.3",
     "@perp/contract": "^1.0.6",
     "@terra-money/terra.js": "^0.5.8",
-    "@uniswap/sdk": "^3.0.3",
     "app-root-path": "^3.0.0",
     "axios": "^0.21.1",
     "bignumber.js": "^9.0.0",
@@ -32,6 +31,7 @@
     "lodash": "^4.17.20",
     "mathjs": "^9.3.0",
     "moment": "^2.29.1",
+    "uniswap-xdai-sdk": "https://github.com/thebaoman/xdai-sdk#2d5766d500ea7e84f549f7c42b876d75efecbb87",
     "util": "^0.12.3",
     "winston": "^3.3.3",
     "winston-daily-rotate-file": "^4.5.0"
