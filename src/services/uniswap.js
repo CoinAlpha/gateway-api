@@ -155,6 +155,9 @@ export default class Uniswap {
     const tokenAmountOut = new uni.TokenAmount(tOut, ethers.utils.parseUnits(tokenOutAmount, tOut.decimals));
     if (this.pairs.length === 0){
       const route = await this.fetch_route(tIn, tOut);
+      if (!route) {
+        return console.error('no route from', tIn.symbol, 'to', tOut.symbol);
+      }
       const trade = uni.Trade.exactOut(route, tokenAmountOut);
       if ( trade !== undefined ){
         const expectedAmount = trade.maximumAmountIn(this.allowedSlippage);
