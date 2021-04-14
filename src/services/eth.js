@@ -14,7 +14,7 @@ export default class Ethereum {
   constructor (network = 'mainnet') {
     // network defaults to kovan
     const providerUrl = process.env.ETHEREUM_RPC_URL
-    this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
+    this.provider = new ethers.providers.JsonRpcProvider(providerUrl, network)
     this.erc20TokenListURL = process.env.ETHEREUM_TOKEN_LIST_URL
     this.network = network
     this.spenders = {

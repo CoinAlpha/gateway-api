@@ -17,7 +17,7 @@ export default class Uniswap {
   constructor (network = 'mainnet') {
     this.providerUrl = process.env.ETHEREUM_RPC_URL
     this.network = process.env.ETHEREUM_CHAIN
-    this.provider = new ethers.providers.JsonRpcProvider(this.providerUrl)
+    this.provider = new ethers.providers.JsonRpcProvider(this.providerUrl, network)
     this.router = ROUTER;
     this.slippage = math.fraction(process.env.UNISWAP_ALLOWED_SLIPPAGE)
     this.allowedSlippage = new uni.Percent(this.slippage.n, (this.slippage.d * 100))
@@ -38,13 +38,13 @@ export default class Uniswap {
       case 'kovan':
         this.chainID = uni.ChainId.KOVAN;
         break;
-      case 'xdai':
-        this.chainID = uni.ChainId.XDAI;
-        break;
       default:
-        const err = `Invalid network ${network}`
-        logger.error(err)
-        throw Error(err)
+        this.chainID = process.env.ETHEREUM_CHAIN_ID
+        const err = `Using network ${network}, chainId: ${this.chainID}`
+        logger.warn(err)
+        if (!this.chainID) {
+          throw Error(err)
+        }
     }
   }
 
