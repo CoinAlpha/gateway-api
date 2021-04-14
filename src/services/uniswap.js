@@ -71,7 +71,7 @@ export default class Uniswap {
   async extend_update_pairs(tokens=[]){
       for (let token of tokens){
         if (!this.tokenList.hasOwnProperty(token)){
-          this.tokenList[token] = await uni.Fetcher.fetchTokenData(this.chainID, token);
+          this.tokenList[token] = await uni.Fetcher.fetchTokenData(this.chainID, token, this.provider);
         }
         this.tokenSwapList[token] = Date.now() + this.expireTokenPairUpdate;
       }
