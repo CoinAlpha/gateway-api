@@ -638,7 +638,7 @@
 									"urlencoded": [
 										{
 											"key": "address",
-											"value": "{{address}}",
+											"value": "{{terraWalletAddress}}",
 											"type": "text"
 										}
 									],
