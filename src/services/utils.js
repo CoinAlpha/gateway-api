@@ -87,6 +87,10 @@ export const loadConfig = () => {
     ethereum_chain: process.env.ETHEREUM_CHAIN,
     exchange_proxy: process.env.EXCHANGE_PROXY,
     ethereum_token_list_url: process.env.ETHEREUM_TOKEN_LIST_URL,
+    evm_rpc_url: process.env.EVM_RPC_URL,
+    evm_chain: process.env.EVM_CHAIN,
+    evm_proxy: process.env.EVM_PROXY,
+    evm_token_list_url: process.env.EVM_TOKEN_LIST_URL,
     enable_eth_gas_station: process.env.ENABLE_ETH_GAS_STATION != null ? (process.env.ENABLE_ETH_GAS_STATION.toLowerCase() == 'true') : false,
     eth_gas_station_gas_level: process.env.ETH_GAS_STATION_GAS_LEVEL,
     eth_gas_station_refresh_time: process.env.ETH_GAS_STATION_REFRESH_TIME != null ? parseFloat(process.env.ETH_GAS_STATION_REFRESH_TIME) : null,
@@ -94,6 +98,7 @@ export const loadConfig = () => {
     react_app_subgraph_url: process.env.REACT_APP_SUBGRAPH_URL,
     balancer_max_swaps: process.env.BALANCER_MAX_SWAPS != null ? parseInt(process.env.BALANCER_MAX_SWAPS) : null,
     uniswap_router: process.env.UNISWAP_ROUTER,
+    evm_uniswap_router: process.env.EVM_UNISWAP_ROUTER,
     terra_lcd_url: process.env.TERRA_LCD_URL,
     terra_chain: process.env.TERRA_CHAIN
   }

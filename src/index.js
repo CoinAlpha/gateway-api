@@ -20,6 +20,7 @@ const env = process.env.NODE_ENV
 const port = process.env.PORT
 const certPassphrase = process.env.CERT_PASSPHRASE
 const ethereumChain = process.env.ETHEREUM_CHAIN
+const evmChain = process.env.EVM_CHAIN
 const terraChain = process.env.TERRA_CHAIN
 let certPath = process.env.CERT_PATH
 
@@ -84,6 +85,7 @@ const serverConfig = {
   app: 'gateway-api',
   port: port,
   ethereumChain: ethereumChain,
+  evmChain: evmChain,
   terraChain: terraChain
 }
 
