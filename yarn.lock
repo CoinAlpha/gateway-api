@@ -4364,6 +4364,18 @@ unique-string@^2.0.0:
   dependencies:
     crypto-random-string "^2.0.0"
 
+"uniswap-xdai-sdk@https://github.com/thebaoman/xdai-sdk#2d5766d500ea7e84f549f7c42b876d75efecbb87":
+  version "1.0.0"
+  resolved "https://github.com/thebaoman/xdai-sdk#2d5766d500ea7e84f549f7c42b876d75efecbb87"
+  dependencies:
+    "@uniswap/v2-core" "^1.0.0"
+    big.js "^5.2.2"
+    decimal.js-light "^2.5.0"
+    jsbi "^3.1.1"
+    tiny-invariant "^1.1.0"
+    tiny-warning "^1.0.3"
+    toformat "^2.0.0"
+
 unpipe@1.0.0, unpipe@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/unpipe/-/unpipe-1.0.0.tgz#b2bf4ee8514aae6165b4817829d21b2ef49904ec"
