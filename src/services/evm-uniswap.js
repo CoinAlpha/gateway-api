@@ -17,8 +17,13 @@ export default class EVMUniswap {
   constructor (network = 1) {
     this.providerUrl = process.env.EVM_RPC_URL
     this.network = process.env.EVM_CHAIN
-    this.chainID = process.env.EVM_CHAIN_ID
-    this.provider = new ethers.providers.JsonRpcProvider(this.providerUrl)
+    this.chainID = process.env.EVM_CHAIN_ID || network
+    const ensAddress = process.env.EVM_ENS_RESOLVER
+    this.provider = new ethers.providers.JsonRpcProvider(this.providerUrl, {
+      name: this.network,
+      chainId: Number(this.chainID),
+      ensAddress
+    })
     this.router = ROUTER;
     this.slippage = math.fraction(process.env.EVM_UNISWAP_ALLOWED_SLIPPAGE)
     this.allowedSlippage = new uni.Percent(this.slippage.n, (this.slippage.d * 100))

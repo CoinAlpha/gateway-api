@@ -12,4 +12,16 @@
   {"address":"0xe0C9275E44Ea80eF17579d33c55136b7DA269aEb","name":"WrappedBTC","symbol":"WBTC","decimals":8},
   {"address":"0x1528F3FCc26d13F7079325Fb78D9442607781c8C","name":"DaiStablecoin","symbol":"DAI","decimals":18},
   {"address":"0x2F375e94FC336Cdec2Dc0cCB5277FE59CBf1cAe5","name":"USDCoin","symbol":"USDC","decimals":6}
+], "xdai": [
+  {"address": "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d", "name": "WXDAI", "symbol": "WXDAI", "decimals": 18},
+  {"address": "0x82dFe19164729949fD66Da1a37BC70dD6c4746ce", "name": "BAO", "symbol": "BAO", "decimals": 18},
+  {"address": "0xe0d0b1DBbCF3dd5CAc67edaf9243863Fd70745DA", "name": "BAOcx", "symbol": "BAOcx", "decimals": 18},
+  {"address": "0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1", "name": "WrappedEther", "symbol": "WETH", "decimals": 18},
+  {"address": "0xbf65bfcb5da067446CeE6A706ba3Fe2fB1a9fdFd", "name": "yearn.finance", "symbol": "YFI", "decimals": 18},
+  {"address": "0x6B1A2E64403F9a175eEedAdbc88A81e12DA0f864", "name": "SushiSwap", "symbol": "SUSHI", "decimals": 18},
+  {"address": "0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83", "name": "USDCoin", "symbol": "USDC", "decimals": 6},
+  {"address": "0x8e5bBbb09Ed1ebdE8674Cda39A0c169401db4252", "name": "WrappedBTC", "symbol": "WBTC", "decimals": 8},
+  {"address": "0xFAdc59D012Ba3c110B08A15B7755A5cb7Cbe77D7", "name": "TheGraph", "symbol": "GRT", "decimals": 18},
+  {"address": "0xD3D47d5578e55C880505dC40648F7F9307C3e7A8", "name": "DPI", "symbol": "DIP", "decimals": 18},
+  {"address": "0xDF613aF6B44a31299E48131e9347F034347E2F00", "name": "AAVE", "symbol": "AAVE", "decimals": 18}
 ]}

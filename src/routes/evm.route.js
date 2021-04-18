@@ -2,16 +2,15 @@ import { ethers, BigNumber } from 'ethers';
 import express from 'express';
 
 import { getParamData, latency, statusMessages } from '../services/utils';
-import Ethereum from '../services/eth';
+import EVM from '../services/evm';
 import Fees from '../services/fees';
 import { logger } from '../services/logger';
 
 const debug = require('debug')('router')
 const router = express.Router()
-const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
+const eth = new EVM(process.env.EVM_CHAIN)
 const spenders = {
-  balancer: process.env.EXCHANGE_PROXY,
-  uniswap: process.env.UNISWAP_ROUTER
+  uniswap: process.env.EVM_UNISWAP_ROUTER
 }
 const fees = new Fees()
 

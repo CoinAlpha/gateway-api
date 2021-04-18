@@ -14,7 +14,13 @@ export default class EVM {
   constructor (network = 'mainnet') {
     // network defaults to kovan
     const providerUrl = process.env.EVM_RPC_URL
-    this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
+    const chainId = Number(process.env.EVM_CHAIN_ID)
+    const ensAddress = process.env.EVM_ENS_RESOLVER
+    this.provider = new ethers.providers.JsonRpcProvider(providerUrl, {
+      name: network,
+      chainId,
+      ensAddress
+    })
     this.erc20TokenListURL = process.env.EVM_TOKEN_LIST_URL
     this.network = network
     this.spenders = {
