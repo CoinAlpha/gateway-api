@@ -9,7 +9,7 @@ const routeTokens = require('../static/uniswap_route_tokens.json')
 
 // constants
 const ROUTER = process.env.EVM_UNISWAP_ROUTER
-const GAS_LIMIT = process.env.EVM_UNISWAP_GAS_LIMIT || 150688;
+const GAS_LIMIT = Number(process.env.EVM_UNISWAP_GAS_LIMIT || 150688);
 const TTL = process.env.EVM_UNISWAP_TTL || 300;
 const UPDATE_PERIOD = process.env.EVM_UNISWAP_UPDATE_PERIOD || 300000;  // stop updating pair after 5 minutes from last request
 
@@ -17,11 +17,11 @@ export default class EVMUniswap {
   constructor (name = 'mainnet') {
     this.providerUrl = process.env.EVM_RPC_URL
     this.network = name || process.env.EVM_CHAIN
-    this.chainID = process.env.EVM_CHAIN_ID
+    this.chainID = Number(process.env.EVM_CHAIN_ID)
     const ensAddress = process.env.EVM_ENS_RESOLVER
     const network = {
       name,
-      chainId: Number(this.chainID),
+      chainId: this.chainID,
       ensAddress
     }
     this.provider = new ethers.providers.JsonRpcProvider(this.providerUrl, network)
@@ -43,7 +43,7 @@ export default class EVMUniswap {
       var route, pair, pairOne, pairTwo
 
       try {
-        pair = await uni.Fetcher.fetchPairData(tIn, tOut);
+        pair = await uni.Fetcher.fetchPairData(tIn, tOut, this.provider);
         route = new uni.Route([pair], tIn, tOut);
       }
       catch(err) {
@@ -54,7 +54,7 @@ export default class EVMUniswap {
 
 
   generate_tokens(){
-    for (let token of routeTokens[this.network]){
+    for (let token of routeTokens[this.network]) {
       this.tokenList[token["address"]] = new uni.Token(this.chainID, token["address"], token["decimals"], token["symbol"], token["name"]);
     }
   }
@@ -62,7 +62,7 @@ export default class EVMUniswap {
   async extend_update_pairs(tokens=[]){
       for (let token of tokens){
         if (!this.tokenList.hasOwnProperty(token)){
-          this.tokenList[token] = await uni.Fetcher.fetchTokenData(this.chainID, token);
+          this.tokenList[token] = await uni.Fetcher.fetchTokenData(this.chainID, token, this.provider);
         }
         this.tokenSwapList[token] = Date.now() + this.expireTokenPairUpdate;
       }
@@ -100,7 +100,7 @@ export default class EVMUniswap {
             let pairString = this.tokenList[tokens[firstToken]].address + '-' + this.tokenList[tokens[secondToken]].address;
             if (!this.zeroReservePairs.hasOwnProperty(pairString)){
               pairs.push(pairString);
-              pairAddressRequests.push(uni.Fetcher.fetchPairData(this.tokenList[tokens[firstToken]], this.tokenList[tokens[secondToken]]));
+              pairAddressRequests.push(uni.Fetcher.fetchPairData(this.tokenList[tokens[firstToken]], this.tokenList[tokens[secondToken]], this.provider));
             }
           }
           catch(err) {
