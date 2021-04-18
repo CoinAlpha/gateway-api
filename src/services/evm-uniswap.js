@@ -14,16 +14,17 @@ const TTL = process.env.EVM_UNISWAP_TTL || 300;
 const UPDATE_PERIOD = process.env.EVM_UNISWAP_UPDATE_PERIOD || 300000;  // stop updating pair after 5 minutes from last request
 
 export default class EVMUniswap {
-  constructor (network = 1) {
+  constructor (name = 'mainnet') {
     this.providerUrl = process.env.EVM_RPC_URL
-    this.network = process.env.EVM_CHAIN
-    this.chainID = process.env.EVM_CHAIN_ID || network
+    this.network = name || process.env.EVM_CHAIN
+    this.chainID = process.env.EVM_CHAIN_ID
     const ensAddress = process.env.EVM_ENS_RESOLVER
-    this.provider = new ethers.providers.JsonRpcProvider(this.providerUrl, {
-      name: this.network,
+    const network = {
+      name,
       chainId: Number(this.chainID),
       ensAddress
-    })
+    }
+    this.provider = new ethers.providers.JsonRpcProvider(this.providerUrl, network)
     this.router = ROUTER;
     this.slippage = math.fraction(process.env.EVM_UNISWAP_ALLOWED_SLIPPAGE)
     this.allowedSlippage = new uni.Percent(this.slippage.n, (this.slippage.d * 100))

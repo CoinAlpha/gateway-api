@@ -8,9 +8,9 @@ import { logger } from '../services/logger';
 
 const debug = require('debug')('router')
 const router = express.Router()
-const eth = new EVM(process.env.EVM_CHAIN)
+const evm = new EVM(process.env.EVM_CHAIN)
 const spenders = {
-  uniswap: process.env.EVM_UNISWAP_ROUTER
+  evm_uniswap: process.env.EVM_UNISWAP_ROUTER
 }
 const fees = new Fees()
 
@@ -19,8 +19,8 @@ router.post('/', async (req, res) => {
     POST /
   */
   res.status(200).json({
-    network: eth.network,
-    rpcUrl: eth.provider.connection.url,
+    network: evm.network,
+    rpcUrl: evm.provider.connection.url,
     connection: true,
     timestamp: Date.now(),
   })
@@ -39,7 +39,7 @@ router.post('/balances', async (req, res) => {
   const privateKey = paramData.privateKey
   let wallet
   try {
-    wallet = new ethers.Wallet(privateKey, eth.provider)
+    wallet = new ethers.Wallet(privateKey, evm.provider)
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
@@ -55,19 +55,19 @@ router.post('/balances', async (req, res) => {
   const tokenContractList = []
   const tokenList = JSON.parse(paramData.tokenList)
   tokenList.forEach(symbol => {
-    const tokenContractInfo = eth.getERC20TokenAddresses(symbol)
+    const tokenContractInfo = evm.getERC20TokenAddresses(symbol)
     tokenContractList[symbol] = tokenContractInfo
   });
 
   const balances = {}
-  balances.ETH = await eth.getETHBalance(wallet, privateKey)
+  balances.ETH = await evm.getETHBalance(wallet, privateKey)
   try {
     Promise.all(
       Object.keys(tokenContractList).map(async (symbol, index) => {
           if (tokenContractList[symbol] !== undefined) {
             const address = tokenContractList[symbol].address
             const decimals = tokenContractList[symbol].decimals
-            balances[symbol] = await eth.getERC20Balance(wallet, address, decimals)
+            balances[symbol] = await evm.getERC20Balance(wallet, address, decimals)
           } else {
             const err = `Token contract info for ${symbol} not found`
             logger.error('Token info not found', { message: err })
@@ -75,9 +75,9 @@ router.post('/balances', async (req, res) => {
           }
         }
       )).then(() => {
-        console.log('eth.route - Get Account Balance', { message: JSON.stringify(tokenList) })
+        console.log('evm.route - Get Account Balance', { message: JSON.stringify(tokenList) })
         res.status(200).json({
-        network: eth.network,
+        network: evm.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         balances: balances
@@ -109,7 +109,7 @@ router.post('/allowances', async (req, res) => {
   const spender = spenders[paramData.connector]
   let wallet
   try {
-    wallet = new ethers.Wallet(privateKey, eth.provider)
+    wallet = new ethers.Wallet(privateKey, evm.provider)
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
@@ -125,7 +125,7 @@ router.post('/allowances', async (req, res) => {
   const tokenContractList = []
   const tokenList = JSON.parse(paramData.tokenList)
   tokenList.forEach(symbol => {
-    const tokenContractInfo = eth.getERC20TokenAddresses(symbol)
+    const tokenContractInfo = evm.getERC20TokenAddresses(symbol)
     tokenContractList[symbol] = tokenContractInfo
   });
 
@@ -134,13 +134,14 @@ router.post('/allowances', async (req, res) => {
     Promise.all(
       Object.keys(tokenContractList).map(async (symbol, index) => {
         const address = tokenContractList[symbol].address
+        console.log(`${symbol}: ${address}`)
         const decimals = tokenContractList[symbol].decimals
-        approvals[symbol] = await eth.getERC20Allowance(wallet, spender, address, decimals)
+        approvals[symbol] = await evm.getERC20Allowance(wallet, spender, address, decimals)
       }
     )).then(() => {
-      logger.info('eth.route - Getting allowances', { message: JSON.stringify(tokenList) })
+      logger.info('evm.route - Getting allowances', { message: JSON.stringify(tokenList) })
       res.status(200).json({
-        network: eth.network,
+        network: evm.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         spender: spender,
@@ -173,7 +174,7 @@ router.post('/balances-2', async (req, res) => {
   const privateKey = paramData.privateKey
   let wallet
   try {
-    wallet = new ethers.Wallet(privateKey, eth.provider)
+    wallet = new ethers.Wallet(privateKey, evm.provider)
   } catch (err) {
     let reason
     err.reason ? reason = err.reason : reason = 'Error getting wallet'
@@ -193,14 +194,14 @@ router.post('/balances-2', async (req, res) => {
   }
 
   const balances = {}
-  balances.ETH = await eth.getETHBalance(wallet, privateKey)
+  balances.ETH = await evm.getETHBalance(wallet, privateKey)
   try {
     Promise.all(
       tokenAddressList.map(async (value, index) =>
-      balances[value] = await eth.getERC20Balance(wallet, value, tokenDecimalList[index])
+      balances[value] = await evm.getERC20Balance(wallet, value, tokenDecimalList[index])
       )).then(() => {
       res.status(200).json({
-        network: eth.network,
+        network: evm.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         balances: balances
@@ -232,7 +233,7 @@ router.post('/allowances-2', async (req, res) => {
   const spender = spenders[paramData.connector]
   let wallet
   try {
-    wallet = new ethers.Wallet(privateKey, eth.provider)
+    wallet = new ethers.Wallet(privateKey, evm.provider)
   } catch (err) {
     let reason
     err.reason ? reason = err.reason : reason = 'Error getting wallet'
@@ -255,10 +256,10 @@ router.post('/allowances-2', async (req, res) => {
   try {
     Promise.all(
       tokenAddressList.map(async (value, index) =>
-      approvals[value] = await eth.getERC20Allowance(wallet, spender, value, tokenDecimalList[index])
+      approvals[value] = await evm.getERC20Allowance(wallet, spender, value, tokenDecimalList[index])
       )).then(() => {
       res.status(200).json({
-        network: eth.network,
+        network: evm.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         spender: spender,
@@ -293,7 +294,7 @@ router.post('/approve', async (req, res) => {
   const spender = spenders[paramData.connector]
   let wallet
   try {
-    wallet = new ethers.Wallet(privateKey, eth.provider)
+    wallet = new ethers.Wallet(privateKey, evm.provider)
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
@@ -305,7 +306,7 @@ router.post('/approve', async (req, res) => {
     return
   }
   const token = paramData.token
-  const tokenContractInfo = eth.getERC20TokenAddresses(token)
+  const tokenContractInfo = evm.getERC20TokenAddresses(token)
   const tokenAddress = tokenContractInfo.address
   const decimals = tokenContractInfo.decimals
 
@@ -321,11 +322,11 @@ router.post('/approve', async (req, res) => {
 
   try {
     // call approve function
-    const approval = await eth.approveERC20(wallet, spender, tokenAddress, amount, gasPrice)
-    // console.log('eth.route - Approving allowance', { message: approval })
+    const approval = await evm.approveERC20(wallet, spender, tokenAddress, amount, gasPrice)
+    console.log('eth.route - Approving allowance', { message: approval })
     // submit response
     res.status(200).json({
-      network: eth.network,
+      network: evm.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
       tokenAddress: tokenAddress,
@@ -348,7 +349,7 @@ router.post('/poll', async (req, res) => {
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const txHash = paramData.txHash
-  const txReceipt = await eth.provider.getTransactionReceipt(txHash)
+  const txReceipt = await evm.provider.getTransactionReceipt(txHash)
   const receipt = {}
   const confirmed = txReceipt && txReceipt.blockNumber ? true : false
   if (confirmed) {
@@ -357,9 +358,9 @@ router.post('/poll', async (req, res) => {
     receipt.confirmations = txReceipt.confirmations
     receipt.status = txReceipt.status
   }
-  logger.info(`eth.route - Get TX Receipt: ${txHash}`, { message: JSON.stringify(receipt) })
+  logger.info(`evm.route - Get TX Receipt: ${txHash}`, { message: JSON.stringify(receipt) })
   res.status(200).json({
-    network: eth.network,
+    network: evm.network,
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
     txHash: txHash,

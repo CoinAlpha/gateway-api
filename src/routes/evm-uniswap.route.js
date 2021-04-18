@@ -3,7 +3,7 @@ import express from 'express';
 
 import { getParamData, latency, statusMessages } from '../services/utils';
 import { logger } from '../services/logger';
-import Ethereum from '../services/evm';
+import EVM from '../services/evm';
 import EVMUniswap from '../services/evm-uniswap';
 import Fees from '../services/fees';
 
@@ -11,8 +11,8 @@ require('dotenv').config()
 
 const debug = require('debug')('router')
 const router = express.Router()
-const eth = new Ethereum(process.env.EVM_CHAIN)
 const uniswap = new EVMUniswap(process.env.EVM_CHAIN)
+const eth = new EVM(process.env.EVM_CHAIN)
 uniswap.generate_tokens()
 setTimeout(uniswap.update_pairs.bind(uniswap), 2000)
 const fees = new Fees()

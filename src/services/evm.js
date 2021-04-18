@@ -11,18 +11,19 @@ const abi = require('../static/abi')
 const APPROVAL_GAS_LIMIT = process.env.ETH_APPROVAL_GAS_LIMIT || 50000;
 
 export default class EVM {
-  constructor (network = 'mainnet') {
+  constructor (name = 'mainnet') {
     // network defaults to kovan
     const providerUrl = process.env.EVM_RPC_URL
     const chainId = Number(process.env.EVM_CHAIN_ID)
     const ensAddress = process.env.EVM_ENS_RESOLVER
-    this.provider = new ethers.providers.JsonRpcProvider(providerUrl, {
-      name: network,
+    const network = {
+      name,
       chainId,
       ensAddress
-    })
+    }
+    this.provider = new ethers.providers.JsonRpcProvider(providerUrl, network)
     this.erc20TokenListURL = process.env.EVM_TOKEN_LIST_URL
-    this.network = network
+    this.network = name
     this.spenders = {
       uniswap: process.env.EVM_UNISWAP_ROUTER
     }
@@ -137,7 +138,7 @@ export default class EVM {
       if (tokenListSource === undefined || tokenListSource === null) {
         const errMessage = 'Token List source not found'
         logger.error('ERC20 Token List Error', { message: errMessage})
-        console.log('eth - Error: ', errMessage)
+        console.log('evm - Error: ', errMessage)
       }
       if (this.erc20TokenList === undefined || this.erc20TokenList === null || this.erc20TokenList === {}) {
         const response = await axios.get(tokenListSource)
