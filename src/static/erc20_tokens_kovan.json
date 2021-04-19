@@ -50,6 +50,16 @@
       "symbol": "ZRX",
       "address": "0xccb0F4Cf5D3F97f4a55bb5f5cA321C3ED033f244",
       "decimals": 18
+    },
+    {
+      "symbol": "COIN1",
+      "address": "0xf7699696b7d92d9b4735bf1ddfdd92577b5869b0",
+      "decimals": 18
+    },
+    {
+      "symbol": "COIN2",
+      "address": "0xbab297ff0d366d9c2639cf291e5be4b2c7ca5ce2",
+      "decimals": 8
     }
   ]
 }
