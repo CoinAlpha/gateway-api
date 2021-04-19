@@ -75,13 +75,13 @@ router.post('/balances', async (req, res) => {
           }
         }
       )).then(() => {
-        console.log('evm.route - Get Account Balance', { message: JSON.stringify(tokenList) })
+        console.log('evm.route - Get Account Balance', { message: JSON.stringify(balances) })
         res.status(200).json({
-        network: evm.network,
-        timestamp: initTime,
-        latency: latency(initTime, Date.now()),
-        balances: balances
-      })
+          network: evm.network,
+          timestamp: initTime,
+          latency: latency(initTime, Date.now()),
+          balances: balances
+        })
     })
   } catch (err) {
     logger.error(req.originalUrl, { message: err })

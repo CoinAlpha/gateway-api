@@ -187,7 +187,7 @@ router.post('/trade', async (req, res) => {
 
     if (side === 'BUY') {
       const price = trade.executionPrice.invert().toSignificant(8)
-      logger.info(`uniswap.route - Price: ${price.toString()}`)
+      logger.info(`evm_uniswap.route - Price: ${price.toString()}`)
       if (!limitPrice || price <= limitPrice) {
         // pass swaps to exchange-proxy to complete trade
         const tx = await uniswap.swapExactOut(
@@ -216,7 +216,7 @@ router.post('/trade', async (req, res) => {
           error: swapMoreThanMaxPriceError,
           message: `Swap price ${price} exceeds limitPrice ${limitPrice}`
         })
-        logger.info(`uniswap.route - Swap price ${price} exceeds limitPrice ${limitPrice}`)
+        logger.info(`evm_uniswap.route - Swap price ${price} exceeds limitPrice ${limitPrice}`)
       }
     } else {
       // sell
@@ -250,7 +250,7 @@ router.post('/trade', async (req, res) => {
           error: swapLessThanMaxPriceError,
           message: `Swap price ${price} lower than limitPrice ${limitPrice}`
         })
-        logger.info(`uniswap.route - Swap price ${price} lower than limitPrice ${limitPrice}`)
+        logger.info(`evm_uniswap.route - Swap price ${price} lower than limitPrice ${limitPrice}`)
       }
     }
   } catch (err) {
