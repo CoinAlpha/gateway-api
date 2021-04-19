@@ -1,15 +1,17 @@
 import { logger } from './logger';
 
+const debug = require('debug')('router')
+const math =  require('mathjs')
 const uni = require('@uniswap/sdk')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/uniswap_v2_router_abi.json')
 const routeTokens = require('../static/uniswap_route_tokens.json')
 
 // constants
-const ROUTER = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
-const GAS_LIMIT = 150688;
-const TTL = 300;
-const UPDATE_PERIOD = 300000;  // stop updating pair after 5 minutes from last request
+const ROUTER = process.env.UNISWAP_ROUTER
+const GAS_LIMIT = process.env.UNISWAP_GAS_LIMIT || 150688;
+const TTL = process.env.UNISWAP_TTL || 300;
+const UPDATE_PERIOD = process.env.UNISWAP_UPDATE_PERIOD || 300000;  // stop updating pair after 5 minutes from last request
 
 export default class Uniswap {
   constructor (network = 'mainnet') {
@@ -17,8 +19,8 @@ export default class Uniswap {
     this.network = process.env.ETHEREUM_CHAIN
     this.provider = new ethers.providers.JsonRpcProvider(this.providerUrl)
     this.router = ROUTER;
-    this.allowedSlippage = new uni.Percent(process.env.UNISWAP_ALLOWED_SLIPPAGE, '100')
-    console.log(this.allowedSlippage)
+    this.slippage = math.fraction(process.env.UNISWAP_ALLOWED_SLIPPAGE)
+    this.allowedSlippage = new uni.Percent(this.slippage.n, (this.slippage.d * 100))
     this.pairsCacheTime = process.env.UNISWAP_PAIRS_CACHE_TIME
     this.gasLimit = GAS_LIMIT
     this.expireTokenPairUpdate = UPDATE_PERIOD
@@ -130,17 +132,17 @@ export default class Uniswap {
       const route = await this.fetch_route(tIn, tOut);
       const trade = uni.Trade.exactIn(route, tokenAmountIn);
       if ( trade !== undefined ){
-        const expectedOut = trade.minimumAmountOut(this.allowedSlippage);
+        const expectedAmount = trade.minimumAmountOut(this.allowedSlippage);
         this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;
-        return { trade, expectedOut }
+        return { trade, expectedAmount }
       }
       return "Can't find route to swap, kindly update "
     }
     const trade = uni.Trade.bestTradeExactIn(this.pairs, tokenAmountIn, this.tokenList[tokenOut], { maxHops: 5 })[0];
     if (trade === undefined){trade = this.cachedRoutes[tIn.symbol + tOut.Symbol];}
     else{this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;}
-    const expectedOut = trade.minimumAmountOut(this.allowedSlippage);
-    return { trade, expectedOut }
+    const expectedAmount = trade.minimumAmountOut(this.allowedSlippage);
+    return { trade, expectedAmount }
   }
 
   async priceSwapOut (tokenIn, tokenOut, tokenOutAmount) {
@@ -152,17 +154,17 @@ export default class Uniswap {
       const route = await this.fetch_route(tIn, tOut);
       const trade = uni.Trade.exactOut(route, tokenAmountOut);
       if ( trade !== undefined ){
-        const expectedIn = trade.maximumAmountIn(this.allowedSlippage);
+        const expectedAmount = trade.maximumAmountIn(this.allowedSlippage);
         this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;
-        return { trade, expectedIn }
+        return { trade, expectedAmount }
       }
       return
     }
     const trade = uni.Trade.bestTradeExactOut(this.pairs, this.tokenList[tokenIn], tokenAmountOut, { maxHops: 5 })[0];
     if (trade === undefined){trade = this.cachedRoutes[tIn.symbol + tOut.Symbol];}
     else{this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;}
-    const expectedIn = trade.maximumAmountIn(this.allowedSlippage);
-    return { trade, expectedIn }
+    const expectedAmount = trade.maximumAmountIn(this.allowedSlippage);
+    return { trade, expectedAmount }
   }
 
   async swapExactIn (wallet, trade, tokenAddress, gasPrice) {
@@ -185,7 +187,7 @@ export default class Uniswap {
       }
     )
 
-    logger.debug(`Tx Hash: ${tx.hash}`);
+    debug(`Tx Hash: ${tx.hash}`);
     return tx
   }
 
@@ -209,7 +211,7 @@ export default class Uniswap {
       }
     )
 
-    logger.debug(`Tx Hash: ${tx.hash}`);
+    debug(`Tx Hash: ${tx.hash}`);
     return tx
   }
 }

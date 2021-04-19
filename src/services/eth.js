@@ -1,28 +1,28 @@
 import { logger } from './logger';
+import axios from 'axios'
 
+const debug = require('debug')('router')
 require('dotenv').config()
 const fs = require('fs');
 const ethers = require('ethers')
 const abi = require('../static/abi')
 
 // constants
+const APPROVAL_GAS_LIMIT = process.env.ETH_APPROVAL_GAS_LIMIT || 50000;
 
 export default class Ethereum {
   constructor (network = 'mainnet') {
     // network defaults to kovan
     const providerUrl = process.env.ETHEREUM_RPC_URL
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
+    this.erc20TokenListURL = process.env.ETHEREUM_TOKEN_LIST_URL
     this.network = network
-
-    if (network === 'kovan') {
-      // for kovan testing only
-      this.erc20KovanTokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_kovan.json'))
-    } else if (network === 'mainnet') {
-      // contract list no longer maintained here. changed to accept contract address via request data
-      // this.erc20Tokens = JSON.parse(fs.readFileSync('src/static/erc20_tokens_hummingbot.json'))
-    } else {
-      throw Error(`Invalid network ${network}`)
+    this.spenders = {
+      balancer: process.env.EXCHANGE_PROXY,
+      uniswap: process.env.UNISWAP_ROUTER
     }
+    // update token list
+    this.getERC20TokenList() // erc20TokenList
   }
 
   // get ETH balance
@@ -72,7 +72,7 @@ export default class Ethereum {
   async approveERC20 (wallet, spender, tokenAddress, amount, gasPrice = this.gasPrice, gasLimit) {
     try {
       // fixate gas limit to prevent overwriting
-      const approvalGasLimit = 50000
+      const approvalGasLimit = APPROVAL_GAS_LIMIT
       // instantiate a contract and pass in wallet, which act on behalf of that signer
       const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, wallet)
       return await contract.approve(
@@ -122,5 +122,45 @@ export default class Ethereum {
       err.reason ? reason = err.reason : reason = 'error deposit'
       return reason
     }
+  }
+
+  // get ERC20 Token List
+  async getERC20TokenList () {
+    let tokenListSource
+    try {
+      if (this.network === 'kovan') {
+        tokenListSource = 'src/static/erc20_tokens_kovan.json'
+        this.erc20TokenList = JSON.parse(fs.readFileSync(tokenListSource))
+      } else if (this.network === 'mainnet') {
+        tokenListSource = this.erc20TokenListURL
+        if (tokenListSource === undefined || tokenListSource === null) {
+          const errMessage = 'Token List source not found'
+          logger.error('ERC20 Token List Error', { message: errMessage})
+          console.log('eth - Error: ', errMessage)
+        }
+        if (this.erc20TokenList === undefined || this.erc20TokenList === null || this.erc20TokenList === {}) {
+          const response = await axios.get(tokenListSource)
+          if (response.status === 200 && response.data) {
+            this.erc20TokenList = response.data
+          }
+        }
+      } else {
+        throw Error(`Invalid network ${this.network}`)
+      }
+      console.log('get ERC20 Token List', this.network, 'source', tokenListSource)
+    } catch (err) {
+      console.log(err);
+      logger.error(err)
+      let reason
+      err.reason ? reason = err.reason : reason = 'error ERC 20 Token List'
+      return reason
+    }
+  }
+
+  getERC20TokenAddresses (tokenSymbol) {
+    const tokenContractAddress = this.erc20TokenList.tokens.filter(obj => {
+      return obj.symbol === tokenSymbol.toUpperCase()
+    })
+    return tokenContractAddress[0]
   }
 }

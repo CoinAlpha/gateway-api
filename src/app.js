@@ -41,15 +41,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(validateAccess)
 
-// mount all routes to this path
-app.use('/uniswap', uniswapRoutes);
-app.use('/uniswap/v3', uniswapV3Routes);
+// mount routes to specific path
 app.use('/api', apiRoutes);
 app.use('/eth', ethRoutes);
-// app.use('/celo', celoRoutes);
+app.use('/eth/uniswap', uniswapRoutes);
+app.use('/eth/uniswap/v3', uniswapV3Routes);
+app.use('/eth/balancer', balancerRoutes);
 app.use('/terra', terraRoutes);
-app.use('/balancer', balancerRoutes);
 app.use('/perpfi', perpFiRoutes);
+// app.use('/celo', celoRoutes);
 
 app.get('/', (req, res, next) => {
   res.send('ok')

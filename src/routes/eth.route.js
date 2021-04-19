@@ -1,23 +1,38 @@
 import { ethers, BigNumber } from 'ethers';
 import express from 'express';
 
-import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
+import { getParamData, latency, statusMessages } from '../services/utils';
 import Ethereum from '../services/eth';
+import Fees from '../services/fees';
 import { logger } from '../services/logger';
 
+const debug = require('debug')('router')
 const router = express.Router()
 const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 const spenders = {
   balancer: process.env.EXCHANGE_PROXY,
   uniswap: process.env.UNISWAP_ROUTER
 }
+const fees = new Fees()
+
+router.post('/', async (req, res) => {
+  /*
+    POST /
+  */
+  res.status(200).json({
+    network: eth.network,
+    rpcUrl: eth.provider.connection.url,
+    connection: true,
+    timestamp: Date.now(),
+  })
+})
 
 router.post('/balances', async (req, res) => {
   /*
       POST: /balances
       x-www-form-urlencoded: {
         privateKey:{{privateKey}}
-        tokenAddressList:{{tokenAddressList}}
+        tokenList:{{tokenList}}
       }
   */
   const initTime = Date.now()
@@ -36,19 +51,32 @@ router.post('/balances', async (req, res) => {
     })
     return
   }
-  let tokenAddressList
-  if (paramData.tokenAddressList) {
-    tokenAddressList = JSON.parse(paramData.tokenAddressList)
-  }
+
+  // populate token contract info using token symbol list
+  const tokenContractList = []
+  const tokenList = JSON.parse(paramData.tokenList)
+  tokenList.forEach(symbol => {
+    const tokenContractInfo = eth.getERC20TokenAddresses(symbol)
+    tokenContractList[symbol] = tokenContractInfo
+  });
 
   const balances = {}
   balances.ETH = await eth.getETHBalance(wallet, privateKey)
   try {
     Promise.all(
-      Object.keys(tokenAddressList).map(async (key, index) =>
-        balances[key] = await eth.getERC20Balance(wallet, key, tokenAddressList[key])
+      Object.keys(tokenContractList).map(async (symbol, index) => {
+          if (tokenContractList[symbol] !== undefined) {
+            const address = tokenContractList[symbol].address
+            const decimals = tokenContractList[symbol].decimals
+            balances[symbol] = await eth.getERC20Balance(wallet, address, decimals)
+          } else {
+            const err = `Token contract info for ${symbol} not found`
+            logger.error('Token info not found', { message: err })
+            debug(err)
+          }
+        }
       )).then(() => {
-        logger.info('eth.route - Get Account Balance', { message: JSON.stringify(tokenAddressList) })
+        console.log('eth.route - Get Account Balance', { message: JSON.stringify(tokenList) })
         res.status(200).json({
         network: eth.network,
         timestamp: initTime,
@@ -93,18 +121,25 @@ router.post('/allowances', async (req, res) => {
     })
     return
   }
-  let tokenAddressList
-  if (paramData.tokenAddressList) {
-    tokenAddressList = JSON.parse(paramData.tokenAddressList)
-  }
+
+  // populate token contract info using token symbol list
+  const tokenContractList = []
+  const tokenList = JSON.parse(paramData.tokenList)
+  tokenList.forEach(symbol => {
+    const tokenContractInfo = eth.getERC20TokenAddresses(symbol)
+    tokenContractList[symbol] = tokenContractInfo
+  });
 
   const approvals = {}
   try {
     Promise.all(
-      Object.keys(tokenAddressList).map(async (key, index) =>
-      approvals[key] = await eth.getERC20Allowance(wallet, spender, key, tokenAddressList[key])
-      )).then(() => {
-      logger.info('eth.route - Getting allowances', { message: JSON.stringify(tokenAddressList) })
+      Object.keys(tokenContractList).map(async (symbol, index) => {
+        const address = tokenContractList[symbol].address
+        const decimals = tokenContractList[symbol].decimals
+        approvals[symbol] = await eth.getERC20Allowance(wallet, spender, address, decimals)
+      }
+    )).then(() => {
+      logger.info('eth.route - Getting allowances', { message: JSON.stringify(tokenList) })
       res.status(200).json({
         network: eth.network,
         timestamp: initTime,
@@ -270,21 +305,25 @@ router.post('/approve', async (req, res) => {
     })
     return
   }
-  const tokenAddress = paramData.tokenAddress
-  let amount, decimals
-  paramData.decimals ? decimals = paramData.decimals
-                     : decimals = 18
+  const token = paramData.token
+  const tokenContractInfo = eth.getERC20TokenAddresses(token)
+  const tokenAddress = tokenContractInfo.address
+  const decimals = tokenContractInfo.decimals
+
+  let amount
   paramData.amount  ? amount = ethers.utils.parseUnits(paramData.amount, decimals)
                     : amount = ethers.utils.parseUnits('1000000000', decimals) // approve for 1 billion units if no amount specified
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
+  } else {
+    gasPrice = fees.ethGasPrice
   }
 
   try {
     // call approve function
     const approval = await eth.approveERC20(wallet, spender, tokenAddress, amount, gasPrice)
-    logger.info('eth.route - Approving allowance', { message: tokenAddress })
+    // console.log('eth.route - Approving allowance', { message: approval })
     // submit response
     res.status(200).json({
       network: eth.network,
@@ -306,62 +345,7 @@ router.post('/approve', async (req, res) => {
   }
 })
 
-// Faucet to get test tokens
-router.post('/get-weth', async (req, res) => {
-  /*
-      POST: /get-weth
-      x-www-form-urlencoded: {
-        gasPrice:{gasPrice}
-        amount:{{amount}}
-        privateKey:{{privateKey}}
-      }
-  */
-  const initTime = Date.now()
-  const paramData = getParamData(req.body)
-  const privateKey = paramData.privateKey
-  let wallet
-  try {
-    wallet = new ethers.Wallet(privateKey, eth.provider)
-  } catch (err) {
-    logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason ? reason = err.reason : reason = 'Error getting wallet'
-    res.status(500).json({
-      error: reason,
-      message: err
-    })
-    return
-  }
-  const amount = ethers.utils.parseEther(paramData.amount)
-  const tokenAddress = eth.erc20KovanTokens['WETH']
-  let gasPrice
-  if (paramData.gasPrice) {
-    gasPrice = parseFloat(paramData.gasPrice)
-  }
-
-  try {
-    // call deposit function
-    const response = await eth.deposit(wallet, tokenAddress, amount, gasPrice)
-
-    // submit response
-    res.status(200).json({
-      network: eth.network,
-      timestamp: initTime,
-      amount: parseFloat(amount),
-      result: response
-    })
-  } catch (err) {
-    logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
-    res.status(500).json({
-      error: reason,
-      message: err
-    })
-  }
-})
-
-router.post('/get-receipt', async (req, res) => {
+router.post('/poll', async (req, res) => {
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const txHash = paramData.txHash
@@ -385,5 +369,60 @@ router.post('/get-receipt', async (req, res) => {
   })
   return txReceipt
 })
+
+// Kovan faucet to get test tokens (wip) & weth conversion
+// router.post('/get-weth', async (req, res) => {
+//   /*
+//       POST: /get-weth
+//       x-www-form-urlencoded: {
+//         gasPrice:{gasPrice}
+//         amount:{{amount}}
+//         privateKey:{{privateKey}}
+//       }
+//   */
+//   const initTime = Date.now()
+//   const paramData = getParamData(req.body)
+//   const privateKey = paramData.privateKey
+//   let wallet
+//   try {
+//     wallet = new ethers.Wallet(privateKey, eth.provider)
+//   } catch (err) {
+//     logger.error(req.originalUrl, { message: err })
+//     let reason
+//     err.reason ? reason = err.reason : reason = 'Error getting wallet'
+//     res.status(500).json({
+//       error: reason,
+//       message: err
+//     })
+//     return
+//   }
+//   const amount = ethers.utils.parseEther(paramData.amount)
+//   const tokenAddress = eth.getERC20TokenAddresses('WETH').address
+//   let gasPrice
+//   if (paramData.gasPrice) {
+//     gasPrice = parseFloat(paramData.gasPrice)
+//   }
+
+//   try {
+//     // call deposit function
+//     const response = await eth.deposit(wallet, tokenAddress, amount, gasPrice)
+
+//     // submit response
+//     res.status(200).json({
+//       network: eth.network,
+//       timestamp: initTime,
+//       amount: parseFloat(amount),
+//       result: response
+//     })
+//   } catch (err) {
+//     logger.error(req.originalUrl, { message: err })
+//     let reason
+//     err.reason ? reason = err.reason : reason = statusMessages.operation_error
+//     res.status(500).json({
+//       error: reason,
+//       message: err
+//     })
+//   }
+// })
 
 module.exports = router;

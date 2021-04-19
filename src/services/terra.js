@@ -3,6 +3,7 @@ import { LCDClient, Coin, MsgSwap, StdTx, StdFee, Dec, MnemonicKey, isTxError, C
 import BigNumber from 'bignumber.js'
 import { getHummingbotMemo } from './utils';
 
+const debug = require('debug')('router')
 require('dotenv').config()
 
 // constants
@@ -134,7 +135,7 @@ export default class Terra {
           feeList[key] = rates._coins[key].amount * lunaFee
         })
       })
-      logger.debug('lunaFee', lunaFee, feeList)
+      debug('lunaFee', lunaFee, feeList)
 
       return feeList
     } catch (err) {
@@ -199,7 +200,7 @@ export default class Terra {
       swaps.price = exchangeRate
       swaps.cost = cost
       swaps.txFee = txFee
-      logger.debug('swaps', swaps)
+      debug('swaps', swaps)
       return swaps
     } catch (err) {
       logger.error(err)
@@ -251,7 +252,6 @@ export default class Terra {
 
       const offerAmount = parseInt((swaps.offer.amount) * DENOM_UNIT)
       const offerCoin = new Coin(offerDenom, offerAmount)
-      // debug('offerCoin', offerCoin, offerAmount, 'gasPrice', gasPrice)
 
       // Create and Sign Transaction
       const msgSwap = new MsgSwap(address, offerCoin, swapDenom);
@@ -281,7 +281,6 @@ export default class Terra {
           tokenSwap.txSuccess = !swapSuccess
           throw new Error(`encountered an error while running the transaction: ${txResult.code} ${txResult.codespace}`);
         }
-
         const txHash = txResult.txhash
         const events = JSON.parse(txResult.raw_log)[0].events
         const swap = events.find(obj => {
