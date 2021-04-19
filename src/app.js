@@ -14,6 +14,7 @@ import balancerRoutes from './routes/balancer.route'
 import ethRoutes from './routes/eth.route'
 import terraRoutes from './routes/terra.route'
 import uniswapRoutes from './routes/uniswap.route'
+import uniswapV3Routes from './routes/uniswap_v3.route'
 import perpFiRoutes from './routes/perpetual_finance.route'
 
 // terminate if environment not found
@@ -42,6 +43,7 @@ app.use(validateAccess)
 
 // mount all routes to this path
 app.use('/uniswap', uniswapRoutes);
+app.use('/uniswap/v3', uniswapV3Routes);
 app.use('/api', apiRoutes);
 app.use('/eth', ethRoutes);
 // app.use('/celo', celoRoutes);
