@@ -2,7 +2,7 @@ import { logger } from './logger';
 
 const debug = require('debug')('router')
 const math =  require('mathjs')
-const uni = require('@uniswap/sdk')
+const uni = require('uniswap-xdai-sdk')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/uniswap_v2_router_abi.json')
 const routeTokens = require('../static/uniswap_route_tokens.json')
@@ -17,7 +17,7 @@ export default class Uniswap {
   constructor (network = 'mainnet') {
     this.providerUrl = process.env.ETHEREUM_RPC_URL
     this.network = process.env.ETHEREUM_CHAIN
-    this.provider = new ethers.providers.JsonRpcProvider(this.providerUrl)
+    this.provider = new ethers.providers.JsonRpcProvider(this.providerUrl, network)
     this.router = ROUTER;
     this.slippage = math.fraction(process.env.UNISWAP_ALLOWED_SLIPPAGE)
     this.allowedSlippage = new uni.Percent(this.slippage.n, (this.slippage.d * 100))
@@ -39,9 +39,12 @@ export default class Uniswap {
         this.chainID = uni.ChainId.KOVAN;
         break;
       default:
-        const err = `Invalid network ${network}`
-        logger.error(err)
-        throw Error(err)
+        this.chainID = process.env.ETHEREUM_CHAIN_ID
+        const err = `Using network ${network}, chainId: ${this.chainID}`
+        logger.warn(err)
+        if (!this.chainID) {
+          throw Error(err)
+        }
     }
   }
 
@@ -68,7 +71,7 @@ export default class Uniswap {
   async extend_update_pairs(tokens=[]){
       for (let token of tokens){
         if (!this.tokenList.hasOwnProperty(token)){
-          this.tokenList[token] = await uni.Fetcher.fetchTokenData(this.chainID, token);
+          this.tokenList[token] = await uni.Fetcher.fetchTokenData(this.chainID, token, this.provider);
         }
         this.tokenSwapList[token] = Date.now() + this.expireTokenPairUpdate;
       }
@@ -152,6 +155,9 @@ export default class Uniswap {
     const tokenAmountOut = new uni.TokenAmount(tOut, ethers.utils.parseUnits(tokenOutAmount, tOut.decimals));
     if (this.pairs.length === 0){
       const route = await this.fetch_route(tIn, tOut);
+      if (!route) {
+        return console.error('no route from', tIn.symbol, 'to', tOut.symbol);
+      }
       const trade = uni.Trade.exactOut(route, tokenAmountOut);
       if ( trade !== undefined ){
         const expectedAmount = trade.maximumAmountIn(this.allowedSlippage);
