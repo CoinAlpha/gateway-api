@@ -66,7 +66,10 @@ export default class EVMUniswap {
   }
 
 
-  generate_tokens(){
+  generate_tokens() {
+    if (!routeTokens[this.network]) {
+      return logger.error(`No route tokens defined for ${this.network} in uniswap_route_tokens.json`);
+    }
     for (let token of routeTokens[this.network]) {
       this.tokenList[token["address"]] = new uniCore.Token(this.chainID, token["address"], token["decimals"], token["symbol"], token["name"]);
     }
