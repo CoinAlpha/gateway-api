@@ -2,7 +2,9 @@ import { logger } from './logger';
 
 const debug = require('debug')('router')
 const math =  require('mathjs')
-const uni = require('uniswap-xdai-sdk')
+const uni = require('@uniswap/v2-sdk')
+const { Fetcher } = require('@uniswap/sdk')
+const uniCore = require('@uniswap/sdk-core')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/uniswap_v2_router_abi.json')
 const routeTokens = require('../static/uniswap_route_tokens.json')
@@ -27,7 +29,7 @@ export default class EVMUniswap {
     this.provider = new ethers.providers.JsonRpcProvider(this.providerUrl, network)
     this.router = ROUTER;
     this.slippage = math.fraction(process.env.EVM_UNISWAP_ALLOWED_SLIPPAGE)
-    this.allowedSlippage = new uni.Percent(this.slippage.n, (this.slippage.d * 100))
+    this.allowedSlippage = new uniCore.Percent(this.slippage.n, (this.slippage.d * 100))
     this.pairsCacheTime = process.env.EVM_UNISWAP_PAIRS_CACHE_TIME
     this.gasLimit = GAS_LIMIT
     this.expireTokenPairUpdate = UPDATE_PERIOD
@@ -43,7 +45,7 @@ export default class EVMUniswap {
       var route, pair, pairOne, pairTwo
 
       try {
-        pair = await uni.Fetcher.fetchPairData(tIn, tOut, this.provider);
+        pair = await Fetcher.fetchPairData(tIn, tOut, this.provider);
         route = new uni.Route([pair], tIn, tOut);
       }
       catch(err) {
@@ -55,14 +57,14 @@ export default class EVMUniswap {
 
   generate_tokens(){
     for (let token of routeTokens[this.network]) {
-      this.tokenList[token["address"]] = new uni.Token(this.chainID, token["address"], token["decimals"], token["symbol"], token["name"]);
+      this.tokenList[token["address"]] = new uniCore.Token(this.chainID, token["address"], token["decimals"], token["symbol"], token["name"]);
     }
   }
 
   async extend_update_pairs(tokens=[]){
       for (let token of tokens){
         if (!this.tokenList.hasOwnProperty(token)){
-          this.tokenList[token] = await uni.Fetcher.fetchTokenData(this.chainID, token, this.provider);
+          this.tokenList[token] = await Fetcher.fetchTokenData(this.chainID, token, this.provider);
         }
         this.tokenSwapList[token] = Date.now() + this.expireTokenPairUpdate;
       }
@@ -100,7 +102,7 @@ export default class EVMUniswap {
             let pairString = this.tokenList[tokens[firstToken]].address + '-' + this.tokenList[tokens[secondToken]].address;
             if (!this.zeroReservePairs.hasOwnProperty(pairString)){
               pairs.push(pairString);
-              pairAddressRequests.push(uni.Fetcher.fetchPairData(this.tokenList[tokens[firstToken]], this.tokenList[tokens[secondToken]], this.provider));
+              pairAddressRequests.push(Fetcher.fetchPairData(this.tokenList[tokens[firstToken]], this.tokenList[tokens[secondToken]], this.provider));
             }
           }
           catch(err) {
@@ -121,7 +123,7 @@ export default class EVMUniswap {
     await this.extend_update_pairs([tokenIn, tokenOut]);
     const tIn = this.tokenList[tokenIn];
     const tOut = this.tokenList[tokenOut];
-    const tokenAmountIn = new uni.TokenAmount(tIn, ethers.utils.parseUnits(tokenInAmount, tIn.decimals));
+    const tokenAmountIn = new uniCore.TokenAmount(tIn, ethers.utils.parseUnits(tokenInAmount, tIn.decimals));
     if (this.pairs.length === 0){
       const route = await this.fetch_route(tIn, tOut);
       const trade = uni.Trade.exactIn(route, tokenAmountIn);
@@ -143,7 +145,7 @@ export default class EVMUniswap {
     await this.extend_update_pairs([tokenIn, tokenOut]);
     const tOut = this.tokenList[tokenOut];
     const tIn = this.tokenList[tokenIn];
-    const tokenAmountOut = new uni.TokenAmount(tOut, ethers.utils.parseUnits(tokenOutAmount, tOut.decimals));
+    const tokenAmountOut = new uniCore.TokenAmount(tOut, ethers.utils.parseUnits(tokenOutAmount, tOut.decimals));
     if (this.pairs.length === 0){
       const route = await this.fetch_route(tIn, tOut);
       const trade = uni.Trade.exactOut(route, tokenAmountOut);

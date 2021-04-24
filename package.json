@@ -16,7 +16,7 @@
     "@perp/contract": "^1.0.6",
     "@terra-money/terra.js": "^0.5.8",
     "@uniswap/sdk": "^3.0.3",
-    "uniswap-xdai-sdk": "https://github.com/thebaoman/xdai-sdk#2d5766d500ea7e84f549f7c42b876d75efecbb87",
+    "@uniswap/v2-sdk": "^1.0.7",
     "app-root-path": "^3.0.0",
     "axios": "^0.21.1",
     "bignumber.js": "^9.0.0",
