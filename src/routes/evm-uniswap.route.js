@@ -15,7 +15,7 @@ const uniswap = new EVMUniswap(process.env.EVM_CHAIN)
 const eth = new EVM(process.env.EVM_CHAIN)
 uniswap.generate_tokens()
 setTimeout(uniswap.update_pairs.bind(uniswap), 2000)
-const fees = new Fees()
+const fees = new Fees(process.env.EVM_MANUAL_GAS_PRICE)
 
 const swapMoreThanMaxPriceError = 'Price too high'
 const swapLessThanMaxPriceError = 'Price too low'

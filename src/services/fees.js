@@ -15,7 +15,8 @@ const defaultRefreshInterval = 120
 const denom = BigNumber('1e+9')
 
 export default class Fees {
-  constructor () {
+  constructor (manualGas = process.env.MANUAL_GAS_PRICE) {
+    this.ethManualGasPrice = parseInt(manualGas)
     this.ethGasStationGasLevel = process.env.ETH_GAS_STATION_GAS_LEVEL
     this.ethGasStationRefreshTime = (process.env.ETH_GAS_STATION_REFRESH_TIME || defaultRefreshInterval) * 1000
     this.getETHGasStationFee(this.ethGasStationGasLevel, 0)
@@ -30,7 +31,7 @@ export default class Fees {
         this.ethGasPrice = response.data[gasLevel] / 10
         console.log(`get ETHGasStation gas price (${gasLevel}): ${this.ethGasPrice} / interval: ${this.ethGasStationRefreshTime / 1000} sec`)  
       } else {
-        this.ethGasPrice = ethManualGasPrice
+        this.ethGasPrice = this.ethManualGasPrice
         console.log(`get manual fixed gas price: ${this.ethGasPrice} / interval: ${this.ethGasStationRefreshTime / 1000} sec`)  
       }
     } catch (err) {
