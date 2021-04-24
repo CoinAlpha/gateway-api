@@ -24,4 +24,8 @@
   {"address": "0xFAdc59D012Ba3c110B08A15B7755A5cb7Cbe77D7", "name": "TheGraph", "symbol": "GRT", "decimals": 18},
   {"address": "0xD3D47d5578e55C880505dC40648F7F9307C3e7A8", "name": "DPI", "symbol": "DIP", "decimals": 18},
   {"address": "0xDF613aF6B44a31299E48131e9347F034347E2F00", "name": "AAVE", "symbol": "AAVE", "decimals": 18}
+], "bsc": [
+  {"address": "0x47DcC83a14aD53Ed1f13d3CaE8AA4115f07557C0", "name": "PNDA", "symbol": "PNDA", "decimals": 18},
+  {"address": "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3", "name": "DAI", "symbol": "DAI", "decimals": 18},
+  {"address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", "name": "USDC", "symbol": "USDC", "decimals": 6}
 ]}
