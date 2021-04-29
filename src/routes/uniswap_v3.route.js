@@ -13,12 +13,11 @@ const debug = require('debug')('router')
 const router = express.Router()
 const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 const uniswap = new UniswapV3(process.env.ETHEREUM_CHAIN)
-// uniswap.generate_tokens()
-// setTimeout(uniswap.update_pairs.bind(uniswap), 2000)
+
 const fees = new Fees()
 
-const swapMoreThanMaxPriceError = 'Price too high'
-const swapLessThanMaxPriceError = 'Price too low'
+//const swapMoreThanMaxPriceError = 'Price too high'
+//const swapLessThanMaxPriceError = 'Price too low'
 
 const estimateGasLimit = () => {
   return uniswap.gasLimit
@@ -56,7 +55,7 @@ router.post('/', async (req, res) => {
 
 router.post('/gas-limit', async (req, res) => {
   /*
-    POST: /buy-price
+    POST: /gas-limit
   */
   const gasLimit = estimateGasLimit()
 
@@ -77,74 +76,40 @@ router.post('/gas-limit', async (req, res) => {
   }
 })
 
-router.get('/start', async (req, res) => {
+router.get('/result', async (req, res) => {
   /*
-    POST: /eth/uniswap/start
+    POST: /eth/uniswap/v3/result
       x-www-form-urlencoded: {
-        "pairs":"[ETH-USDT, ...]"
-        "gasPrice":30
+        "logs":"[...]"
       }
   */
   const initTime = Date.now()
   const paramData = getParamData(req.query)
-  const pairs = JSON.parse(paramData.pairs)
-  let gasPrice
-  if (paramData.gasPrice) {
-    gasPrice = parseFloat(paramData.gasPrice)
-  } else {
-    gasPrice = fees.ethGasPrice
-  }
-
-  // get token contract address and cache paths
-  for (let pair of pairs){
-    pair = pair.split("-")
-    const baseTokenSymbol = pair[0]
-    const quoteTokenSymbol = pair[1]
-    const baseTokenContractInfo = eth.getERC20TokenAddresses(baseTokenSymbol)
-    const quoteTokenContractInfo = eth.getERC20TokenAddresses(quoteTokenSymbol)
-
-    // check for valid token symbols
-    if (baseTokenContractInfo === undefined || quoteTokenContractInfo === undefined) {
-      const undefinedToken = baseTokenContractInfo === undefined ? baseTokenSymbol : quoteTokenSymbol
-      res.status(500).json({
-        error: `Token ${undefinedToken} contract address not found`,
-        message: `Token contract address not found for ${undefinedToken}. Check token list source`,
-      })
-      return
-    }
-    await Promise.allSettled([uniswap.extend_update_pairs([baseTokenContractInfo.address, quoteTokenContractInfo.address])])
-  }
-
-  const gasLimit = estimateGasLimit()
-  const gasCost = await fees.getGasCost(gasPrice, gasLimit)
-
+  const logs = JSON.parse(paramData.logs)
 
   const result = {
     network: eth.network,
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
-    success: true,
-    pairs: pairs,
-    gasPrice: gasPrice,
-    gasLimit: gasLimit,
-    gasCost: gasCost,
+    info: uniswap.abiDecoder.decodeLogs(logs)
   }
   res.status(200).json(result)
 })
 
 router.post('/trade', async (req, res) => {
-  /*
+/*
       POST: /trade
       x-www-form-urlencoded: {
         "quote":"BAT"
         "base":"DAI"
         "amount":0.1
         "limitPrice":1
+        "tier": {low|medium|high}
         "gasPrice":10
         "privateKey":{{privateKey}}
         "side":{buy|sell}
       }
-  */
+*/
   const initTime = Date.now()
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body)
@@ -157,11 +122,12 @@ router.post('/trade', async (req, res) => {
   const baseTokenAddress = baseTokenContractInfo.address
   const quoteTokenAddress = quoteTokenContractInfo.address
   const side = paramData.side.toUpperCase()
+  const tier = paramData.tier.toUpperCase()
 
   let limitPrice
   if (paramData.limitPrice) {
     limitPrice = parseFloat(paramData.limitPrice)
-  }
+  } else { limitPrice = 0}
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
@@ -172,30 +138,18 @@ router.post('/trade', async (req, res) => {
   const gasCost = await fees.getGasCost(gasPrice, gasLimit)
 
   try {
-    // fetch the optimal pool mix from uniswap
-    const { trade, expectedAmount } = side === 'BUY'
-      ? await uniswap.priceSwapOut(
-        quoteTokenAddress,    // tokenIn is quote asset
-        baseTokenAddress,     // tokenOut is base asset
-        amount
-      )
-      : await uniswap.priceSwapIn(
-        baseTokenAddress,     // tokenIn is base asset
-        quoteTokenAddress,    // tokenOut is quote asset
-        amount
-      )
-
     if (side === 'BUY') {
-      const price = trade.executionPrice.invert().toSignificant(8)
-      logger.info(`uniswap.route - Price: ${price.toString()}`)
-      if (!limitPrice || price <= limitPrice) {
-        // pass swaps to exchange-proxy to complete trade
         const tx = await uniswap.swapExactOut(
           wallet,
-          trade,
-          baseTokenAddress,
-          gasPrice,
+          baseTokenContractInfo,    // tokenIn is quote asset
+          quoteTokenContractInfo,     // tokenOut is base asset
+          amount,
+          limitPrice,
+          tier,
+          gasPrice
         )
+        console.log(tx)
+        console.log(tx.expectedAmount)
         // submit response
         res.status(200).json({
           network: uniswap.network,
@@ -204,32 +158,26 @@ router.post('/trade', async (req, res) => {
           base: baseTokenAddress,
           quote: quoteTokenAddress,
           amount: amount,
-          expectedIn: expectedAmount.toSignificant(8),
-          price: price,
+          expectedIn: tx.expectedAmount,
+          price: limitPrice,
           gasPrice: gasPrice,
-          gasLimit, gasLimit,
-          gasCost, gasCost,
-          txHash: tx.hash,
+          gasLimit: gasLimit,
+          gasCost: gasCost,
+          txHash: tx.hash
         })
-      } else {
-        res.status(200).json({
-          error: swapMoreThanMaxPriceError,
-          message: `Swap price ${price} exceeds limitPrice ${limitPrice}`
-        })
-        logger.info(`uniswap.route - Swap price ${price} exceeds limitPrice ${limitPrice}`)
-      }
+
     } else {
       // sell
-      const price = trade.executionPrice.toSignificant(8)
-      logger.info(`Price: ${price.toString()}`)
-      if (!limitPrice || price >= limitPrice) {
-        // pass swaps to exchange-proxy to complete trade
         const tx = await uniswap.swapExactIn(
           wallet,
-          trade,
-          baseTokenAddress,
-          gasPrice,
+          baseTokenContractInfo,    // tokenIn is quote asset
+          quoteTokenContractInfo,     // tokenOut is base asset
+          amount,
+          limitPrice,
+          tier,
+          gasPrice
         )
+
         // submit response
         res.status(200).json({
           network: uniswap.network,
@@ -238,20 +186,13 @@ router.post('/trade', async (req, res) => {
           base: baseTokenAddress,
           quote: quoteTokenAddress,
           amount: parseFloat(paramData.amount),
-          expectedOut: expectedAmount.toSignificant(8),
-          price: parseFloat(price),
+          expectedOut: tx.expectedAmount,
+          price: limitPrice,
           gasPrice: gasPrice,
-          gasLimit, gasLimit,
+          gasLimit: gasLimit,
           gasCost: gasCost,
           txHash: tx.hash,
         })
-      } else {
-        res.status(200).json({
-          error: swapLessThanMaxPriceError,
-          message: `Swap price ${price} lower than limitPrice ${limitPrice}`
-        })
-        logger.info(`uniswap.route - Swap price ${price} lower than limitPrice ${limitPrice}`)
-      }
     }
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
@@ -270,19 +211,20 @@ router.post('/price', async (req, res) => {
       x-www-form-urlencoded: {
         "quote":"BAT"
         "base":"DAI"
-        "amount":1
       }
-  */
+      */
   const initTime = Date.now()
   // params: base (required), quote (required), amount (required)
   const paramData = getParamData(req.body)
-  const amount = paramData.amount
+  const privateKey = paramData.privateKey
+  const wallet = new ethers.Wallet(privateKey, uniswap.provider)
 
   const baseTokenContractInfo = eth.getERC20TokenAddresses(paramData.base)
   const quoteTokenContractInfo = eth.getERC20TokenAddresses(paramData.quote)
   const baseTokenAddress = baseTokenContractInfo.address
   const quoteTokenAddress = quoteTokenContractInfo.address
-  const side = paramData.side.toUpperCase()
+
+  //const side = paramData.side.toUpperCase() // not used for now
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
@@ -294,50 +236,22 @@ router.post('/price', async (req, res) => {
 
 
   try {
-    // fetch the optimal pool mix from uniswap
-    const { trade, expectedAmount } = side === 'BUY'
-      ? await uniswap.priceSwapOut(
-        quoteTokenAddress,    // tokenIn is quote asset
-        baseTokenAddress,     // tokenOut is base asset
-        amount
-      )
-      : await uniswap.priceSwapIn(
-        baseTokenAddress,     // tokenIn is base asset
-        quoteTokenAddress,    // tokenOut is quote asset
-        amount
-      )
+    // fetch pools for all tiers
+    const prices = await uniswap.currentPrice(wallet, baseTokenAddress, quoteTokenAddress)
 
-    if (trade !== null && expectedAmount !== null) {
-      const price = side === 'BUY'
-        ? trade.executionPrice.invert().toSignificant(8)
-        : trade.executionPrice.toSignificant(8)
-
-      const tradeAmount = parseFloat(amount)
-      const expectedTradeAmount = parseFloat(expectedAmount.toSignificant(8))
-      const tradePrice = parseFloat(price)
-
-      const result = {
-        network: uniswap.network,
-        timestamp: initTime,
-        latency: latency(initTime, Date.now()),
-        base: baseTokenAddress,
-        quote: quoteTokenAddress,
-        amount: tradeAmount,
-        expectedAmount: expectedTradeAmount,
-        price: tradePrice,
-        gasPrice: gasPrice,
-        gasLimit: gasLimit,
-        gasCost: gasCost,
-        trade: trade,
-      }
-      debug(`Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`)
-      res.status(200).json(result)
-    } else { // no pool available
-      res.status(200).json({
-        info: statusMessages.no_pool_available,
-        message: ''
-      })
+    const result = {
+      network: uniswap.network,
+      timestamp: initTime,
+      latency: latency(initTime, Date.now()),
+      base: baseTokenAddress,
+      quote: quoteTokenAddress,
+      prices: prices,
+      gasPrice: gasPrice,
+      gasLimit: gasLimit,
+      gasCost: gasCost,
     }
+    debug(`Mid Price ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | (rate:${JSON.stringify(prices)}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`)
+    res.status(200).json(result)
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
@@ -420,8 +334,6 @@ router.post('/add-position', async (req, res) => {
 
   const baseTokenContractInfo = eth.getERC20TokenAddresses(paramData.token0)
   const quoteTokenContractInfo = eth.getERC20TokenAddresses(paramData.token1)
-  const baseTokenAddress = baseTokenContractInfo.address
-  const quoteTokenAddress = quoteTokenContractInfo.address
   const fee = paramData.fee
   const tickLower = paramData.tickLower
   const tickUpper = paramData.tickUpper
@@ -440,26 +352,25 @@ router.post('/add-position', async (req, res) => {
 
   try {
     // add position to pool
-    const newPosition = await uniswap.addPosition(wallet, baseTokenAddress, quoteTokenAddress, amount0, amount1, fee, tickLower, tickUpper);
+    const newPosition = await uniswap.addPosition(wallet, baseTokenContractInfo, quoteTokenContractInfo, amount0, amount1, fee, tickLower, tickUpper);
 
     const result = {
       network: uniswap.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      token0: token0,
-      token1: token1,
+      token0: paramData.token0,
+      token1: paramData.token1,
       fee: fee,
-      amount0: newPosition.amount0,
-      amount1: newPosition.amount1,
+      amount0: amount0,
+      amount1: amount1,
       tickLower: tickLower,
       tickUpper: tickUpper,
-      tokenId: newPosition.tokenId,
-      liquidity: newPosition.liquidity,
+      hash: newPosition.hash,
       gasPrice: gasPrice,
       gasLimit: gasLimit,
       gasCost: gasCost
     }
-    debug(`New Position: ${newPosition}`)
+    debug(`New Position: ${newPosition.hash}`)
     res.status(200).json(result)
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
@@ -474,22 +385,16 @@ router.post('/remove-position', async (req, res) => {
   /*
     POST: /position
       x-www-form-urlencoded: {
-        "quote":"BAT"
-        "base":"DAI"
-        "amount":1
+        "tokenId":"12"
       }
   */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, uniswap.provider)
-  const amount = paramData.amount
+  const tokenId = paramData.tokenId
 
-  const baseTokenContractInfo = eth.getERC20TokenAddresses(paramData.base)
-  const quoteTokenContractInfo = eth.getERC20TokenAddresses(paramData.quote)
-  const baseTokenAddress = baseTokenContractInfo.address
-  const quoteTokenAddress = quoteTokenContractInfo.address
-  const side = paramData.side.toUpperCase()
+
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
@@ -501,69 +406,24 @@ router.post('/remove-position', async (req, res) => {
 
 
   try {
-    // fetch the optimal pool mix from uniswap
-    const { trade, expectedAmount } = side === 'BUY'
-      ? await uniswap.priceSwapOut(
-        quoteTokenAddress,    // tokenIn is quote asset
-        baseTokenAddress,     // tokenOut is base asset
-        amount
-      )
-      : await uniswap.priceSwapIn(
-        baseTokenAddress,     // tokenIn is base asset
-        quoteTokenAddress,    // tokenOut is quote asset
-        amount
-      )
-
-    if (trade !== null && expectedAmount !== null) {
-      const price = side === 'BUY'
-        ? trade.executionPrice.invert().toSignificant(8)
-        : trade.executionPrice.toSignificant(8)
-
-      const tradeAmount = parseFloat(amount)
-      const expectedTradeAmount = parseFloat(expectedAmount.toSignificant(8))
-      const tradePrice = parseFloat(price)
+      const removelp = await uniswap.removePosition(wallet, tokenId)
 
       const result = {
         network: uniswap.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        base: baseTokenAddress,
-        quote: quoteTokenAddress,
-        amount: tradeAmount,
-        expectedAmount: expectedTradeAmount,
-        price: tradePrice,
+        hash: removelp.hash,
         gasPrice: gasPrice,
         gasLimit: gasLimit,
         gasCost: gasCost,
-        trade: trade,
       }
-      debug(`Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`)
+      debug(`Remove lp: ${removelp.hash}`)
       res.status(200).json(result)
-    } else { // no pool available
-      res.status(200).json({
-        info: statusMessages.no_pool_available,
-        message: ''
-      })
-    }
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
     let errCode = 500
-    if (Object.keys(err).includes('isInsufficientReservesError')) {
-      errCode = 200
-      reason = statusMessages.insufficient_reserves + ' in ' + side + ' at Uniswap'
-    } else if (Object.getOwnPropertyNames(err).includes('message')) {
-      reason = getErrorMessage(err.message)
-      if (reason === statusMessages.no_pool_available) {
-        errCode = 200
-        res.status(errCode).json({
-          info: reason,
-          message: err
-        })
-      }
-    } else {
-      err.reason ? reason = err.reason : reason = statusMessages.operation_error
-    }
+    err.reason ? reason = err.reason : reason = statusMessages.operation_error
     res.status(errCode).json({
       error: reason,
       message: err
@@ -575,7 +435,7 @@ router.post('/adjust-liquidity', async (req, res) => {
   /*
     POST: /position
       x-www-form-urlencoded: {
-        "action":"BUY"/"SELL"
+        "action":"INCREASE"/"DECREASE"
         "tokenId":"tokenId"
         "amount0": amount0
         "amount1": amount1
@@ -601,21 +461,24 @@ router.post('/adjust-liquidity', async (req, res) => {
 
 
   try {
-    // fetch the optimal pool mix from uniswap
-    const positionChange = uniswap.adjustLiquidity(wallet, action, tokenId, amount0, amount1);
+    const position = await uniswap.getPosition(wallet, tokenId)
+    const token0 = eth.getERC20TokenByAddress(position.token0)
+    const token1 = eth.getERC20TokenByAddress(position.token1)
+    const positionChange = await uniswap.adjustLiquidity(wallet, action, tokenId, token0, token1, amount0, amount1);
 
     const result = {
       network: uniswap.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
       tokenId: tokenId,
-      amount0: positionChange.amount0,
-      amount1: positionChange.amount1,
+      amount0: amount0,
+      amount1: amount1,
+      hash: positionChange.hash,
       gasPrice: gasPrice,
       gasLimit: gasLimit,
       gasCost: gasCost,
     }
-    debug(`Position change ${positionChange}`)
+    debug(`Position change ${positionChange.hash}`)
     res.status(200).json(result)
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
@@ -640,8 +503,6 @@ router.post('/collect-fees', async (req, res) => {
   const privateKey = paramData.privateKey
   const wallet = new ethers.Wallet(privateKey, uniswap.provider)
   const tokenId = paramData.tokenId
-  const amount0 = paramData.amount0
-  const amount1 = paramData.amount1
 
   let gasPrice
   if (paramData.gasPrice) {
@@ -655,20 +516,19 @@ router.post('/collect-fees', async (req, res) => {
 
   try {
     // withdraw fees
-    const collect = uniswap.collectFees (wallet, tokenId, amount0, amount1);
+    const collect = await uniswap.collectFees(wallet, tokenId);
 
     const result = {
       network: uniswap.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
       tokenId: tokenId,
-      amount0: collect.amount0,
-      amount1: collect.amount1,
+      hash: collect.hash,
       gasPrice: gasPrice,
       gasLimit: gasLimit,
       gasCost: gasCost,
     }
-    debug(`Fees: ${collect}`)
+    debug(`Fees: ${collect.hash}`)
     res.status(200).json(result)
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
@@ -678,4 +538,5 @@ router.post('/collect-fees', async (req, res) => {
     })
   }
 })
+
 export default router;

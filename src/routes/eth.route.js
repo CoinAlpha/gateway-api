@@ -11,7 +11,9 @@ const router = express.Router()
 const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 const spenders = {
   balancer: process.env.EXCHANGE_PROXY,
-  uniswap: process.env.UNISWAP_ROUTER
+  uniswap: process.env.UNISWAP_ROUTER,
+  uniswapV3Router: process.env.UNISWAP_V3_ROUTER,
+  uniswapV3NFTManager: process.env.UNISWAP_V3_NFT_MANAGER
 }
 const fees = new Fees()
 
@@ -350,6 +352,7 @@ router.post('/poll', async (req, res) => {
   const paramData = getParamData(req.body)
   const txHash = paramData.txHash
   const txReceipt = await eth.provider.getTransactionReceipt(txHash)
+  console.log(txReceipt)
   const receipt = {}
   const confirmed = txReceipt && txReceipt.blockNumber ? true : false
   if (confirmed) {
@@ -357,6 +360,7 @@ router.post('/poll', async (req, res) => {
     receipt.blockNumber = txReceipt.blockNumber
     receipt.confirmations = txReceipt.confirmations
     receipt.status = txReceipt.status
+    receipt.logs = txReceipt.logs
   }
   logger.info(`eth.route - Get TX Receipt: ${txHash}`, { message: JSON.stringify(receipt) })
   res.status(200).json({
