@@ -15,7 +15,7 @@ import ethRoutes from './routes/eth.route'
 import evmRoutes from './routes/evm.route'
 import terraRoutes from './routes/terra.route'
 import uniswapRoutes from './routes/uniswap.route'
-import evmUniswapRoutes from './routes/evm-uniswap.route'
+import makeEvmUniswapRoutes from './routes/evm-uniswap.route'
 import perpFiRoutes from './routes/perpetual_finance.route'
 
 // terminate if environment not found
@@ -48,7 +48,8 @@ app.use('/eth', ethRoutes);
 app.use('/eth/uniswap', uniswapRoutes);
 app.use('/eth/balancer', balancerRoutes);
 app.use('/evm', evmRoutes);
-app.use('/evm/uniswap', evmUniswapRoutes);
+app.use('/evm/uniswap/0', makeEvmUniswapRoutes('0'));
+app.use('/evm/uniswap/1', makeEvmUniswapRoutes('1'));
 app.use('/terra', terraRoutes);
 app.use('/perpfi', perpFiRoutes);
 // app.use('/celo', celoRoutes);
