@@ -1,0 +1,1 @@
+class FeesError extends Error {}

@@ -1,0 +1,1 @@
+class PerpetualFinanceError extends Error {}

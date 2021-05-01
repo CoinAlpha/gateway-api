@@ -1,0 +1,1 @@
+class EthereumError extends Error {}

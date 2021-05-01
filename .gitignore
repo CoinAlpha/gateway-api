@@ -28,3 +28,6 @@ logs/
 *.srl
 *.key
 *.crt
+
+# Tests coverege
+coverage
