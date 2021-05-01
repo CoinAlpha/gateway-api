@@ -1,13 +1,18 @@
 'use strict'
 
 import express from 'express'
-import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
-import { logger } from '../services/logger';
+import {
+  getParamData,
+  latency,
+  reportConnectionError,
+  statusMessages
+} from '../services/utils'
+import { logger } from '../services/logger'
 
-import Terra from '../services/terra';
+import Terra from '../services/terra'
 
 const debug = require('debug')('router')
-const router = express.Router();
+const router = express.Router()
 const terra = new Terra()
 
 // constants
@@ -41,7 +46,7 @@ router.post('/balances', async (req, res) => {
   let balances = {}
 
   try {
-    await terra.lcd.bank.balance(address).then(bal => {
+    await terra.lcd.bank.balance(address).then((bal) => {
       bal.toArray().forEach(async (x) => {
         const item = x.toData()
         const denom = item.denom
@@ -55,13 +60,15 @@ router.post('/balances', async (req, res) => {
       network: network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      balances: balances,
+      balances: balances
     })
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let message
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     const isAxiosError = err.isAxiosError
     if (isAxiosError) {
       reason = err.response.status
@@ -96,7 +103,7 @@ router.post('/start', async (req, res) => {
     latency: latency(initTime, Date.now()),
     success: true,
     base: baseTokenSymbol,
-    quote: quoteTokenSymbol,
+    quote: quoteTokenSymbol
   }
   res.status(200).json(result)
 })
@@ -122,31 +129,34 @@ router.post('/price', async (req, res) => {
   let exchangeRate
 
   try {
-    await terra.getSwapRate(baseToken, quoteToken, amount, tradeType).then((rate) => {
-      exchangeRate = rate
-    }).catch((err) => {
-      reportConnectionError(res, err)
-    })
+    await terra
+      .getSwapRate(baseToken, quoteToken, amount, tradeType)
+      .then((rate) => {
+        exchangeRate = rate
+      })
+      .catch((err) => {
+        reportConnectionError(res, err)
+      })
 
-    res.status(200).json(
-      {
-        network: network,
-        timestamp: initTime,
-        latency: latency(initTime, Date.now()),
-        base: baseToken,
-        quote: quoteToken,
-        amount: amount,
-        tradeType: tradeType,
-        price: exchangeRate.price.amount,
-        cost: exchangeRate.cost.amount,
-        txFee: exchangeRate.txFee.amount,
-      }
-    )
+    res.status(200).json({
+      network: network,
+      timestamp: initTime,
+      latency: latency(initTime, Date.now()),
+      base: baseToken,
+      quote: quoteToken,
+      amount: amount,
+      tradeType: tradeType,
+      price: exchangeRate.price.amount,
+      cost: exchangeRate.cost.amount,
+      txFee: exchangeRate.txFee.amount
+    })
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let message
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     const isAxiosError = err.isAxiosError
     if (isAxiosError) {
       reason = err.response.status
@@ -179,18 +189,31 @@ router.post('/trade', async (req, res) => {
   const quoteToken = paramData.quote
   const tradeType = paramData.side.toUpperCase()
   const amount = parseFloat(paramData.amount)
-  const gasPrice = parseFloat(paramData.gas_price) || terra.lcd.config.gasPrices.uluna
-  const gasAdjustment = paramData.gas_adjustment || terra.lcd.config.gasAdjustment
+  const gasPrice =
+    parseFloat(paramData.gas_price) || terra.lcd.config.gasPrices.uluna
+  const gasAdjustment =
+    paramData.gas_adjustment || terra.lcd.config.gasAdjustment
   const secret = paramData.privateKey
 
   let tokenSwaps
 
   try {
-    await terra.swapTokens(baseToken, quoteToken, amount, tradeType, gasPrice, gasAdjustment, secret).then((swap) => {
-      tokenSwaps = swap
-    }).catch((err) => {
-      reportConnectionError(res, err)
-    })
+    await terra
+      .swapTokens(
+        baseToken,
+        quoteToken,
+        amount,
+        tradeType,
+        gasPrice,
+        gasAdjustment,
+        secret
+      )
+      .then((swap) => {
+        tokenSwaps = swap
+      })
+      .catch((err) => {
+        reportConnectionError(res, err)
+      })
 
     const swapResult = {
       network: network,
@@ -199,18 +222,20 @@ router.post('/trade', async (req, res) => {
       base: baseToken,
       tradeType: tradeType,
       quote: quoteToken,
-      amount: amount,
+      amount: amount
     }
-    Object.assign(swapResult, tokenSwaps);
-    logger.info(`terra.route - ${tradeType}: ${baseToken}-${quoteToken} - Amount: ${amount}`)
-    res.status(200).json(
-      swapResult
+    Object.assign(swapResult, tokenSwaps)
+    logger.info(
+      `terra.route - ${tradeType}: ${baseToken}-${quoteToken} - Amount: ${amount}`
     )
+    res.status(200).json(swapResult)
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let message
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     const isAxiosError = err.isAxiosError
     if (isAxiosError) {
       reason = err.response.status
@@ -225,4 +250,4 @@ router.post('/trade', async (req, res) => {
   }
 })
 
-module.exports = router;
+module.exports = router

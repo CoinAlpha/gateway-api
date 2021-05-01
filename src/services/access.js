@@ -2,8 +2,8 @@
   middleware for validating mutual authentication access
 */
 
-import { logger } from './logger';
-import { statusMessages } from './utils';
+import { logger } from './logger'
+import { statusMessages } from './utils'
 const debug = require('debug')('router')
 
 export const validateAccess = (req, res, next) => {

@@ -1,11 +1,11 @@
-import { ethers } from 'ethers';
-import express from 'express';
+import { ethers } from 'ethers'
+import express from 'express'
 
-import { getParamData, latency, statusMessages } from '../services/utils';
-import { logger } from '../services/logger';
-import Ethereum from '../services/eth';
-import Uniswap from '../services/uniswap';
-import Fees from '../services/fees';
+import { getParamData, latency, statusMessages } from '../services/utils'
+import { logger } from '../services/logger'
+import Ethereum from '../services/eth'
+import Uniswap from '../services/uniswap'
+import Fees from '../services/fees'
 
 require('dotenv').config()
 
@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
     provider: uniswap.provider.connection.url,
     uniswap_router: uniswap.router,
     connection: true,
-    timestamp: Date.now(),
+    timestamp: Date.now()
   })
 })
 
@@ -64,12 +64,14 @@ router.post('/gas-limit', async (req, res) => {
     res.status(200).json({
       network: uniswap.network,
       gasLimit: gasLimit,
-      timestamp: Date.now(),
+      timestamp: Date.now()
     })
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
@@ -96,28 +98,36 @@ router.get('/start', async (req, res) => {
   }
 
   // get token contract address and cache paths
-  for (let pair of pairs){
-    pair = pair.split("-")
+  for (let pair of pairs) {
+    pair = pair.split('-')
     const baseTokenSymbol = pair[0]
     const quoteTokenSymbol = pair[1]
     const baseTokenContractInfo = eth.getERC20TokenAddresses(baseTokenSymbol)
     const quoteTokenContractInfo = eth.getERC20TokenAddresses(quoteTokenSymbol)
 
     // check for valid token symbols
-    if (baseTokenContractInfo === undefined || quoteTokenContractInfo === undefined) {
-      const undefinedToken = baseTokenContractInfo === undefined ? baseTokenSymbol : quoteTokenSymbol
+    if (
+      baseTokenContractInfo === undefined ||
+      quoteTokenContractInfo === undefined
+    ) {
+      const undefinedToken =
+        baseTokenContractInfo === undefined ? baseTokenSymbol : quoteTokenSymbol
       res.status(500).json({
         error: `Token ${undefinedToken} contract address not found`,
-        message: `Token contract address not found for ${undefinedToken}. Check token list source`,
+        message: `Token contract address not found for ${undefinedToken}. Check token list source`
       })
       return
     }
-    await Promise.allSettled([uniswap.extend_update_pairs([baseTokenContractInfo.address, quoteTokenContractInfo.address])])
+    await Promise.allSettled([
+      uniswap.extend_update_pairs([
+        baseTokenContractInfo.address,
+        quoteTokenContractInfo.address
+      ])
+    ])
   }
 
   const gasLimit = estimateGasLimit()
   const gasCost = await fees.getGasCost(gasPrice, gasLimit)
-
 
   const result = {
     network: eth.network,
@@ -127,7 +137,7 @@ router.get('/start', async (req, res) => {
     pairs: pairs,
     gasPrice: gasPrice,
     gasLimit: gasLimit,
-    gasCost: gasCost,
+    gasCost: gasCost
   }
   res.status(200).json(result)
 })
@@ -173,17 +183,18 @@ router.post('/trade', async (req, res) => {
 
   try {
     // fetch the optimal pool mix from uniswap
-    const { trade, expectedAmount } = side === 'BUY'
-      ? await uniswap.priceSwapOut(
-        quoteTokenAddress,    // tokenIn is quote asset
-        baseTokenAddress,     // tokenOut is base asset
-        amount
-      )
-      : await uniswap.priceSwapIn(
-        baseTokenAddress,     // tokenIn is base asset
-        quoteTokenAddress,    // tokenOut is quote asset
-        amount
-      )
+    const { trade, expectedAmount } =
+      side === 'BUY'
+        ? await uniswap.priceSwapOut(
+            quoteTokenAddress, // tokenIn is quote asset
+            baseTokenAddress, // tokenOut is base asset
+            amount
+          )
+        : await uniswap.priceSwapIn(
+            baseTokenAddress, // tokenIn is base asset
+            quoteTokenAddress, // tokenOut is quote asset
+            amount
+          )
 
     if (side === 'BUY') {
       const price = trade.executionPrice.invert().toSignificant(8)
@@ -194,7 +205,7 @@ router.post('/trade', async (req, res) => {
           wallet,
           trade,
           baseTokenAddress,
-          gasPrice,
+          gasPrice
         )
         // submit response
         res.status(200).json({
@@ -207,16 +218,20 @@ router.post('/trade', async (req, res) => {
           expectedIn: expectedAmount.toSignificant(8),
           price: price,
           gasPrice: gasPrice,
-          gasLimit, gasLimit,
-          gasCost, gasCost,
-          txHash: tx.hash,
+          gasLimit,
+          gasLimit,
+          gasCost,
+          gasCost,
+          txHash: tx.hash
         })
       } else {
         res.status(200).json({
           error: swapMoreThanMaxPriceError,
           message: `Swap price ${price} exceeds limitPrice ${limitPrice}`
         })
-        logger.info(`uniswap.route - Swap price ${price} exceeds limitPrice ${limitPrice}`)
+        logger.info(
+          `uniswap.route - Swap price ${price} exceeds limitPrice ${limitPrice}`
+        )
       }
     } else {
       // sell
@@ -228,7 +243,7 @@ router.post('/trade', async (req, res) => {
           wallet,
           trade,
           baseTokenAddress,
-          gasPrice,
+          gasPrice
         )
         // submit response
         res.status(200).json({
@@ -241,22 +256,27 @@ router.post('/trade', async (req, res) => {
           expectedOut: expectedAmount.toSignificant(8),
           price: parseFloat(price),
           gasPrice: gasPrice,
-          gasLimit, gasLimit,
+          gasLimit,
+          gasLimit,
           gasCost: gasCost,
-          txHash: tx.hash,
+          txHash: tx.hash
         })
       } else {
         res.status(200).json({
           error: swapLessThanMaxPriceError,
           message: `Swap price ${price} lower than limitPrice ${limitPrice}`
         })
-        logger.info(`uniswap.route - Swap price ${price} lower than limitPrice ${limitPrice}`)
+        logger.info(
+          `uniswap.route - Swap price ${price} lower than limitPrice ${limitPrice}`
+        )
       }
     }
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
@@ -292,25 +312,26 @@ router.post('/price', async (req, res) => {
   const gasLimit = estimateGasLimit()
   const gasCost = await fees.getGasCost(gasPrice, gasLimit)
 
-
   try {
     // fetch the optimal pool mix from uniswap
-    const { trade, expectedAmount } = side === 'BUY'
-      ? await uniswap.priceSwapOut(
-        quoteTokenAddress,    // tokenIn is quote asset
-        baseTokenAddress,     // tokenOut is base asset
-        amount
-      )
-      : await uniswap.priceSwapIn(
-        baseTokenAddress,     // tokenIn is base asset
-        quoteTokenAddress,    // tokenOut is quote asset
-        amount
-      )
+    const { trade, expectedAmount } =
+      side === 'BUY'
+        ? await uniswap.priceSwapOut(
+            quoteTokenAddress, // tokenIn is quote asset
+            baseTokenAddress, // tokenOut is base asset
+            amount
+          )
+        : await uniswap.priceSwapIn(
+            baseTokenAddress, // tokenIn is base asset
+            quoteTokenAddress, // tokenOut is quote asset
+            amount
+          )
 
     if (trade !== null && expectedAmount !== null) {
-      const price = side === 'BUY'
-        ? trade.executionPrice.invert().toSignificant(8)
-        : trade.executionPrice.toSignificant(8)
+      const price =
+        side === 'BUY'
+          ? trade.executionPrice.invert().toSignificant(8)
+          : trade.executionPrice.toSignificant(8)
 
       const tradeAmount = parseFloat(amount)
       const expectedTradeAmount = parseFloat(expectedAmount.toSignificant(8))
@@ -328,11 +349,14 @@ router.post('/price', async (req, res) => {
         gasPrice: gasPrice,
         gasLimit: gasLimit,
         gasCost: gasCost,
-        trade: trade,
+        trade: trade
       }
-      debug(`Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`)
+      debug(
+        `Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`
+      )
       res.status(200).json(result)
-    } else { // no pool available
+    } else {
+      // no pool available
       res.status(200).json({
         info: statusMessages.no_pool_available,
         message: ''
@@ -344,7 +368,8 @@ router.post('/price', async (req, res) => {
     let errCode = 500
     if (Object.keys(err).includes('isInsufficientReservesError')) {
       errCode = 200
-      reason = statusMessages.insufficient_reserves + ' in ' + side + ' at Uniswap'
+      reason =
+        statusMessages.insufficient_reserves + ' in ' + side + ' at Uniswap'
     } else if (Object.getOwnPropertyNames(err).includes('message')) {
       reason = getErrorMessage(err.message)
       if (reason === statusMessages.no_pool_available) {
@@ -355,7 +380,9 @@ router.post('/price', async (req, res) => {
         })
       }
     } else {
-      err.reason ? reason = err.reason : reason = statusMessages.operation_error
+      err.reason
+        ? (reason = err.reason)
+        : (reason = statusMessages.operation_error)
     }
     res.status(errCode).json({
       error: reason,
@@ -364,4 +391,4 @@ router.post('/price', async (req, res) => {
   }
 })
 
-export default router;
+export default router

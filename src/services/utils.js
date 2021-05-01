@@ -11,14 +11,16 @@ export const statusMessages = {
   no_pool_available: 'No Pool Available',
   invalid_token_symbol: 'Invalid Token Symbol',
   insufficient_reserves: 'Insufficient Liquidity Reserves',
-  page_not_found: 'Page not found. Invalid path',
+  page_not_found: 'Page not found. Invalid path'
 }
 
-export const latency = (startTime, endTime) => parseFloat((endTime - startTime) / 1000)
+export const latency = (startTime, endTime) =>
+  parseFloat((endTime - startTime) / 1000)
 
 export const isValidParams = (params) => {
   const values = Object.values(params)
-  for (let i = 0; i < values.length; i++) { // DO NOT use forEach, it returns callback without breaking the loop
+  for (let i = 0; i < values.length; i++) {
+    // DO NOT use forEach, it returns callback without breaking the loop
     if (typeof values[i] === 'undefined') {
       throw new Error('Invalid input params')
     }
@@ -27,7 +29,11 @@ export const isValidParams = (params) => {
 }
 
 export const isValidData = (data, format) => {
-  if (typeof data !== 'undefined' && Object.keys(data).length !== 0 && lodash.isEqual(Object.keys(data).sort(), format.sort())) {
+  if (
+    typeof data !== 'undefined' &&
+    Object.keys(data).length !== 0 &&
+    lodash.isEqual(Object.keys(data).sort(), format.sort())
+  ) {
     return true
   }
   return false
@@ -66,16 +72,16 @@ export const getSymbols = (tradingPair) => {
 export const reportConnectionError = (res, error) => {
   res.json({
     error: error.errno,
-    code: error.code,
+    code: error.code
   })
 }
 
-export const strToDecimal = (str) => parseInt(str) / 100;
+export const strToDecimal = (str) => parseInt(str) / 100
 
 export const getHummingbotMemo = () => {
   const prefix = 'hbot'
   const clientId = process.env.HUMMINGBOT_INSTANCE_ID
-  if ((typeof clientId !== 'undefined' && clientId != null) && clientId !== '') {
+  if (typeof clientId !== 'undefined' && clientId != null && clientId !== '') {
     return [prefix, clientId].join('-')
   }
   return prefix
@@ -87,12 +93,24 @@ export const loadConfig = () => {
     ethereum_chain: process.env.ETHEREUM_CHAIN,
     exchange_proxy: process.env.EXCHANGE_PROXY,
     ethereum_token_list_url: process.env.ETHEREUM_TOKEN_LIST_URL,
-    enable_eth_gas_station: process.env.ENABLE_ETH_GAS_STATION != null ? (process.env.ENABLE_ETH_GAS_STATION.toLowerCase() == 'true') : false,
+    enable_eth_gas_station:
+      process.env.ENABLE_ETH_GAS_STATION != null
+        ? process.env.ENABLE_ETH_GAS_STATION.toLowerCase() == 'true'
+        : false,
     eth_gas_station_gas_level: process.env.ETH_GAS_STATION_GAS_LEVEL,
-    eth_gas_station_refresh_time: process.env.ETH_GAS_STATION_REFRESH_TIME != null ? parseFloat(process.env.ETH_GAS_STATION_REFRESH_TIME) : null,
-    manual_gas_price: process.env.MANUAL_GAS_PRICE != null ? parseFloat(process.env.MANUAL_GAS_PRICE) : null,
+    eth_gas_station_refresh_time:
+      process.env.ETH_GAS_STATION_REFRESH_TIME != null
+        ? parseFloat(process.env.ETH_GAS_STATION_REFRESH_TIME)
+        : null,
+    manual_gas_price:
+      process.env.MANUAL_GAS_PRICE != null
+        ? parseFloat(process.env.MANUAL_GAS_PRICE)
+        : null,
     react_app_subgraph_url: process.env.REACT_APP_SUBGRAPH_URL,
-    balancer_max_swaps: process.env.BALANCER_MAX_SWAPS != null ? parseInt(process.env.BALANCER_MAX_SWAPS) : null,
+    balancer_max_swaps:
+      process.env.BALANCER_MAX_SWAPS != null
+        ? parseInt(process.env.BALANCER_MAX_SWAPS)
+        : null,
     uniswap_router: process.env.UNISWAP_ROUTER,
     terra_lcd_url: process.env.TERRA_LCD_URL,
     terra_chain: process.env.TERRA_CHAIN
@@ -103,8 +121,15 @@ export const loadConfig = () => {
 export const getLocalDate = () => {
   const gmtOffset = process.env.GMT_OFFSET
   let newDate = moment().format('YYYY-MM-DD hh:mm:ss').trim()
-  if (typeof gmtOffset !== 'undefined' && gmtOffset !== null && gmtOffset !== '') {
-    newDate = moment().utcOffset(gmtOffset, false).format('YYYY-MM-DD hh:mm:ss').trim()
+  if (
+    typeof gmtOffset !== 'undefined' &&
+    gmtOffset !== null &&
+    gmtOffset !== ''
+  ) {
+    newDate = moment()
+      .utcOffset(gmtOffset, false)
+      .format('YYYY-MM-DD hh:mm:ss')
+      .trim()
   }
   return newDate
 }

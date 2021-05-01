@@ -2,7 +2,7 @@
 
 const express = require('express')
 const router = express.Router()
-const BigNumber = require('bignumber.js');
+const BigNumber = require('bignumber.js')
 const debug = require('debug')('router')
 const spawn = require('child_process').spawn
 
@@ -27,21 +27,22 @@ router.get('/status', (req, res) => {
     return if the celocli ultralight node is synced
   */
 
-  const nodeSync = spawn(celocli, ['node:synced']);
+  const nodeSync = spawn(celocli, ['node:synced'])
 
-  let err_message = [], out_message = []
+  let err_message = [],
+    out_message = []
 
-  nodeSync.stdout.on( 'data', out => {
+  nodeSync.stdout.on('data', (out) => {
     out_message.push(out.toString().trim())
     debug('out_message', out_message)
   })
 
-  nodeSync.stderr.on( 'data', err => {
+  nodeSync.stderr.on('data', (err) => {
     err_message.push(err.toString().trim())
     debug('err_message', err_message)
   })
 
-  nodeSync.on( 'close', code => {
+  nodeSync.on('close', (code) => {
     if (code === 0) {
       res.status(200).json({
         synced: out_message[0].toLowerCase() === 'true',
@@ -54,7 +55,6 @@ router.get('/status', (req, res) => {
     }
   })
 })
-
 
 router.get('/price', (req, res) => {
   /*
@@ -73,20 +73,20 @@ router.get('/price', (req, res) => {
   debug('params', req.params)
   debug('paramData', paramData)
 
-  const nodeSync = spawn(celocli, ["exchange:show", "--amount", amount]);
+  const nodeSync = spawn(celocli, ['exchange:show', '--amount', amount])
 
-  let err_message = [], out_message = []
+  let err_message = [],
+    out_message = []
 
-  nodeSync.stdout.on( 'data', out => {
+  nodeSync.stdout.on('data', (out) => {
     out_message.push(out.toString().trim())
   })
 
-  nodeSync.stderr.on( 'data', err => {
+  nodeSync.stderr.on('data', (err) => {
     err_message.push(err.toString().trim())
   })
 
-  nodeSync.on( 'close', code => {
-
+  nodeSync.on('close', (code) => {
     let exchange_rates = {}
     let price
 
@@ -98,23 +98,21 @@ router.get('/price', (req, res) => {
           let base = exchangeInfo[0].trim().split(' ')
           let quote = exchangeInfo[1].trim().split(' ')
           let market = [base[1].toUpperCase(), quote[1].toUpperCase()].join('-')
-          exchange_rates[market] = quote[0]/DENOM_UNIT_MULTIPLIER
-          debug (exchangeInfo, exchange_rates)
+          exchange_rates[market] = quote[0] / DENOM_UNIT_MULTIPLIER
+          debug(exchangeInfo, exchange_rates)
         }
       })
 
       price = exchange_rates[tradingPair]
 
       const result = Object.assign(paramData, {
-          price: price,
-          timestamp: initTime,
-          latency: hbUtils.latency(initTime, Date.now()),
-        }
-      )
+        price: price,
+        timestamp: initTime,
+        latency: hbUtils.latency(initTime, Date.now())
+      })
       res.status(200).json(result)
     }
   })
-
 })
 
 router.get('/balance', (req, res) => {
@@ -127,32 +125,36 @@ router.get('/balance', (req, res) => {
   const address = paramData.address
   debug(paramData)
 
-  const balance = spawn(celocli, ["account:balance", address]);
+  const balance = spawn(celocli, ['account:balance', address])
 
-  let err_message = [], out_message = []
+  let err_message = [],
+    out_message = []
   let walletBalances = {}
 
-  balance.stdout.on( 'data', out => {
+  balance.stdout.on('data', (out) => {
     out_message.push(out.toString().trim())
     debug(out_message)
   })
 
-  balance.stderr.on( 'data', err => {
+  balance.stderr.on('data', (err) => {
     err_message.push(err.toString().trim())
     debug(err_message)
   })
 
-  balance.on( 'close', code => {
+  balance.on('close', (code) => {
     if (code === 0) {
       out_message.forEach((item, index) => {
         // key indicator in balance result: "celo", "gold", "lockedcelo", "lockedgold", "usd", "pending"
-        if (item.toLowerCase().includes( "lockedcelo") || item.toLowerCase().includes("lockedgold")) {
+        if (
+          item.toLowerCase().includes('lockedcelo') ||
+          item.toLowerCase().includes('lockedgold')
+        ) {
           let balanceArray = item.split('\n')
           balanceArray.forEach((x) => {
-              let keyValue = x.split(':')
-              walletBalances[keyValue[0].trim()] = keyValue[1].trim()/DENOM_UNIT_MULTIPLIER
-            }
-          )
+            let keyValue = x.split(':')
+            walletBalances[keyValue[0].trim()] =
+              keyValue[1].trim() / DENOM_UNIT_MULTIPLIER
+          })
           debug('walletBalances', walletBalances)
         }
       })
@@ -164,12 +166,11 @@ router.get('/balance', (req, res) => {
       })
     } else {
       res.status(401).json({
-        error: err_message,
+        error: err_message
       })
     }
   })
 })
-
 
 router.post('/unlock', (req, res) => {
   /*
@@ -188,21 +189,27 @@ router.post('/unlock', (req, res) => {
   debug(paramData)
   debug(req.body)
 
-  const lockStatus = spawn(celocli, ["account:unlock", address, "--password", secret]);
+  const lockStatus = spawn(celocli, [
+    'account:unlock',
+    address,
+    '--password',
+    secret
+  ])
 
-  let err_message = [], out_message = []
+  let err_message = [],
+    out_message = []
 
-  lockStatus.stdout.on( 'data', out => {
+  lockStatus.stdout.on('data', (out) => {
     out_message.push(out.toString().trim())
     debug(out_message)
   })
 
-  lockStatus.stderr.on( 'data', err => {
+  lockStatus.stderr.on('data', (err) => {
     err_message.push(err.toString().trim())
     debug(err_message)
   })
 
-  lockStatus.on( 'close', code => {
+  lockStatus.on('close', (code) => {
     let unlocked = false
     if (code === 0) {
       if (out_message.length > 0) {
@@ -221,7 +228,7 @@ router.post('/unlock', (req, res) => {
       })
     } else {
       res.status(401).json({
-        error: err_message.join(),
+        error: err_message.join()
       })
     }
   })
@@ -245,8 +252,7 @@ router.post('/trade', (req, res) => {
   //   message: 'WIP',
   //   timestamp: Date.now()
   // })
-  res.status(200).json({"status": "WIP"})
+  res.status(200).json({ status: 'WIP' })
 })
-
 
 module.exports = router

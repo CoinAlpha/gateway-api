@@ -2,17 +2,15 @@ import { getLocalDate } from './utils'
 require('dotenv').config()
 const appRoot = require('app-root-path')
 const winston = require('winston')
-require('winston-daily-rotate-file');
+require('winston-daily-rotate-file')
 
 const logFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.align(),
-  winston.format.printf(
-    info => {
-      const localDate = getLocalDate()
-      return `${localDate} | ${info.level} | ${info.message}`
-    }
-  ),
+  winston.format.printf((info) => {
+    const localDate = getLocalDate()
+    return `${localDate} | ${info.level} | ${info.message}`
+  })
 )
 
 const getLogPath = () => {
@@ -38,7 +36,7 @@ const allLogsFileTransport = new winston.transports.DailyRotateFile(config.file)
 const options = {
   format: logFormat,
   transports: [allLogsFileTransport],
-  exitOnError: false,
+  exitOnError: false
 }
 
 export const logger = winston.createLogger(options)

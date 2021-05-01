@@ -1,11 +1,11 @@
-import dotenv from 'dotenv';
+import dotenv from 'dotenv'
 import bodyParser from 'body-parser'
 import express from 'express'
 import helmet from 'helmet'
-import { statusMessages } from './services/utils';
-import { validateAccess } from './services/access';
+import { statusMessages } from './services/utils'
+import { validateAccess } from './services/access'
 import { IpFilter } from 'express-ipfilter'
-import { logger } from './services/logger';
+import { logger } from './services/logger'
 
 // Routes
 import apiRoutes from './routes/index.route'
@@ -17,36 +17,36 @@ import uniswapRoutes from './routes/uniswap.route'
 import perpFiRoutes from './routes/perpetual_finance.route'
 
 // terminate if environment not found
-const result = dotenv.config();
+const result = dotenv.config()
 if (result.error) {
-  logger.error(result.error);
-  process.exit(1);
+  logger.error(result.error)
+  process.exit(1)
 }
 
 // create app
-const app = express();
+const app = express()
 
 // middleware
 // #security: remove response headers from middleware
 // https://www.npmjs.com/package/helmet
-app.use(helmet());
+app.use(helmet())
 
-const ipWhitelist = process.env.IP_WHITELIST;
+const ipWhitelist = process.env.IP_WHITELIST
 if (ipWhitelist) {
   app.use(IpFilter(JSON.parse(ipWhitelist), { mode: 'allow' }))
 }
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
 
 app.use(validateAccess)
 
 // mount routes to specific path
-app.use('/api', apiRoutes);
-app.use('/eth', ethRoutes);
-app.use('/eth/uniswap', uniswapRoutes);
-app.use('/eth/balancer', balancerRoutes);
-app.use('/terra', terraRoutes);
-app.use('/perpfi', perpFiRoutes);
+app.use('/api', apiRoutes)
+app.use('/eth', ethRoutes)
+app.use('/eth/uniswap', uniswapRoutes)
+app.use('/eth/balancer', balancerRoutes)
+app.use('/terra', terraRoutes)
+app.use('/perpfi', perpFiRoutes)
 // app.use('/celo', celoRoutes);
 
 app.get('/', (req, res, next) => {
@@ -62,7 +62,7 @@ app.use((req, res, next) => {
   res.status(404).send({
     error: 'Page not found',
     message: message
-  });
-});
+  })
+})
 
-export default app;
+export default app

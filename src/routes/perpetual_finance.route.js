@@ -1,9 +1,9 @@
-import { ethers, BigNumber } from 'ethers';
-import express from 'express';
+import { ethers, BigNumber } from 'ethers'
+import express from 'express'
 
-import { getParamData, latency, statusMessages } from '../services/utils';
-import { logger } from '../services/logger';
-import PerpetualFinance from '../services/perpetual_finance';
+import { getParamData, latency, statusMessages } from '../services/utils'
+import { logger } from '../services/logger'
+import PerpetualFinance from '../services/perpetual_finance'
 
 require('dotenv').config()
 
@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
     provider: perpFi.provider.connection.url,
     loadedMetadata: perpFi.loadedMetadata,
     connection: true,
-    timestamp: Date.now(),
+    timestamp: Date.now()
   })
 })
 
@@ -42,7 +42,7 @@ router.get('/load-metadata', async (req, res) => {
     provider: perpFi.provider.connection.url,
     loadedMetadata: loadedMetadata,
     connection: true,
-    timestamp: Date.now(),
+    timestamp: Date.now()
   })
 })
 
@@ -61,7 +61,7 @@ router.post('/balances', async (req, res) => {
     wallet = new ethers.Wallet(privateKey, perpFi.provider)
   } catch (err) {
     let reason
-    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    err.reason ? (reason = err.reason) : (reason = 'Error getting wallet')
     res.status(500).json({
       error: reason,
       message: err
@@ -70,8 +70,8 @@ router.post('/balances', async (req, res) => {
   }
 
   const balances = {}
-  balances["XDAI"] = await perpFi.getXdaiBalance(wallet)
-  balances["USDC"] = await perpFi.getUSDCBalance(wallet)
+  balances['XDAI'] = await perpFi.getXdaiBalance(wallet)
+  balances['USDC'] = await perpFi.getUSDCBalance(wallet)
   try {
     res.status(200).json({
       network: perpFi.network,
@@ -81,7 +81,9 @@ router.post('/balances', async (req, res) => {
     })
   } catch (err) {
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
@@ -104,7 +106,7 @@ router.post('/allowances', async (req, res) => {
     wallet = new ethers.Wallet(privateKey, perpFi.provider)
   } catch (err) {
     let reason
-    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    err.reason ? (reason = err.reason) : (reason = 'Error getting wallet')
     res.status(500).json({
       error: reason,
       message: err
@@ -113,17 +115,19 @@ router.post('/allowances', async (req, res) => {
   }
 
   const approvals = {}
-  approvals["USDC"] = await perpFi.getAllowance(wallet)
+  approvals['USDC'] = await perpFi.getAllowance(wallet)
   try {
-      res.status(200).json({
-        network: perpFi.network,
-        timestamp: initTime,
-        latency: latency(initTime, Date.now()),
-        approvals: approvals
-      })
+    res.status(200).json({
+      network: perpFi.network,
+      timestamp: initTime,
+      latency: latency(initTime, Date.now()),
+      approvals: approvals
+    })
   } catch (err) {
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
@@ -143,15 +147,14 @@ router.post('/approve', async (req, res) => {
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
   let amount
-  paramData.amount  ? amount = paramData.amount
-                    : amount = '1000000000'
+  paramData.amount ? (amount = paramData.amount) : (amount = '1000000000')
   let wallet
   try {
     wallet = new ethers.Wallet(privateKey, perpFi.provider)
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    err.reason ? (reason = err.reason) : (reason = 'Error getting wallet')
     res.status(500).json({
       error: reason,
       message: err
@@ -174,7 +177,9 @@ router.post('/approve', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
@@ -209,7 +214,7 @@ router.post('/open', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    err.reason ? (reason = err.reason) : (reason = 'Error getting wallet')
     res.status(500).json({
       error: reason,
       message: err
@@ -219,7 +224,14 @@ router.post('/open', async (req, res) => {
 
   try {
     // call openPosition function
-    const tx = await perpFi.openPosition(side, margin, leverage, pair, minBaseAssetAmount, wallet)
+    const tx = await perpFi.openPosition(
+      side,
+      margin,
+      leverage,
+      pair,
+      minBaseAssetAmount,
+      wallet
+    )
     logger.info('perpFi.route - Opening position')
     // submit response
     res.status(200).json({
@@ -235,7 +247,9 @@ router.post('/open', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
@@ -263,7 +277,7 @@ router.post('/close', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    err.reason ? (reason = err.reason) : (reason = 'Error getting wallet')
     res.status(500).json({
       error: reason,
       message: err
@@ -286,14 +300,15 @@ router.post('/close', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
     })
   }
 })
-
 
 router.post('/position', async (req, res) => {
   /*
@@ -313,7 +328,7 @@ router.post('/position', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    err.reason ? (reason = err.reason) : (reason = 'Error getting wallet')
     res.status(500).json({
       error: reason,
       message: err
@@ -335,7 +350,9 @@ router.post('/position', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
@@ -359,7 +376,7 @@ router.post('/margin', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = 'Error getting wallet'
+    err.reason ? (reason = err.reason) : (reason = 'Error getting wallet')
     res.status(500).json({
       error: reason,
       message: err
@@ -381,7 +398,9 @@ router.post('/margin', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
@@ -408,14 +427,16 @@ router.post('/receipt', async (req, res) => {
     receipt.confirmations = txReceipt.confirmations
     receipt.status = txReceipt.status
   }
-  logger.info(`eth.route - Get TX Receipt: ${txHash}`, { message: JSON.stringify(receipt) })
+  logger.info(`eth.route - Get TX Receipt: ${txHash}`, {
+    message: JSON.stringify(receipt)
+  })
   res.status(200).json({
     network: perpFi.network,
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
     txHash: txHash,
     confirmed: confirmed,
-    receipt: receipt,
+    receipt: receipt
   })
   return txReceipt
 })
@@ -450,14 +471,15 @@ router.post('/price', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
     })
   }
 })
-
 
 router.get('/pairs', async (req, res) => {
   /*
@@ -475,7 +497,9 @@ router.get('/pairs', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
@@ -508,7 +532,9 @@ router.post('/funding', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
@@ -516,4 +542,4 @@ router.post('/funding', async (req, res) => {
   }
 })
 
-export default router;
+export default router

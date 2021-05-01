@@ -1,13 +1,13 @@
-import BigNumber from 'bignumber.js';
-import { ethers } from 'ethers';
-import express from 'express';
+import BigNumber from 'bignumber.js'
+import { ethers } from 'ethers'
+import express from 'express'
 
-import { getParamData, latency, reportConnectionError, statusMessages } from '../services/utils';
+import { getParamData, latency, statusMessages } from '../services/utils'
 
-import Ethereum from '../services/eth';
-import Balancer from '../services/balancer';
-import Fees from '../services/fees';
-import { logger } from '../services/logger';
+import Ethereum from '../services/eth'
+import Balancer from '../services/balancer'
+import Fees from '../services/fees'
+import { logger } from '../services/logger'
 
 const debug = require('debug')('router')
 const router = express.Router()
@@ -23,7 +23,7 @@ const estimateGasLimit = (maxswaps) => {
   return gasLimit
 }
 
-router.post('/', async (req, res) => {
+router.post('/', (req, res) => {
   /*
     POST /
   */
@@ -33,11 +33,11 @@ router.post('/', async (req, res) => {
     exchangeProxy: balancer.exchangeProxy,
     subgraphUrl: balancer.subgraphUrl,
     connection: true,
-    timestamp: Date.now(),
+    timestamp: Date.now()
   })
 })
 
-router.post('/gas-limit', async (req, res) => {
+router.post('/gas-limit', (req, res) => {
   /*
     POST: /buy-price
       x-www-form-urlencoded: {
@@ -48,18 +48,23 @@ router.post('/gas-limit', async (req, res) => {
 
   try {
     const swaps = paramData.maxSwaps
-    const maxSwaps = typeof swaps === 'undefined' || parseInt(swaps) === 0 ? balancer.maxSwaps : parseInt(swaps)
+    const maxSwaps =
+      typeof swaps === 'undefined' || parseInt(swaps) === 0
+        ? balancer.maxSwaps
+        : parseInt(swaps)
     const gasLimit = estimateGasLimit(maxSwaps)
 
     res.status(200).json({
       network: balancer.network,
       gasLimit: gasLimit,
-      timestamp: Date.now(),
+      timestamp: Date.now()
     })
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
@@ -68,7 +73,7 @@ router.post('/gas-limit', async (req, res) => {
 })
 
 router.get('/start', async (req, res) => {
-    /*
+  /*
     POST: /eth/balancer/start
       x-www-form-urlencoded: {
         "pairs":'["ETH-USDT", ...]'
@@ -79,6 +84,7 @@ router.get('/start', async (req, res) => {
   const paramData = getParamData(req.query)
   const pairs = JSON.parse(paramData.pairs)
   let gasPrice
+
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
   } else {
@@ -86,26 +92,40 @@ router.get('/start', async (req, res) => {
   }
 
   // get token contract address and cache pools
-  for (let pair of pairs){
-    pair = pair.split("-")
+  for (let pair of pairs) {
+    pair = pair.split('-')
     const baseTokenSymbol = pair[0]
     const quoteTokenSymbol = pair[1]
     const baseTokenContractInfo = eth.getERC20TokenAddresses(baseTokenSymbol)
     const quoteTokenContractInfo = eth.getERC20TokenAddresses(quoteTokenSymbol)
 
     // check for valid token symbols
-    if (baseTokenContractInfo === undefined || quoteTokenContractInfo === undefined) {
-      const undefinedToken = baseTokenContractInfo === undefined ? baseTokenSymbol : quoteTokenSymbol
+    if (
+      baseTokenContractInfo === undefined ||
+      quoteTokenContractInfo === undefined
+    ) {
+      const undefinedToken =
+        baseTokenContractInfo === undefined ? baseTokenSymbol : quoteTokenSymbol
+
       res.status(500).json({
         error: `Token ${undefinedToken} contract address not found`,
-        message: `Token contract address not found for ${undefinedToken}. Check token list source`,
+        message: `Token contract address not found for ${undefinedToken}. Check token list source`
       })
+
       return
     }
-    await Promise.allSettled([balancer.fetchPool(baseTokenContractInfo.address, quoteTokenContractInfo.address),
-                              balancer.fetchPool(quoteTokenContractInfo.address, baseTokenContractInfo.address)])
-  }
 
+    await Promise.allSettled([
+      balancer.fetchPool(
+        baseTokenContractInfo.address,
+        quoteTokenContractInfo.address
+      ),
+      balancer.fetchPool(
+        quoteTokenContractInfo.address,
+        baseTokenContractInfo.address
+      )
+    ])
+  }
 
   const gasLimit = estimateGasLimit(balancer.maxSwaps)
   const gasCost = await fees.getGasCost(gasPrice, gasLimit)
@@ -118,8 +138,9 @@ router.get('/start', async (req, res) => {
     pairs: pairs,
     gasPrice: gasPrice,
     gasLimit: gasLimit,
-    gasCost: gasCost,
+    gasCost: gasCost
   }
+
   console.log('Initializing balancer')
   res.status(200).json(result)
 })
@@ -146,6 +167,7 @@ router.post('/price', async (req, res) => {
   const amount = new BigNumber(parseInt(paramData.amount * baseDenomMultiplier))
   const maxSwaps = balancer.maxSwaps
   const side = paramData.side.toUpperCase()
+
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
@@ -155,27 +177,30 @@ router.post('/price', async (req, res) => {
 
   try {
     // fetch the optimal pool mix from balancer-sor
-    const { swaps, expectedAmount } = side === 'BUY'
-      ? await balancer.priceSwapOut(
-        quoteTokenAddress,    // tokenIn is quote asset
-        baseTokenAddress,     // tokenOut is base asset
-        amount,
-        maxSwaps,
-      )
-      : await balancer.priceSwapIn(
-        baseTokenAddress,     // tokenIn is base asset
-        quoteTokenAddress,    // tokenOut is quote asset
-        amount,
-        maxSwaps,
-      )
+    const { swaps, expectedAmount } =
+      side === 'BUY'
+        ? await balancer.priceSwapOut(
+            quoteTokenAddress, // tokenIn is quote asset
+            baseTokenAddress, // tokenOut is base asset
+            amount,
+            maxSwaps
+          )
+        : await balancer.priceSwapIn(
+            baseTokenAddress, // tokenIn is base asset
+            quoteTokenAddress, // tokenOut is quote asset
+            amount,
+            maxSwaps
+          )
 
     if (swaps != null && expectedAmount != null) {
       const gasLimit = estimateGasLimit(swaps.length)
       const gasCost = await fees.getGasCost(gasPrice, gasLimit)
 
       const tradeAmount = parseFloat(amount)
-      const expectedTradeAmount = parseInt(expectedAmount) / quoteDenomMultiplier
-      const tradePrice = expectedAmount / amount * baseDenomMultiplier / quoteDenomMultiplier
+      const expectedTradeAmount =
+        parseInt(expectedAmount) / quoteDenomMultiplier
+      const tradePrice =
+        ((expectedAmount / amount) * baseDenomMultiplier) / quoteDenomMultiplier
 
       const result = {
         network: balancer.network,
@@ -190,11 +215,14 @@ router.post('/price', async (req, res) => {
         gasPrice: gasPrice,
         gasLimit: gasLimit,
         gasCost: gasCost,
-        swaps: swaps,
+        swaps: swaps
       }
-      debug(`Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`)
+      debug(
+        `Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`
+      )
       res.status(200).json(result)
-    } else { // no pool available
+    } else {
+      // no pool available
       res.status(200).json({
         info: statusMessages.no_pool_available,
         message: statusMessages.no_pool_available
@@ -203,7 +231,9 @@ router.post('/price', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
@@ -244,6 +274,7 @@ router.post('/trade', async (req, res) => {
   if (paramData.limitPrice) {
     limitPrice = parseFloat(paramData.limitPrice)
   }
+
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
@@ -253,35 +284,39 @@ router.post('/trade', async (req, res) => {
 
   try {
     // fetch the optimal pool mix from balancer-sor
-    const { swaps, expectedAmount } = side === 'BUY'
-      ? await balancer.priceSwapOut(
-        quoteTokenAddress,    // tokenIn is quote asset
-        baseTokenAddress,     // tokenOut is base asset
-        amount,
-        maxSwaps,
-      )
-      : await balancer.priceSwapIn(
-        baseTokenAddress,     // tokenIn is base asset
-        quoteTokenAddress,    // tokenOut is quote asset
-        amount,
-        maxSwaps,
-      )
+    const { swaps, expectedAmount } =
+      side === 'BUY'
+        ? await balancer.priceSwapOut(
+            quoteTokenAddress, // tokenIn is quote asset
+            baseTokenAddress, // tokenOut is base asset
+            amount,
+            maxSwaps
+          )
+        : await balancer.priceSwapIn(
+            baseTokenAddress, // tokenIn is base asset
+            quoteTokenAddress, // tokenOut is quote asset
+            amount,
+            maxSwaps
+          )
 
     const gasLimit = estimateGasLimit(swaps.length)
     const gasCost = await fees.getGasCost(gasPrice, gasLimit)
 
     if (side === 'BUY') {
-      const price = expectedAmount / amount * baseDenomMultiplier / quoteDenomMultiplier
+      const price =
+        ((expectedAmount / amount) * baseDenomMultiplier) / quoteDenomMultiplier
+
       logger.info(`Price: ${price.toString()}`)
+
       if (!limitPrice || price <= limitPrice) {
         // pass swaps to exchange-proxy to complete trade
         const tx = await balancer.swapExactOut(
           wallet,
           swaps,
-          quoteTokenAddress,   // tokenIn is quote asset
-          baseTokenAddress,    // tokenOut is base asset
+          quoteTokenAddress, // tokenIn is quote asset
+          baseTokenAddress, // tokenOut is base asset
           expectedAmount.toString(),
-          gasPrice,
+          gasPrice
         )
 
         // submit response
@@ -297,7 +332,7 @@ router.post('/trade', async (req, res) => {
           gasPrice: gasPrice,
           gasLimit: gasLimit,
           gasCost: gasCost,
-          txHash: tx.hash,
+          txHash: tx.hash
         })
       } else {
         res.status(200).json({
@@ -308,20 +343,23 @@ router.post('/trade', async (req, res) => {
       }
     } else {
       // sell
-      const minAmountOut = limitPrice / amount *  baseDenomMultiplier
+      const minAmountOut = (limitPrice / amount) * baseDenomMultiplier
+
       debug('minAmountOut', minAmountOut)
-      const price = expectedAmount / amount  * baseDenomMultiplier / quoteDenomMultiplier
+      const price =
+        ((expectedAmount / amount) * baseDenomMultiplier) / quoteDenomMultiplier
+
       logger.info(`Price: ${price.toString()}`)
       if (!limitPrice || price >= limitPrice) {
         // pass swaps to exchange-proxy to complete trade
         const tx = await balancer.swapExactIn(
           wallet,
           swaps,
-          baseTokenAddress,   // tokenIn is base asset
-          quoteTokenAddress,  // tokenOut is quote asset
+          baseTokenAddress, // tokenIn is base asset
+          quoteTokenAddress, // tokenOut is quote asset
           amount.toString(),
           parseInt(expectedAmount) / quoteDenomMultiplier,
-          gasPrice,
+          gasPrice
         )
         // submit response
         res.status(200).json({
@@ -336,7 +374,7 @@ router.post('/trade', async (req, res) => {
           gasPrice: gasPrice,
           gasLimit: gasLimit,
           gasCost: gasCost,
-          txHash: tx.hash,
+          txHash: tx.hash
         })
       } else {
         res.status(200).json({
@@ -349,7 +387,9 @@ router.post('/trade', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
     let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error)
     res.status(500).json({
       error: reason,
       message: err
@@ -357,4 +397,4 @@ router.post('/trade', async (req, res) => {
   }
 })
 
-export default router;
+export default router

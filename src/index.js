@@ -10,10 +10,10 @@ import app from './app'
 import { logger } from './services/logger'
 
 // terminate if environment not found
-const result = dotenv.config();
+const result = dotenv.config()
 if (result.error) {
-  logger.info(result.error);
-  process.exit(1);
+  logger.info(result.error)
+  process.exit(1)
 }
 
 const env = process.env.NODE_ENV
@@ -27,14 +27,18 @@ if ((typeof certPath === 'undefined' && certPath == null) || certPath === '') {
   // assuming it is local development using test script to generate certs
   certPath = './certs'
 } else {
-  certPath = certPath.replace(/\/$/, '');
+  certPath = certPath.replace(/\/$/, '')
 }
 
 // set app environment
 app.set('env', env)
 const options = {
-  key: fs.readFileSync(certPath.concat('/server_key.pem'), { encoding: 'utf-8' }),
-  cert: fs.readFileSync(certPath.concat('/server_cert.pem'), { encoding: 'utf-8' }),
+  key: fs.readFileSync(certPath.concat('/server_key.pem'), {
+    encoding: 'utf-8'
+  }),
+  cert: fs.readFileSync(certPath.concat('/server_cert.pem'), {
+    encoding: 'utf-8'
+  }),
   // request client certificate from user
   requestCert: true,
   // reject requests with no valid certificate
@@ -42,12 +46,12 @@ const options = {
   // use ca cert created with own key for self-signed
   ca: [fs.readFileSync(certPath.concat('/ca_cert.pem'), { encoding: 'utf-8' })],
   passphrase: certPassphrase
-};
+}
 
 const server = https.createServer(options, app)
 
 // event listener for "error" event
-const onError = error => {
+const onError = (error) => {
   if (error.syscall !== 'listen') {
     throw error
   }

@@ -1,14 +1,14 @@
 module.exports = {
-  extends: 'standard',
+  extends: ['eslint:standard', 'prettier', 'plugin:prettier/standard'],
   rules: {
     // disable semicolon check
-    semi: 'off',
+    semi: 'never',
 
     // override default options for rules from base configurations
-    'comma-dangle': 'off',
+    'comma-dangle': ['error', 'never'],
 
     // disable rules from base configurations
     'no-console': 'off',
-    'no-multi-spaces': 'off',
+    'no-multi-spaces': 'off'
   }
 };
