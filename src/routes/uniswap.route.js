@@ -44,7 +44,7 @@ const getErrorMessage = (err) => {
 /*
   POST /
 */
-router.post('/', async (req, res) => {
+router.post('/', (req, res) => {
   res.status(200).json({
     network: uniswap.network,
     provider: uniswap.provider.connection.url,
@@ -57,10 +57,9 @@ router.post('/', async (req, res) => {
 /*
   POST: /buy-price
 */
-router.post('/gas-limit', async (req, res) => {
-  const gasLimit = estimateGasLimit()
-
+router.post('/gas-limit', (req, res) => {
   try {
+    const gasLimit = estimateGasLimit()
     res.status(200).json({
       network: uniswap.network,
       gasLimit: gasLimit,

@@ -61,10 +61,10 @@ router.post('/balances', async (req, res) => {
   }
 
   const balances = {}
-  balances['XDAI'] = await perpFi.getXdaiBalance(wallet)
-  balances['USDC'] = await perpFi.getUSDCBalance(wallet)
-
   try {
+    balances['XDAI'] = await perpFi.getXdaiBalance(wallet)
+    balances['USDC'] = await perpFi.getUSDCBalance(wallet)
+
     res.status(200).json({
       network: perpFi.network,
       timestamp: initTime,
@@ -102,8 +102,8 @@ router.post('/allowances', async (req, res) => {
   }
 
   const approvals = {}
-  approvals['USDC'] = await perpFi.getAllowance(wallet)
   try {
+    approvals['USDC'] = await perpFi.getAllowance(wallet)
     res.status(200).json({
       network: perpFi.network,
       timestamp: initTime,
@@ -129,8 +129,7 @@ router.post('/approve', async (req, res) => {
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
-  let amount
-  paramData.amount ? (amount = paramData.amount) : (amount = '1000000000')
+  let amount = paramData.amount || '1000000000'
   let wallet
 
   try {
@@ -148,6 +147,7 @@ router.post('/approve', async (req, res) => {
     // call approve function
     const approval = await perpFi.approve(wallet, amount)
     logger.info('perpFi.route - Approving allowance')
+
     // submit response
     res.status(200).json({
       network: perpFi.network,

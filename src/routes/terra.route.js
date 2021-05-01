@@ -55,7 +55,9 @@ router.post('/balances', async (req, res) => {
         balances[symbol] = amount
       })
     })
+
     logger.info('terra.route - Get Account Balance')
+
     res.status(200).json({
       network: network,
       timestamp: initTime,
@@ -193,10 +195,8 @@ router.post('/trade', async (req, res) => {
     paramData.gas_adjustment || terra.lcd.config.gasAdjustment
   const secret = paramData.privateKey
 
-  let tokenSwaps
-
   try {
-    await terra
+    const tokenSwaps = await terra
       .swapTokens(
         baseToken,
         quoteToken,
@@ -206,12 +206,7 @@ router.post('/trade', async (req, res) => {
         gasAdjustment,
         secret
       )
-      .then((swap) => {
-        tokenSwaps = swap
-      })
-      .catch((err) => {
-        reportConnectionError(res, err)
-      })
+      .catch(() => reportConnectionError(res, err))
 
     const swapResult = {
       network: network,
@@ -220,12 +215,14 @@ router.post('/trade', async (req, res) => {
       base: baseToken,
       tradeType: tradeType,
       quote: quoteToken,
-      amount: amount
+      amount: amount,
+      ...tokenSwaps
     }
-    Object.assign(swapResult, tokenSwaps)
+
     logger.info(
       `terra.route - ${tradeType}: ${baseToken}-${quoteToken} - Amount: ${amount}`
     )
+
     res.status(200).json(swapResult)
   } catch (err) {
     logger.error(req.originalUrl, { message: err })

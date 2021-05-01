@@ -126,8 +126,8 @@ router.get('/balance', (req, res) => {
 
   const balance = spawn(celocli, ['account:balance', address])
 
-  let err_message = [],
-    out_message = []
+  let err_message = []
+  let out_message = []
   let walletBalances = {}
 
   balance.stdout.on('data', (out) => {
