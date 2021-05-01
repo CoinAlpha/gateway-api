@@ -15,10 +15,10 @@ const spenders = {
 }
 const fees = new Fees()
 
+/*
+  POST /
+*/
 router.post('/', async (req, res) => {
-  /*
-    POST /
-  */
   res.status(200).json({
     network: eth.network,
     rpcUrl: eth.provider.connection.url,
@@ -27,14 +27,14 @@ router.post('/', async (req, res) => {
   })
 })
 
+/*
+    POST: /balances
+    x-www-form-urlencoded: {
+      privateKey:{{privateKey}}
+      tokenList:{{tokenList}}
+    }
+*/
 router.post('/balances', async (req, res) => {
-  /*
-      POST: /balances
-      x-www-form-urlencoded: {
-        privateKey:{{privateKey}}
-        tokenList:{{tokenList}}
-      }
-  */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
@@ -43,10 +43,8 @@ router.post('/balances', async (req, res) => {
     wallet = new ethers.Wallet(privateKey, eth.provider)
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason ? (reason = err.reason) : (reason = 'Error getting wallet')
     res.status(500).json({
-      error: reason,
+      error: err.reason || 'Error getting wallet',
       message: err
     })
     return
@@ -92,31 +90,28 @@ router.post('/balances', async (req, res) => {
     })
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error)
     res.status(500).json({
-      error: reason,
+      error: err.reason || statusMessages.operation_error,
       message: err
     })
   }
 })
 
+/*
+    POST: /allowances
+    x-www-form-urlencoded: {
+      privateKey:{{privateKey}}
+      tokenAddressList:{{tokenAddressList}}
+      connector:{{connector_name}}
+    }
+*/
 router.post('/allowances', async (req, res) => {
-  /*
-      POST: /allowances
-      x-www-form-urlencoded: {
-        privateKey:{{privateKey}}
-        tokenAddressList:{{tokenAddressList}}
-        connector:{{connector_name}}
-      }
-  */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
   const spender = spenders[paramData.connector]
   let wallet
+
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
   } catch (err) {
@@ -165,26 +160,22 @@ router.post('/allowances', async (req, res) => {
     })
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error)
     res.status(500).json({
-      error: reason,
+      error: err.reason || statusMessages.operation_error,
       message: err
     })
   }
 })
 
+/*
+    POST: /balances
+    x-www-form-urlencoded: {
+      privateKey:{{privateKey}}
+      tokenAddressList:{{tokenAddressList}}
+      tokenDecimalList:{{tokenDecimalList}}
+    }
+*/
 router.post('/balances-2', async (req, res) => {
-  /*
-      POST: /balances
-      x-www-form-urlencoded: {
-        privateKey:{{privateKey}}
-        tokenAddressList:{{tokenAddressList}}
-        tokenDecimalList:{{tokenDecimalList}}
-      }
-  */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
@@ -192,18 +183,18 @@ router.post('/balances-2', async (req, res) => {
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
   } catch (err) {
-    let reason
-    err.reason ? (reason = err.reason) : (reason = 'Error getting wallet')
     res.status(500).json({
-      error: reason,
+      error: err.reason || 'Error getting wallet',
       message: err
     })
     return
   }
+
   let tokenAddressList
   if (paramData.tokenAddressList) {
     tokenAddressList = paramData.tokenAddressList.split(',')
   }
+
   let tokenDecimalList
   if (paramData.tokenDecimalList) {
     tokenDecimalList = paramData.tokenDecimalList.split(',')
@@ -211,6 +202,7 @@ router.post('/balances-2', async (req, res) => {
 
   const balances = {}
   balances.ETH = await eth.getETHBalance(wallet, privateKey)
+
   try {
     Promise.all(
       tokenAddressList.map(
@@ -230,32 +222,29 @@ router.post('/balances-2', async (req, res) => {
       })
     })
   } catch (err) {
-    let reason
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error)
     res.status(500).json({
-      error: reason,
+      error: err.reason || statusMessages.operation_error,
       message: err
     })
   }
 })
 
+/*
+  POST: /allowances
+  x-www-form-urlencoded: {
+    privateKey:{{privateKey}}
+    tokenAddressList:{{tokenAddressList}}
+    tokenDecimalList:{{tokenDecimalList}}
+    connector:{{connector_name}}
+  }
+*/
 router.post('/allowances-2', async (req, res) => {
-  /*
-      POST: /allowances
-      x-www-form-urlencoded: {
-        privateKey:{{privateKey}}
-        tokenAddressList:{{tokenAddressList}}
-        tokenDecimalList:{{tokenDecimalList}}
-        connector:{{connector_name}}
-      }
-  */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
   const spender = spenders[paramData.connector]
   let wallet
+
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
   } catch (err) {
@@ -267,10 +256,12 @@ router.post('/allowances-2', async (req, res) => {
     })
     return
   }
+
   let tokenAddressList
   if (paramData.tokenAddressList) {
     tokenAddressList = paramData.tokenAddressList.split(',')
   }
+
   let tokenDecimalList
   if (paramData.tokenDecimalList) {
     tokenDecimalList = paramData.tokenDecimalList.split(',')
@@ -298,33 +289,30 @@ router.post('/allowances-2', async (req, res) => {
       })
     })
   } catch (err) {
-    let reason
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error)
     res.status(500).json({
-      error: reason,
+      error: err.reason || statusMessages.operation_error,
       message: err
     })
   }
 })
 
+/*
+  POST: /approve
+  x-www-form-urlencoded: {
+    privateKey:{{privateKey}}
+    tokenAddress:"0x....."
+    decimals: {{token_decimals}}
+    connector:{{connector_name}}
+    amount:{{amount}}
+  }
+*/
 router.post('/approve', async (req, res) => {
-  /*
-      POST: /approve
-      x-www-form-urlencoded: {
-        privateKey:{{privateKey}}
-        tokenAddress:"0x....."
-        decimals: {{token_decimals}}
-        connector:{{connector_name}}
-        amount:{{amount}}
-      }
-  */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
   const spender = spenders[paramData.connector]
   let wallet
+
   try {
     wallet = new ethers.Wallet(privateKey, eth.provider)
   } catch (err) {
@@ -337,6 +325,7 @@ router.post('/approve', async (req, res) => {
     })
     return
   }
+
   const token = paramData.token
   const tokenContractInfo = eth.getERC20TokenAddresses(token)
   const tokenAddress = tokenContractInfo.address
@@ -346,6 +335,7 @@ router.post('/approve', async (req, res) => {
   paramData.amount
     ? (amount = ethers.utils.parseUnits(paramData.amount, decimals))
     : (amount = ethers.utils.parseUnits('1000000000', decimals)) // approve for 1 billion units if no amount specified
+
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
@@ -375,12 +365,8 @@ router.post('/approve', async (req, res) => {
     })
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error)
     res.status(500).json({
-      error: reason,
+      error: err.reason || statusMessages.operation_error,
       message: err
     })
   }
@@ -393,15 +379,18 @@ router.post('/poll', async (req, res) => {
   const txReceipt = await eth.provider.getTransactionReceipt(txHash)
   const receipt = {}
   const confirmed = txReceipt && txReceipt.blockNumber ? true : false
+
   if (confirmed) {
     receipt.gasUsed = BigNumber.from(txReceipt.gasUsed).toNumber()
     receipt.blockNumber = txReceipt.blockNumber
     receipt.confirmations = txReceipt.confirmations
     receipt.status = txReceipt.status
   }
+
   logger.info(`eth.route - Get TX Receipt: ${txHash}`, {
     message: JSON.stringify(receipt)
   })
+
   res.status(200).json({
     network: eth.network,
     timestamp: initTime,
@@ -410,6 +399,7 @@ router.post('/poll', async (req, res) => {
     confirmed: confirmed,
     receipt: receipt
   })
+
   return txReceipt
 })
 

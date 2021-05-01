@@ -19,10 +19,10 @@ const terra = new Terra()
 const network = terra.lcd.config.chainID
 const denomUnitMultiplier = terra.denomUnitMultiplier
 
+/*
+  POST /
+*/
 router.post('/', async (req, res) => {
-  /*
-    POST /
-  */
   res.status(200).json({
     network: network,
     lcdUrl: terra.lcd.config.URL,
@@ -33,11 +33,11 @@ router.post('/', async (req, res) => {
   })
 })
 
+/*
+  POST:
+      address:{{address}}
+*/
 router.post('/balances', async (req, res) => {
-  /*
-    POST:
-        address:{{address}}
-  */
   const initTime = Date.now()
 
   const paramData = getParamData(req.body)
@@ -66,16 +66,15 @@ router.post('/balances', async (req, res) => {
     logger.error(req.originalUrl, { message: err })
     let message
     let reason
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error)
-    const isAxiosError = err.isAxiosError
-    if (isAxiosError) {
+
+    if (err.isAxiosError) {
       reason = err.response.status
       message = err.response.statusText
     } else {
+      reason = err.reason || statusMessages.operation_error
       message = err
     }
+
     res.status(500).json({
       error: reason,
       message: message
@@ -83,15 +82,15 @@ router.post('/balances', async (req, res) => {
   }
 })
 
+/*
+  POST: /terra/start
+    x-www-form-urlencoded: {
+      "base":"UST"
+      "quote":"KRT"
+      "amount":1
+    }
+*/
 router.post('/start', async (req, res) => {
-  /*
-    POST: /terra/start
-      x-www-form-urlencoded: {
-        "base":"UST"
-        "quote":"KRT"
-        "amount":1
-      }
-  */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const baseTokenSymbol = paramData.base
@@ -108,16 +107,16 @@ router.post('/start', async (req, res) => {
   res.status(200).json(result)
 })
 
+/*
+  POST:
+  x-www-form-urlencoded: {
+    "base":"UST"
+    "quote":"KRT"
+    "side":"buy" or "sell"
+    "amount":1
+  }
+*/
 router.post('/price', async (req, res) => {
-  /*
-    POST:
-    x-www-form-urlencoded: {
-      "base":"UST"
-      "quote":"KRT"
-      "side":"buy" or "sell"
-      "amount":1
-    }
-  */
   const initTime = Date.now()
 
   const paramData = getParamData(req.body)
@@ -154,16 +153,15 @@ router.post('/price', async (req, res) => {
     logger.error(req.originalUrl, { message: err })
     let message
     let reason
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error)
-    const isAxiosError = err.isAxiosError
-    if (isAxiosError) {
+
+    if (err.isAxiosError) {
       reason = err.response.status
       message = err.response.statusText
     } else {
+      reason = err.reason || statusMessages.operation_error
       message = err
     }
+
     res.status(500).json({
       error: reason,
       message: message
@@ -171,17 +169,17 @@ router.post('/price', async (req, res) => {
   }
 })
 
+/*
+  POST: /trade
+  data: {
+    "base":"UST"
+    "quote":"KRT"
+    "side":"buy" or "sell"
+    "amount":1
+    "secret": "mysupersecret"
+  }
+*/
 router.post('/trade', async (req, res) => {
-  /*
-      POST: /trade
-      data: {
-        "base":"UST"
-        "quote":"KRT"
-        "side":"buy" or "sell"
-        "amount":1
-        "secret": "mysupersecret"
-      }
-  */
   const initTime = Date.now()
 
   const paramData = getParamData(req.body)
@@ -233,16 +231,15 @@ router.post('/trade', async (req, res) => {
     logger.error(req.originalUrl, { message: err })
     let message
     let reason
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error)
-    const isAxiosError = err.isAxiosError
-    if (isAxiosError) {
+
+    if (err.isAxiosError) {
       reason = err.response.status
       message = err.response.statusText
     } else {
+      reason = err.reason || statusMessages.operation_error
       message = err
     }
+
     res.status(500).json({
       error: reason,
       message: message

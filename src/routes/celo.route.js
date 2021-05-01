@@ -22,11 +22,10 @@ router.get('/', (req, res) => {
   res.status(200).send(network)
 })
 
+/*
+  return if the celocli ultralight node is synced
+*/
 router.get('/status', (req, res) => {
-  /*
-    return if the celocli ultralight node is synced
-  */
-
   const nodeSync = spawn(celocli, ['node:synced'])
 
   let err_message = [],
@@ -56,11 +55,11 @@ router.get('/status', (req, res) => {
   })
 })
 
+/*
+  api request format:
+    /price?trading_pair=CELO-CUSD&trade_type=sell&amount=1.2345
+*/
 router.get('/price', (req, res) => {
-  /*
-    api request format:
-      /price?trading_pair=CELO-CUSD&trade_type=sell&amount=1.2345
-  */
   const keyFormat = ['trading_pair', 'trade_type', 'amount']
 
   const initTime = Date.now()
@@ -115,11 +114,11 @@ router.get('/price', (req, res) => {
   })
 })
 
+/*
+  api request format:
+    /balance?address=0x87A4...b120
+*/
 router.get('/balance', (req, res) => {
-  /*
-    api request format:
-      /balance?address=0x87A4...b120
-  */
   const keyFormat = ['address']
   const paramData = hbUtils.getParamData(req.query, keyFormat)
   const address = paramData.address
@@ -172,15 +171,15 @@ router.get('/balance', (req, res) => {
   })
 })
 
+/*
+  api request format:
+    POST: /balance
+    data: {
+      "address": "0x87A4...b120",
+      "secret": "mysupersecret"
+    }
+*/
 router.post('/unlock', (req, res) => {
-  /*
-    api request format:
-      POST: /balance
-      data: {
-        "address": "0x87A4...b120",
-        "secret": "mysupersecret"
-      }
-  */
   const keyFormat = ['address', 'secret']
   const paramData = hbUtils.getParamData(req.body, keyFormat)
   const address = paramData.address
@@ -234,17 +233,17 @@ router.post('/unlock', (req, res) => {
   })
 })
 
+/*
+  api request format:
+    POST: /trade
+    data: {
+      "trading_pair": "CELO-CUSD",
+      "trade_type": "buy",
+      "amount": 1.234,
+      "price": 3.512
+    }
+*/
 router.post('/trade', (req, res) => {
-  /*
-    api request format:
-      POST: /trade
-      data: {
-        "trading_pair": "CELO-CUSD",
-        "trade_type": "buy",
-        "amount": 1.234,
-        "price": 3.512
-      }
-  */
   const keyFormat = ['trading_pair', 'trade_type', 'amount', 'price']
   const paramData = hbUtils.getParamData(req.body, keyFormat)
   debug(paramData)

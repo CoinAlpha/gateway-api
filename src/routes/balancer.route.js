@@ -23,10 +23,10 @@ const estimateGasLimit = (maxswaps) => {
   return gasLimit
 }
 
+/**
+ * Return base information about balancer
+ */
 router.post('/', (req, res) => {
-  /*
-    POST /
-  */
   res.status(200).json({
     network: balancer.network,
     provider: balancer.provider.connection.url,
@@ -37,13 +37,13 @@ router.post('/', (req, res) => {
   })
 })
 
+/*
+  POST: /buy-price
+    x-www-form-urlencoded: {
+      "maxSwaps":4
+    }
+*/
 router.post('/gas-limit', (req, res) => {
-  /*
-    POST: /buy-price
-      x-www-form-urlencoded: {
-        "maxSwaps":4
-      }
-  */
   const paramData = getParamData(req.body)
 
   try {
@@ -61,25 +61,21 @@ router.post('/gas-limit', (req, res) => {
     })
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error)
     res.status(500).json({
-      error: reason,
+      error: err.reason || statusMessages.operation_error,
       message: err
     })
   }
 })
 
+/*
+  POST: /eth/balancer/start
+    x-www-form-urlencoded: {
+      "pairs":'["ETH-USDT", ...]'
+      "gasPrice":30
+    }
+*/
 router.get('/start', async (req, res) => {
-  /*
-    POST: /eth/balancer/start
-      x-www-form-urlencoded: {
-        "pairs":'["ETH-USDT", ...]'
-        "gasPrice":30
-      }
-  */
   const initTime = Date.now()
   const paramData = getParamData(req.query)
   const pairs = JSON.parse(paramData.pairs)
@@ -145,16 +141,16 @@ router.get('/start', async (req, res) => {
   res.status(200).json(result)
 })
 
+/*
+  POST: /eth/balancer/price
+    x-www-form-urlencoded: {
+      "quote":"BAT"
+      "base":"USDC"
+      "amount":0.1
+      "side":buy
+    }
+*/
 router.post('/price', async (req, res) => {
-  /*
-    POST: /eth/balancer/price
-      x-www-form-urlencoded: {
-        "quote":"BAT"
-        "base":"USDC"
-        "amount":0.1
-        "side":buy
-      }
-  */
   const initTime = Date.now()
   // params: base (required), quote (required), amount (required)
   const paramData = getParamData(req.body)
@@ -230,30 +226,26 @@ router.post('/price', async (req, res) => {
     }
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error)
     res.status(500).json({
-      error: reason,
+      error: err.reason || statusMessages.operation_error,
       message: err
     })
   }
 })
 
+/*
+    POST: /trade
+    x-www-form-urlencoded: {
+      "quote":"BAT"
+      "base":"USDC"
+      "amount":0.1
+      "limitPrice":1
+      "gasPrice":10
+      "side":{buy|sell}
+      "privateKey":{{privateKey}}
+    }
+*/
 router.post('/trade', async (req, res) => {
-  /*
-      POST: /trade
-      x-www-form-urlencoded: {
-        "quote":"BAT"
-        "base":"USDC"
-        "amount":0.1
-        "limitPrice":1
-        "gasPrice":10
-        "side":{buy|sell}
-        "privateKey":{{privateKey}}
-      }
-  */
   const initTime = Date.now()
   const paramData = getParamData(req.body)
   const privateKey = paramData.privateKey
@@ -386,12 +378,8 @@ router.post('/trade', async (req, res) => {
     }
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error)
     res.status(500).json({
-      error: reason,
+      error: err.reason || statusMessages.operation_error,
       message: err
     })
   }

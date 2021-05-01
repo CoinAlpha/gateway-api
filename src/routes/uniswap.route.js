@@ -24,10 +24,10 @@ const estimateGasLimit = () => {
   return uniswap.gasLimit
 }
 
+/*
+  [WIP] Custom error message based-on string match
+*/
 const getErrorMessage = (err) => {
-  /*
-    [WIP] Custom error message based-on string match
-  */
   let message = err
   if (err.includes('failed to meet quorum')) {
     message = 'Failed to meet quorum in Uniswap'
@@ -41,10 +41,10 @@ const getErrorMessage = (err) => {
   return message
 }
 
+/*
+  POST /
+*/
 router.post('/', async (req, res) => {
-  /*
-    POST /
-  */
   res.status(200).json({
     network: uniswap.network,
     provider: uniswap.provider.connection.url,
@@ -54,10 +54,10 @@ router.post('/', async (req, res) => {
   })
 })
 
+/*
+  POST: /buy-price
+*/
 router.post('/gas-limit', async (req, res) => {
-  /*
-    POST: /buy-price
-  */
   const gasLimit = estimateGasLimit()
 
   try {
@@ -68,29 +68,26 @@ router.post('/gas-limit', async (req, res) => {
     })
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error)
     res.status(500).json({
-      error: reason,
+      error: err.reason || statusMessages.operation_error,
       message: err
     })
   }
 })
 
+/*
+  POST: /eth/uniswap/start
+    x-www-form-urlencoded: {
+      "pairs":"[ETH-USDT, ...]"
+      "gasPrice":30
+    }
+*/
 router.get('/start', async (req, res) => {
-  /*
-    POST: /eth/uniswap/start
-      x-www-form-urlencoded: {
-        "pairs":"[ETH-USDT, ...]"
-        "gasPrice":30
-      }
-  */
   const initTime = Date.now()
   const paramData = getParamData(req.query)
   const pairs = JSON.parse(paramData.pairs)
   let gasPrice
+
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
   } else {
@@ -142,19 +139,19 @@ router.get('/start', async (req, res) => {
   res.status(200).json(result)
 })
 
+/*
+  POST: /trade
+  x-www-form-urlencoded: {
+    "quote":"BAT"
+    "base":"DAI"
+    "amount":0.1
+    "limitPrice":1
+    "gasPrice":10
+    "privateKey":{{privateKey}}
+    "side":{buy|sell}
+  }
+*/
 router.post('/trade', async (req, res) => {
-  /*
-      POST: /trade
-      x-www-form-urlencoded: {
-        "quote":"BAT"
-        "base":"DAI"
-        "amount":0.1
-        "limitPrice":1
-        "gasPrice":10
-        "privateKey":{{privateKey}}
-        "side":{buy|sell}
-      }
-  */
   const initTime = Date.now()
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body)
@@ -172,12 +169,14 @@ router.post('/trade', async (req, res) => {
   if (paramData.limitPrice) {
     limitPrice = parseFloat(paramData.limitPrice)
   }
+
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
   } else {
     gasPrice = fees.ethGasPrice
   }
+
   const gasLimit = estimateGasLimit()
   const gasCost = await fees.getGasCost(gasPrice, gasLimit)
 
@@ -273,26 +272,22 @@ router.post('/trade', async (req, res) => {
     }
   } catch (err) {
     logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error)
     res.status(500).json({
-      error: reason,
+      error: err.reason || statusMessages.operation_error,
       message: err
     })
   }
 })
 
+/*
+  POST: /price
+    x-www-form-urlencoded: {
+      "quote":"BAT"
+      "base":"DAI"
+      "amount":1
+    }
+*/
 router.post('/price', async (req, res) => {
-  /*
-    POST: /price
-      x-www-form-urlencoded: {
-        "quote":"BAT"
-        "base":"DAI"
-        "amount":1
-      }
-  */
   const initTime = Date.now()
   // params: base (required), quote (required), amount (required)
   const paramData = getParamData(req.body)
@@ -309,6 +304,7 @@ router.post('/price', async (req, res) => {
   } else {
     gasPrice = fees.ethGasPrice
   }
+
   const gasLimit = estimateGasLimit()
   const gasCost = await fees.getGasCost(gasPrice, gasLimit)
 
@@ -366,6 +362,7 @@ router.post('/price', async (req, res) => {
     logger.error(req.originalUrl, { message: err })
     let reason
     let errCode = 500
+
     if (Object.keys(err).includes('isInsufficientReservesError')) {
       errCode = 200
       reason =
@@ -380,10 +377,9 @@ router.post('/price', async (req, res) => {
         })
       }
     } else {
-      err.reason
-        ? (reason = err.reason)
-        : (reason = statusMessages.operation_error)
+      reason = err.reason || statusMessages.operation_error
     }
+
     res.status(errCode).json({
       error: reason,
       message: err
