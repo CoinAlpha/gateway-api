@@ -7,7 +7,18 @@ const solidity = require('@ethersproject/solidity')
 const address = require('@ethersproject/address')
 
 /// Re-implementation of Pair and Fetcher that supports arbitrary Uniswap factory and init code hash
-/// generated from typescript
+/// generated js from typescript
+/// FIXME: make this normal js OR convert the entire project to .ts (you choose lol)
+
+function _defineProperties(target, props) {
+  for (var i = 0; i < props.length; i++) {
+    var descriptor = props[i];
+    descriptor.enumerable = descriptor.enumerable || false;
+    descriptor.configurable = true;
+    if ("value" in descriptor) descriptor.writable = true;
+    Object.defineProperty(target, descriptor.key, descriptor);
+  }
+}
 
 function _createClass(Constructor, protoProps, staticProps) {
   if (protoProps) _defineProperties(Constructor.prototype, protoProps);
@@ -244,8 +255,6 @@ export const Pair = /*#__PURE__*/function () {
 
 var _TOKEN_DECIMALS_CACHE;
 var TOKEN_DECIMALS_CACHE = (_TOKEN_DECIMALS_CACHE = {}, _TOKEN_DECIMALS_CACHE[process.env.EVM_CHAIN_ID ?? ''] = {
-  '0xE0B7927c4aF23765Cb51314A0E0521A9645F0E2A': 9 // DGD
-
 }, _TOKEN_DECIMALS_CACHE);
 
 export const Fetcher = /*#__PURE__*/function () {
