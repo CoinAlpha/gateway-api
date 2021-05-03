@@ -321,8 +321,8 @@ router.post('/add-position', async (req, res) => {
         "token0":"BAT"
         "token1":"DAI"
         "fee":1
-        "tickLower": 1
-        "tickUpper": 2
+        "lowerPrice": 1
+        "upperPrice": 2
         "amount0": amount0
         "amount1": amount1
       }
@@ -335,8 +335,8 @@ router.post('/add-position', async (req, res) => {
   const baseTokenContractInfo = eth.getERC20TokenAddresses(paramData.token0)
   const quoteTokenContractInfo = eth.getERC20TokenAddresses(paramData.token1)
   const fee = paramData.fee
-  const tickLower = paramData.tickLower
-  const tickUpper = paramData.tickUpper
+  const lowerPrice = paramData.lowerPrice
+  const upperPrice = paramData.upperPrice
   const amount0 = paramData.amount0
   const amount1 = paramData.amount1
 
@@ -352,7 +352,7 @@ router.post('/add-position', async (req, res) => {
 
   try {
     // add position to pool
-    const newPosition = await uniswap.addPosition(wallet, baseTokenContractInfo, quoteTokenContractInfo, amount0, amount1, fee, tickLower, tickUpper);
+    const newPosition = await uniswap.addPosition(wallet, baseTokenContractInfo, quoteTokenContractInfo, amount0, amount1, fee, lowerPrice, upperPrice);
 
     const result = {
       network: uniswap.network,
@@ -363,8 +363,8 @@ router.post('/add-position', async (req, res) => {
       fee: fee,
       amount0: amount0,
       amount1: amount1,
-      tickLower: tickLower,
-      tickUpper: tickUpper,
+      lowerPrice: lowerPrice,
+      upperPrice: upperPrice,
       hash: newPosition.hash,
       gasPrice: gasPrice,
       gasLimit: gasLimit,

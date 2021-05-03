@@ -1,5 +1,5 @@
 import { logger } from './logger';
-import { encodePriceSqrt, getLiquidity, getTickAtSqrtRatio } from '../static/uniswap-v3/helper_functions';
+import { encodePriceSqrt, getLiquidity, getTickFromPrice } from '../static/uniswap-v3/helper_functions';
 
 const debug = require('debug')('router')
 const math =  require('mathjs')
@@ -177,26 +177,12 @@ export default class UniswapV3 {
     return position
   }
 
-  //getMinTick (tickSpacing){ return Math.ceil(-887272 / tickSpacing) * tickSpacing}
-
-  //getMaxTick (tickSpacing){ return Math.floor(887272 / tickSpacing) * tickSpacing}
-
   async addPosition (wallet, token0, token1, amount0, amount1, fee, lowerPrice, upperPrice) {
+    try{
     const nftContract = this.get_contract("nft", wallet);
     const coreContract = this.get_contract("core", wallet);
-    //const pool = await coreContract.getPool(token0.address, token1.address, FeeAmount[fee]);
+    const pool = await coreContract.getPool(token0.address, token1.address, FeeAmount[fee]);
     const midPrice = math.fraction((lowerPrice + upperPrice) / 2) // Use mid price to initialize uninitialized pool
-
-    /* TO-DO: Accept price for upper and lower tick from client then convert to ticks
-    try{
-    const lowerPriceFraction = math.fraction(lowerPrice)
-    const upperPriceFraction = math.fraction(upperPrice)
-    console.log(lowerPriceFraction)
-    console.log(upperPriceFraction)
-    console.log(getTickAtSqrtRatio(encodePriceSqrt(lowerPriceFraction.n, lowerPriceFraction.d)))
-    console.log(getTickAtSqrtRatio(encodePriceSqrt(upperPriceFraction.n, upperPriceFraction.d)))
-  }catch(err){console.log(err)}
-  */
 
     const initPoolData = nftContract.interface.encodeFunctionData('createAndInitializePoolIfNecessary', [
           token0.address,
@@ -206,8 +192,8 @@ export default class UniswapV3 {
     const mintData = nftContract.interface.encodeFunctionData('mint', [{
           token0: token0.address,
           token1: token1.address,
-          tickLower: lowerPrice,
-          tickUpper: upperPrice,
+          tickLower: getTickFromPrice(lowerPrice, fee, "UPPER"),
+          tickUpper: getTickFromPrice(upperPrice, fee, "LOWER"),
           amount0Desired: ethers.utils.parseUnits(amount0, token0.decimals),
           amount1Desired: ethers.utils.parseUnits(amount1, token1.decimals),
           // slippage isn't applied for now
@@ -225,6 +211,7 @@ export default class UniswapV3 {
     const tx = await nftContract.multicall(calls, { gasLimit: GAS_LIMIT });
 
     return tx;
+  } catch(err) { console.log(err)}
   }
 
   async removePosition (wallet, tokenId) {
@@ -261,7 +248,9 @@ export default class UniswapV3 {
         deadline: Date.now() + TTL},
         { gasLimit: GAS_LIMIT });
     } else {
-      const liquidity = getLiquidity(ethers.utils.parseUnits(amount0, 6), ethers.utils.parseUnits(amount1, 6)) // use method from sdk to calculate liquidity from amount correctly
+      //const liquidity = getLiquidity(ethers.utils.parseUnits(amount0, 6), ethers.utils.parseUnits(amount1, 6)) // use method from sdk to calculate liquidity from amount correctly
+      const liquidity = getLiquidity(amount0, amount1)
+      console.log(liquidity.toString())
       const decreaseLiquidityData = contract.interface.encodeFunctionData('decreaseLiquidity', [{
         tokenId: tokenId,
         liquidity: liquidity,
@@ -274,7 +263,7 @@ export default class UniswapV3 {
         amount0Max: MaxUint128,
         amount1Max: MaxUint128}]);
 
-      return await contract.multicall([decreaseLiquidityData, collectFeesData], { gasLimit: GAS_LIMIT });
+      //return await contract.multicall([decreaseLiquidityData, collectFeesData], { gasLimit: GAS_LIMIT });
     }
   }
 
