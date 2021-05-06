@@ -7,6 +7,19 @@ const TICK_SPACINGS = { LOW: 10, MEDIUM: 60, HIGH: 2000 };
 
 bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 })
 
+export function expandTo18Decimals(n) {
+  return BigNumber.from(n).mul(BigNumber.from(10).pow(18))
+}
+
+export function toHex(bigintIsh) {
+  const bigInt = JSBI.BigInt(bigintIsh)
+  let hex = bigInt.toString(16)
+  if (hex.length % 2 !== 0) {
+    hex = `0${hex}`
+  }
+  return `0x${hex}`
+}
+
 // returns the sqrt price as a 64x96
 export function encodePriceSqrt(reserve1, reserve0) {
   return BigNumber.from(
