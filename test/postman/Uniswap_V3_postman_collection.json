@@ -111,12 +111,12 @@
 							"urlencoded": [
 								{
 									"key": "base",
-									"value": "DAI",
+									"value": "COIN1",
 									"type": "text"
 								},
 								{
 									"key": "quote",
-									"value": "USDC",
+									"value": "COIN2",
 									"type": "text"
 								},
 								{
@@ -153,22 +153,22 @@
 							"urlencoded": [
 								{
 									"key": "base",
-									"value": "WETH",
+									"value": "COIN1",
 									"type": "text"
 								},
 								{
 									"key": "quote",
-									"value": "DAI",
+									"value": "COIN2",
 									"type": "text"
 								},
 								{
 									"key": "amount",
-									"value": "0.25",
+									"value": "0.000009",
 									"type": "text"
 								},
 								{
 									"key": "limitPrice",
-									"value": "1.2115524",
+									"value": "0.000000000025",
 									"type": "text"
 								},
 								{
@@ -185,6 +185,11 @@
 								{
 									"key": "side",
 									"value": "buy",
+									"type": "text"
+								},
+								{
+									"key": "tier",
+									"value": "HIGH",
 									"type": "text"
 								}
 							]
@@ -216,7 +221,7 @@
 							"urlencoded": [
 								{
 									"key": "tokenId",
-									"value": "43",
+									"value": "66",
 									"type": "text"
 								},
 								{
@@ -280,17 +285,17 @@
 								},
 								{
 									"key": "fee",
-									"value": "MEDIUM",
+									"value": "LOW",
 									"type": "text"
 								},
 								{
-									"key": "tickLower",
-									"value": "5",
+									"key": "lowerPrice",
+									"value": "1561",
 									"type": "text"
 								},
 								{
-									"key": "tickUpper",
-									"value": "10",
+									"key": "upperPrice",
+									"value": "1570",
 									"type": "text"
 								},
 								{
@@ -323,7 +328,7 @@
 					"response": []
 				},
 				{
-					"name": "eth/uniswap/v3/adjust-liquidity",
+					"name": "eth/uniswap/v3/replace-position",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -342,29 +347,49 @@
 									"type": "text"
 								},
 								{
-									"key": "action",
-									"value": "DECREASE",
+									"key": "token0",
+									"value": "COIN1",
+									"type": "text"
+								},
+								{
+									"key": "token1",
+									"value": "COIN2",
+									"type": "text"
+								},
+								{
+									"key": "fee",
+									"value": "MEDIUM",
+									"type": "text"
+								},
+								{
+									"key": "lowerPrice",
+									"value": "6",
+									"type": "text"
+								},
+								{
+									"key": "upperPrice",
+									"value": "20",
 									"type": "text"
 								},
 								{
 									"key": "amount0",
-									"value": "1",
+									"value": "2",
 									"type": "text"
 								},
 								{
 									"key": "amount1",
-									"value": "1",
+									"value": "2",
 									"type": "text"
 								},
 								{
 									"key": "tokenId",
-									"value": "43",
+									"value": "69",
 									"type": "text"
 								}
 							]
 						},
 						"url": {
-							"raw": "https://localhost:{{port}}/eth/uniswap/v3/adjust-liquidity",
+							"raw": "https://localhost:{{port}}/eth/uniswap/v3/replace-position",
 							"protocol": "https",
 							"host": [
 								"localhost"
@@ -374,7 +399,7 @@
 								"eth",
 								"uniswap",
 								"v3",
-								"adjust-liquidity"
+								"replace-position"
 							]
 						}
 					},
@@ -407,7 +432,7 @@
 							]
 						},
 						"url": {
-							"raw": "https://localhost:{{port}}/eth/uniswap/v3/collect-fees",
+							"raw": "https://localhost:{{port}}/eth/uniswap/v3//collect-fees",
 							"protocol": "https",
 							"host": [
 								"localhost"
@@ -445,7 +470,7 @@
 								},
 								{
 									"key": "tokenId",
-									"value": "",
+									"value": "66",
 									"type": "text"
 								}
 							]
