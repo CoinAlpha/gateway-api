@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import express from 'express';
+import { getNonceManager } from '../services/utils';
 
 import { getParamData, latency, statusMessages } from '../services/utils';
 import { logger } from '../services/logger';
@@ -114,7 +115,7 @@ router.post('/trade', async (req, res) => {
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body);
   const privateKey = paramData.privateKey;
-  const wallet = new ethers.Wallet(privateKey, uniswap.provider);
+  const wallet = await getNonceManager(new ethers.Wallet(privateKey, uniswap.provider));
   const amount = paramData.amount;
 
   const baseTokenContractInfo = eth.getERC20TokenAddresses(paramData.base);
@@ -215,7 +216,7 @@ router.post('/price', async (req, res) => {
   // params: base (required), quote (required), amount (required)
   const paramData = getParamData(req.body);
   const privateKey = paramData.privateKey;
-  const wallet = new ethers.Wallet(privateKey, uniswap.provider);
+  const wallet = await getNonceManager(new ethers.Wallet(privateKey, uniswap.provider));
 
   const baseTokenContractInfo = eth.getERC20TokenAddresses(paramData.base);
   const quoteTokenContractInfo = eth.getERC20TokenAddresses(paramData.quote);
@@ -288,7 +289,7 @@ router.post('/position', async (req, res) => {
   const initTime = Date.now();
   const paramData = getParamData(req.body);
   const privateKey = paramData.privateKey;
-  const wallet = new ethers.Wallet(privateKey, uniswap.provider);
+  const wallet = await getNonceManager(new ethers.Wallet(privateKey, uniswap.provider));
   const tokenId = paramData.tokenId;
 
   try {
@@ -328,7 +329,7 @@ router.post('/add-position', async (req, res) => {
   const initTime = Date.now();
   const paramData = getParamData(req.body);
   const privateKey = paramData.privateKey;
-  const wallet = new ethers.Wallet(privateKey, uniswap.provider);
+  const wallet = await getNonceManager(new ethers.Wallet(privateKey, uniswap.provider));
 
   const baseTokenContractInfo = eth.getERC20TokenAddresses(paramData.token0);
   const quoteTokenContractInfo = eth.getERC20TokenAddresses(paramData.token1);
@@ -389,7 +390,7 @@ router.post('/remove-position', async (req, res) => {
   const initTime = Date.now();
   const paramData = getParamData(req.body);
   const privateKey = paramData.privateKey;
-  const wallet = new ethers.Wallet(privateKey, uniswap.provider);
+  const wallet = await getNonceManager(new ethers.Wallet(privateKey, uniswap.provider));
   const tokenId = paramData.tokenId;
 
 
@@ -446,7 +447,7 @@ router.post('/replace-position', async (req, res) => {
   const initTime = Date.now();
   const paramData = getParamData(req.body);
   const privateKey = paramData.privateKey;
-  const wallet = new ethers.Wallet(privateKey, uniswap.provider);
+  const wallet = await getNonceManager(new ethers.Wallet(privateKey, uniswap.provider));
   const tokenId = paramData.tokenId;
   const baseTokenContractInfo = eth.getERC20TokenAddresses(paramData.token0);
   const quoteTokenContractInfo = eth.getERC20TokenAddresses(paramData.token1);
@@ -507,7 +508,7 @@ router.post('/collect-fees', async (req, res) => {
   const initTime = Date.now();
   const paramData = getParamData(req.body);
   const privateKey = paramData.privateKey;
-  const wallet = new ethers.Wallet(privateKey, uniswap.provider);
+  const wallet = await getNonceManager(new ethers.Wallet(privateKey, uniswap.provider));
   const tokenId = paramData.tokenId;
 
   let gasPrice;

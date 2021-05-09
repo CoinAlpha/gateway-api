@@ -42,6 +42,7 @@ export default class UniswapV3 {
     this.pairs = []
     this.tokenSwapList = {}
     this.cachedRoutes = {}
+    this.abiDecoder = abiDecoder
 
     switch (network) {
       case 'mainnet':
@@ -106,7 +107,7 @@ export default class UniswapV3 {
         tokenIn: baseTokenContractInfo.address,
         tokenOut: quoteTokenContractInfo.address,
         fee: FeeAmount[tier],
-        recipient: wallet.address,
+        recipient: wallet.signer.address,
         deadline: Date.now() + TTL,
         amountIn: ethers.utils.parseUnits(baseAmount, baseTokenContractInfo.decimals),
         amountOutMinimum: ethers.utils.parseUnits(amountOutMinimum.toString(), quoteTokenContractInfo.decimals),
@@ -134,7 +135,7 @@ export default class UniswapV3 {
         tokenIn: quoteTokenContractInfo.address,
         tokenOut: baseTokenContractInfo.address,
         fee: FeeAmount[tier],
-        recipient: wallet.address,
+        recipient: wallet.signer.address,
         deadline: Date.now() + TTL,
         amountOut: ethers.utils.parseUnits(baseAmount, baseTokenContractInfo.decimals),
         amountInMaximum: ethers.utils.parseUnits(amountInMaximum.toString(), quoteTokenContractInfo.decimals),
@@ -184,7 +185,7 @@ export default class UniswapV3 {
       deadline: Date.now() + TTL}]);
     const collectFeesData = contract.interface.encodeFunctionData('collect', [{
         tokenId: tokenId,
-        recipient: wallet.address,
+        recipient: wallet.signer.address,
         amount0Max: MaxUint128,
         amount1Max: MaxUint128}]);
     const burnData = contract.interface.encodeFunctionData('burn', [tokenId]);
@@ -203,7 +204,7 @@ export default class UniswapV3 {
           // slippage isn't applied for now
           amount0Min: 0,
           amount1Min: 0,
-          recipient: wallet.address,
+          recipient: wallet.signer.address,
           deadline: Date.now() + TTL,
           fee: FeeAmount[fee]
         }]);
@@ -224,6 +225,7 @@ export default class UniswapV3 {
           encodePriceSqrt(midPrice.n, midPrice.d)]);
 
     const mintData = this.getAddLiquidityData(wallet, nftContract, token0, token1, amount0, amount1, fee, lowerPrice, upperPrice);
+
 
     let calls = [mintData]
     if (pool === ethers.constants.AddressZero) {
@@ -277,7 +279,7 @@ export default class UniswapV3 {
         deadline: Date.now() + TTL}]);
       const collectFeesData = contract.interface.encodeFunctionData('collect', [{
         tokenId: tokenId,
-        recipient: wallet.address,
+        recipient: wallet.signer.address,
         amount0Max: MaxUint128,
         amount1Max: MaxUint128}]);
 
@@ -290,7 +292,7 @@ export default class UniswapV3 {
     const contract = this.get_contract("nft", wallet);
     return await contract.collect({
       tokenId: tokenId,
-      recipient: wallet.address,
+      recipient: wallet.signer.address,
       amount0Max: MaxUint128,
       amount1Max: MaxUint128},
     { gasLimit: GAS_LIMIT });

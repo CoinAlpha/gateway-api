@@ -78,7 +78,7 @@ router.post('/balances', async (req, res) => {
           }
         }
       )).then(() => {
-        console.log('eth.route - Get Account Balance', { message: JSON.stringify(tokenList) })
+        debug('eth.route - Get Account Balance', { message: JSON.stringify(tokenList) })
         res.status(200).json({
         network: eth.network,
         timestamp: initTime,
@@ -352,7 +352,6 @@ router.post('/poll', async (req, res) => {
   const paramData = getParamData(req.body)
   const txHash = paramData.txHash
   const txReceipt = await eth.provider.getTransactionReceipt(txHash)
-  console.log(txReceipt)
   const receipt = {}
   const confirmed = txReceipt && txReceipt.blockNumber ? true : false
   if (confirmed) {

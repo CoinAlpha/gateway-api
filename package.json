@@ -8,7 +8,7 @@
   "scripts": {
     "start": "babel-node src/index.js",
     "dev": "nodemon --exec babel-node src/index.js",
-    "debug": "DEBUG=*router nodemon --exec babel-node src/index.js",
+    "debug": "DEBUG=*router nodemon --watch src/* --exec babel-node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -19,6 +19,7 @@
     "@uniswap/v3-core": "^1.0.0",
     "@uniswap/v3-periphery": "^1.0.0",
     "@uniswap/v3-sdk": "^1.0.3",
+    "@ethersproject/experimental": "^5.1.2",
     "abi-decoder": "^2.4.0",
     "app-root-path": "^3.0.0",
     "axios": "^0.21.1",
