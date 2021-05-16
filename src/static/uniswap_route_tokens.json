@@ -27,5 +27,6 @@
 ], "bsc": [
   {"address": "0x47DcC83a14aD53Ed1f13d3CaE8AA4115f07557C0", "name": "PNDA", "symbol": "PNDA", "decimals": 18},
   {"address": "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3", "name": "DAI", "symbol": "DAI", "decimals": 18},
-  {"address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", "name": "USDC", "symbol": "USDC", "decimals": 6}
+  {"address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", "name": "USDC", "symbol": "USDC", "decimals": 6},
+  {"address": "0xe9e7cea3dedca5984780bafc599bd69add087d56", "name": "BUSD", "symbol": "BUSD", "decimals": 18}
 ]}
