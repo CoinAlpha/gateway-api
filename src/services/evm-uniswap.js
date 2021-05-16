@@ -7,7 +7,7 @@ const uniCore = require('@uniswap/sdk-core')
 const ethers = require('ethers')
 const proxyArtifact = require('../static/uniswap_v2_router_abi.json')
 const routeTokens = require('../static/uniswap_route_tokens.json')
-const Fetcher = require('./evm-uni-v2-fetcher')
+const { Fetcher } = require('./evm-uni-v2-fetcher')
 const JSBI = require('jsbi')
 
 // constants
