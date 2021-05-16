@@ -10,7 +10,9 @@ const debug = require('debug')('router')
 const router = express.Router()
 const evm = new EVM(process.env.EVM_CHAIN)
 const spenders = {
-  evm_uniswap: process.env.EVM_UNISWAP_ROUTER
+  evm_uniswap: process.env.EVM_UNISWAP_ROUTER,
+  evm_uniswap_0: process.env.EVM_UNISWAP_0_ROUTER,
+  evm_uniswap_1: process.env.EVM_UNISWAP_1_ROUTER
 }
 const fees = new Fees()
 

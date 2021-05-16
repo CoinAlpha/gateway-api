@@ -25,7 +25,9 @@ export default class EVM {
     this.erc20TokenListURL = process.env.EVM_TOKEN_LIST_URL
     this.network = name
     this.spenders = {
-      uniswap: process.env.EVM_UNISWAP_ROUTER
+      uniswap: process.env.EVM_UNISWAP_ROUTER,
+      evm_uniswap_0: process.env.EVM_UNISWAP_0_ROUTER,
+      evm_uniswap_1: process.env.EVM_UNISWAP_1_ROUTER
     }
     // update token list
     this.getERC20TokenList() // erc20TokenList
