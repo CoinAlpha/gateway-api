@@ -306,8 +306,8 @@ export const Fetcher = /*#__PURE__*/function () {
     try {
       if (provider === undefined) provider = providers.getDefaultProvider(networks.getNetwork(chainId));
       !(tokenA.chainId === tokenB.chainId) ? "development" !== "production" ? invariant(false, 'CHAIN_ID') : invariant(false) : void 0;
-      var address = Pair.getAddress(factoryAddress, tokenA, tokenB);
       console.log(address)
+      var address = Pair.getAddress(factoryAddress, initCodeHash, tokenA, tokenB);
       return Promise.resolve(new contracts.Contract(address, IUniswapV2Pair.abi, provider).getReserves()).then(function (_ref) {
         var reserves0 = _ref[0],
             reserves1 = _ref[1];
