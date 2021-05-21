@@ -77,7 +77,7 @@ router.post('/gas-limit', async (req, res) => {
   }
 })
 
-router.get('/result', async (req, res) => {
+router.post('/result', async (req, res) => {
   /*
     POST: /eth/uniswap/v3/result
       x-www-form-urlencoded: {
@@ -85,7 +85,7 @@ router.get('/result', async (req, res) => {
       }
   */
   const initTime = Date.now();
-  const paramData = getParamData(req.query);
+  const paramData = getParamData(req.body);
   const logs = JSON.parse(paramData.logs);
 
   const result = {

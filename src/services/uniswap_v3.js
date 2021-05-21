@@ -100,7 +100,7 @@ export default class UniswapV3 {
   async swapExactIn (wallet, baseTokenContractInfo, quoteTokenContractInfo, baseAmount, limitPrice, tier, gasPrice) {
     //sell, In => base, Out => quote
     const minPercentOut = (1 - (this.slippage / 100));
-    const amountOutMinimum =  math.floor(baseAmount * limitPrice * minPercentOut, quoteTokenContractInfo.decimals);
+    const amountOutMinimum =  Math.floor(baseAmount * limitPrice * minPercentOut * quoteTokenContractInfo.decimals) / quoteTokenContractInfo.decimals;
     //const priceFraction =  math.fraction(limitPrice)
     const contract = this.get_contract("router", wallet);
     const tx = await contract.exactInputSingle({
@@ -128,7 +128,7 @@ export default class UniswapV3 {
   async swapExactOut (wallet, baseTokenContractInfo, quoteTokenContractInfo, baseAmount, limitPrice, tier, gasPrice) {
     //buy, In => quote, Out => base
     const maxPercentIn = (1 + (this.slippage / 100));
-    const amountInMaximum =  math.ceil(baseAmount * limitPrice * maxPercentIn, quoteTokenContractInfo.decimals);
+    const amountInMaximum =  Math.ceil(baseAmount * limitPrice * maxPercentIn * quoteTokenContractInfo.decimals) / quoteTokenContractInfo.decimals;
     //const priceFraction = math.fraction(limitPrice)
     const contract = this.get_contract("router", wallet);
     const tx = await contract.exactOutputSingle({

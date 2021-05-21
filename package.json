@@ -8,7 +8,7 @@
   "scripts": {
     "start": "babel-node src/index.js",
     "dev": "nodemon --exec babel-node src/index.js",
-    "debug": "DEBUG=*router nodemon --watch src/* --exec babel-node src/index.js",
+    "debug": "DEBUG=*router nodemon --exec babel-node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
