@@ -189,6 +189,7 @@ export const Pair = /*#__PURE__*/function () {
     const exists = tokenAmountA && tokenAmountA.token && tokenAmountB && tokenAmountB.token
     if (!exists) {
       return undefined
+    }
     var tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
     ? [tokenAmountA, tokenAmountB] : [tokenAmountB, tokenAmountA];
     this.factoryAddress = factoryAddress
