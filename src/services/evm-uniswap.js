@@ -157,8 +157,11 @@ export default class EVMUniswap {
     const tOut = this.tokenList[tokenOut];
     const tIn = this.tokenList[tokenIn];
     const tokenAmountOut = new uniCore.TokenAmount(tOut, ethers.utils.parseUnits(tokenOutAmount, tOut.decimals));
-    if (this.pairs.length === 0){
+    if (this.pairs.length === 0) {
       const route = await this.fetch_route(tIn, tOut);
+      if (!route) {
+        return { trade: null, expectedAmount: null }
+      }
       const trade = uni.Trade.exactOut(route, tokenAmountOut);
       if ( trade !== undefined ){
         const expectedAmount = trade.maximumAmountIn(this.allowedSlippage);

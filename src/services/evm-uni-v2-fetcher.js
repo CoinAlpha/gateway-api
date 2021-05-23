@@ -44,8 +44,9 @@ function _extends() {
   return _extends.apply(this, arguments);
 }
 
-var computePairAddress = function computePairAddress(_ref, initCodeHash) {
+const computePairAddress = (_ref) => {
   var factoryAddress = _ref.factoryAddress,
+      initCodeHash = _ref.initCodeHash,
       tokenA = _ref.tokenA,
       tokenB = _ref.tokenB;
 
