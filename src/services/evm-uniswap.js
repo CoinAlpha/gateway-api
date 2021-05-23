@@ -143,10 +143,12 @@ export default class EVMUniswap {
       }
       return "Can't find route to swap, kindly update "
     }
+    console.log(`priceSwapIn mid`)
     const trade = uni.Trade.bestTradeExactIn(this.pairs, tokenAmountIn, this.tokenList[tokenOut], { maxHops: 5 })[0];
-    if (trade === undefined){trade = this.cachedRoutes[tIn.symbol + tOut.Symbol];}
-    else{this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;}
+    if (trade === undefined) { trade = this.cachedRoutes[tIn.symbol + tOut.symbol] }
+    else { this.cachedRoutes[tIn.symbol + tOut.symbol] = trade }
     const expectedAmount = trade.minimumAmountOut(this.allowedSlippage);
+    console.log(`priceSwapIn end`)
     return { trade, expectedAmount }
   }
 

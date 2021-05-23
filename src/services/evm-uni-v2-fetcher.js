@@ -186,6 +186,9 @@ var InsufficientReservesError = /*#__PURE__*/function (_Error) {
 
 export const Pair = /*#__PURE__*/function () {
   function Pair(factoryAddress, initCodeHash, chainId, tokenAmountA, tokenAmountB) {
+    const exists = tokenAmountA && tokenAmountA.token && tokenAmountB && tokenAmountB.token
+    if (!exists) {
+      return undefined
     var tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
     ? [tokenAmountA, tokenAmountB] : [tokenAmountB, tokenAmountA];
     this.factoryAddress = factoryAddress
@@ -270,7 +273,7 @@ export const Pair = /*#__PURE__*/function () {
     var numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), _1000);
     var denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), _997);
     var inputAmount = new uniCore.TokenAmount(outputAmount.token.equals(this.token0) ? this.token1 : this.token0, JSBI.add(JSBI.divide(numerator, denominator), ONE));
-    return [inputAmount, new Pair(this.factoryAddress, this.chainId, inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))];
+    return [inputAmount, new Pair(this.factoryAddress, this.initCodeHash, this.chainId, inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))];
   };
 
   _proto.getLiquidityMinted = function getLiquidityMinted(totalSupply, tokenAmountA, tokenAmountB) {

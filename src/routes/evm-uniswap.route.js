@@ -309,7 +309,7 @@ const makeEvmUniswapRoute = (id) => {
           amount
         )
   
-      if (trade !== null && expectedAmount !== null) {
+      if (trade !== null && expectedAmount !== null && trade.executionPrice) {
         const price = side === 'BUY'
           ? trade.executionPrice.invert().toSignificant(8)
           : trade.executionPrice.toSignificant(8)
@@ -335,12 +335,14 @@ const makeEvmUniswapRoute = (id) => {
         debug(`Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`)
         res.status(200).json(result)
       } else { // no pool available
+        logger.error("no pool", { message: statusMessages.no_pool_available })
         res.status(200).json({
           info: statusMessages.no_pool_available,
           message: ''
         })
       }
     } catch (err) {
+      console.log(`price error: ${err}`)
       logger.error(req.originalUrl, { message: err })
       let reason
       let errCode = 500
