@@ -58,6 +58,7 @@ export default class EVMUniswap {
       }
       catch(err) {
         logger.error(err);
+        throw err;
       }
       return route;
   }
@@ -137,6 +138,10 @@ export default class EVMUniswap {
     const tokenAmountIn = new uniCore.TokenAmount(tIn, ethers.utils.parseUnits(tokenInAmount, tIn.decimals));
     if (this.pairs.length === 0){
       const route = await this.fetch_route(tIn, tOut);
+      console.log('route', route)
+      if (!route) {
+        return { trade: null, expectedAmount: null }
+      }
       const trade = uni.Trade.exactIn(route, tokenAmountIn);
       if ( trade !== undefined ){
         const expectedAmount = trade.minimumAmountOut(this.allowedSlippage);

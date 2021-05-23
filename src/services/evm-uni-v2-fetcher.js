@@ -1,3 +1,4 @@
+import { chain } from 'lodash'
 
 const contracts = require('@ethersproject/contracts')
 const { ERC20Abi: ERC20 } = require('../static/abi')
@@ -5,7 +6,9 @@ const IUniswapV2Pair = require('@uniswap/v2-core/build/IUniswapV2Pair.json')
 const JSBI = require('jsbi')
 const solidity = require('@ethersproject/solidity')
 const address = require('@ethersproject/address')
+const uniCore = require('@uniswap/sdk-core')
 
+const ZERO = /*#__PURE__*/JSBI.BigInt(0);
 /// Re-implementation of Pair and Fetcher that supports arbitrary Uniswap factory and init code hash
 /// generated js from typescript
 /// FIXME: make this normal js OR convert the entire project to .ts (you choose lol)
@@ -15,7 +18,7 @@ function _defineProperties(target, props) {
     var descriptor = props[i];
     descriptor.enumerable = descriptor.enumerable || false;
     descriptor.configurable = true;
-    if ("value" in descriptor) descriptor.writable = true;
+    if ("value" in descriptor) descriptor.writnable = true;
     Object.defineProperty(target, descriptor.key, descriptor);
   }
 }
@@ -59,6 +62,122 @@ const computePairAddress = (_ref) => {
 
   return address.getCreate2Address(factoryAddress, salt, initCodeHash);
 };
+
+function _inheritsLoose(subClass, superClass) {
+  subClass.prototype = Object.create(superClass.prototype);
+  subClass.prototype.constructor = subClass;
+  subClass.__proto__ = superClass;
+}
+
+function _getPrototypeOf(o) {
+  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+    return o.__proto__ || Object.getPrototypeOf(o);
+  };
+  return _getPrototypeOf(o);
+}
+
+function _setPrototypeOf(o, p) {
+  _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+    o.__proto__ = p;
+    return o;
+  };
+
+  return _setPrototypeOf(o, p);
+}
+
+function _isNativeReflectConstruct() {
+  if (typeof Reflect === "undefined" || !Reflect.construct) return false;
+  if (Reflect.construct.sham) return false;
+  if (typeof Proxy === "function") return true;
+
+  try {
+    Date.prototype.toString.call(Reflect.construct(Date, [], function () {}));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function _construct(Parent, args, Class) {
+  if (_isNativeReflectConstruct()) {
+    _construct = Reflect.construct;
+  } else {
+    _construct = function _construct(Parent, args, Class) {
+      var a = [null];
+      a.push.apply(a, args);
+      var Constructor = Function.bind.apply(Parent, a);
+      var instance = new Constructor();
+      if (Class) _setPrototypeOf(instance, Class.prototype);
+      return instance;
+    };
+  }
+
+  return _construct.apply(null, arguments);
+}
+
+function _isNativeFunction(fn) {
+  return Function.toString.call(fn).indexOf("[native code]") !== -1;
+}
+
+function _wrapNativeSuper(Class) {
+  var _cache = typeof Map === "function" ? new Map() : undefined;
+
+  _wrapNativeSuper = function _wrapNativeSuper(Class) {
+    if (Class === null || !_isNativeFunction(Class)) return Class;
+
+    if (typeof Class !== "function") {
+      throw new TypeError("Super expression must either be null or a function");
+    }
+
+    if (typeof _cache !== "undefined") {
+      if (_cache.has(Class)) return _cache.get(Class);
+
+      _cache.set(Class, Wrapper);
+    }
+
+    function Wrapper() {
+      return _construct(Class, arguments, _getPrototypeOf(this).constructor);
+    }
+
+    Wrapper.prototype = Object.create(Class.prototype, {
+      constructor: {
+        value: Wrapper,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    return _setPrototypeOf(Wrapper, Class);
+  };
+
+  return _wrapNativeSuper(Class);
+}
+
+function _assertThisInitialized(self) {
+  if (self === void 0) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return self;
+}
+
+var CAN_SET_PROTOTYPE = ('setPrototypeOf' in Object);
+
+var InsufficientReservesError = /*#__PURE__*/function (_Error) {
+  _inheritsLoose(InsufficientReservesError, _Error);
+
+  function InsufficientReservesError() {
+    var _this;
+
+    _this = _Error.call(this) || this;
+    _this.isInsufficientReservesError = true;
+    _this.name = _this.constructor.name;
+    if (CAN_SET_PROTOTYPE) Object.setPrototypeOf(_assertThisInitialized(_this), (this instanceof InsufficientReservesError ? this.constructor : void 0).prototype);
+    return _this;
+  }
+
+  return InsufficientReservesError;
+}( /*#__PURE__*/_wrapNativeSuper(Error));
 
 export const Pair = /*#__PURE__*/function () {
   function Pair(factoryAddress, initCodeHash, chainId, tokenAmountA, tokenAmountB) {
@@ -131,7 +250,7 @@ export const Pair = /*#__PURE__*/function () {
       throw new InsufficientInputAmountError();
     }
 
-    return [outputAmount, new Pair(this.factoryAddress, this.initCodeHash, Number(process.env.EVM_CHAIN_ID), inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))];
+    return [outputAmount, new Pair(this.factoryAddress, this.initCodeHash, this.chainId, inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))];
   };
 
   _proto.getInputAmount = function getInputAmount(outputAmount) {
@@ -146,7 +265,7 @@ export const Pair = /*#__PURE__*/function () {
     var numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), _1000);
     var denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), _997);
     var inputAmount = new uniCore.TokenAmount(outputAmount.token.equals(this.token0) ? this.token1 : this.token0, JSBI.add(JSBI.divide(numerator, denominator), ONE));
-    return [inputAmount, new Pair(process.env.EVM_UNISWAP_FACTORY, Number(process.env.EVM_CHAIN_ID), inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))];
+    return [inputAmount, new Pair(process.env.EVM_UNISWAP_FACTORY, this.chainId, inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))];
   };
 
   _proto.getLiquidityMinted = function getLiquidityMinted(totalSupply, tokenAmountA, tokenAmountB) {
@@ -221,11 +340,6 @@ export const Pair = /*#__PURE__*/function () {
     key: "token1Price",
     get: function get() {
       return new uniCore.Price(this.token1, this.token0, this.tokenAmounts[1].raw, this.tokenAmounts[0].raw);
-    }
-  }, {
-    key: "chainId",
-    get: function get() {
-      return this.chainId;
     }
   }, {
     key: "token0",
