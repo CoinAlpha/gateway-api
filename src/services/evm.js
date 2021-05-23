@@ -162,6 +162,10 @@ export default class EVM {
     const tokenContractAddress = this.erc20TokenList.tokens.filter(obj => {
       return obj.symbol === tokenSymbol.toUpperCase()
     })
-    return tokenContractAddress[0]
+    if (tokenContractAddress.length) {
+      return tokenContractAddress[0]
+    } else {
+      return undefined
+    }
   }
 }

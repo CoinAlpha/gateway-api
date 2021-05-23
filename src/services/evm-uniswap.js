@@ -132,7 +132,6 @@ export default class EVMUniswap {
     const tokenAmountIn = new uniCore.TokenAmount(tIn, ethers.utils.parseUnits(tokenInAmount, tIn.decimals));
     if (this.pairs.length === 0){
       const route = await this.fetch_route(tIn, tOut);
-      console.log('route', route)
       if (!route) {
         return { trade: null, expectedAmount: null }
       }
