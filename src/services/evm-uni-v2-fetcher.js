@@ -9,6 +9,11 @@ const address = require('@ethersproject/address')
 const uniCore = require('@uniswap/sdk-core')
 
 const ZERO = /*#__PURE__*/JSBI.BigInt(0);
+const ONE = /*#__PURE__*/JSBI.BigInt(1);
+const FIVE = /*#__PURE__*/JSBI.BigInt(5);
+const _997 = /*#__PURE__*/JSBI.BigInt(997);
+const _1000 = /*#__PURE__*/JSBI.BigInt(1000);
+
 /// Re-implementation of Pair and Fetcher that supports arbitrary Uniswap factory and init code hash
 /// generated js from typescript
 /// FIXME: make this normal js OR convert the entire project to .ts (you choose lol)

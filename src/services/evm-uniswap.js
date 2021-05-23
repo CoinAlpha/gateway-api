@@ -15,12 +15,6 @@ const GAS_LIMIT = Number(process.env.EVM_UNISWAP_GAS_LIMIT || 150688);
 const TTL = process.env.EVM_UNISWAP_TTL || 300;
 const UPDATE_PERIOD = process.env.EVM_UNISWAP_UPDATE_PERIOD || 300000;  // stop updating pair after 5 minutes from last request
 
-const ZERO = /*#__PURE__*/JSBI.BigInt(0);
-const ONE = /*#__PURE__*/JSBI.BigInt(1);
-const FIVE = /*#__PURE__*/JSBI.BigInt(5);
-const _997 = /*#__PURE__*/JSBI.BigInt(997);
-const _1000 = /*#__PURE__*/JSBI.BigInt(1000);
-
 export default class EVMUniswap {
   constructor (name = 'mainnet', id, provider) {
     this.providerUrl = process.env.EVM_RPC_URL
