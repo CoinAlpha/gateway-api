@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js'
 import { getHummingbotMemo } from './utils';
 
 const debug = require('debug')('router')
-require('dotenv').config()
+// require('dotenv').config()
 
 // constants
 const TERRA_TOKENS = {

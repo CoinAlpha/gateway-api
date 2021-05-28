@@ -16,13 +16,6 @@ import terraRoutes from './routes/terra.route'
 import uniswapRoutes from './routes/uniswap.route'
 import perpFiRoutes from './routes/perpetual_finance.route'
 
-// terminate if environment not found
-const result = dotenv.config();
-if (result.error) {
-  logger.error(result.error);
-  process.exit(1);
-}
-
 // create app
 const app = express();
 

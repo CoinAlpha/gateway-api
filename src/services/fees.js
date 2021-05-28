@@ -2,7 +2,7 @@ import { logger } from './logger';
 import axios from 'axios'
 import BigNumber from 'bignumber.js'
 
-require('dotenv').config()
+//require('dotenv').config()
 
 const debug = require('debug')('router')
 // constants
@@ -28,10 +28,10 @@ export default class Fees {
         const response = await axios.get(ethGasStationURL)
         // divite by 10 to convert it to Gwei)
         this.ethGasPrice = response.data[gasLevel] / 10
-        console.log(`get ETHGasStation gas price (${gasLevel}): ${this.ethGasPrice} / interval: ${this.ethGasStationRefreshTime / 1000} sec`)  
+        console.log(`get ETHGasStation gas price (${gasLevel}): ${this.ethGasPrice} / interval: ${this.ethGasStationRefreshTime / 1000} sec`)
       } else {
         this.ethGasPrice = ethManualGasPrice
-        console.log(`get manual fixed gas price: ${this.ethGasPrice} / interval: ${this.ethGasStationRefreshTime / 1000} sec`)  
+        console.log(`get manual fixed gas price: ${this.ethGasPrice} / interval: ${this.ethGasStationRefreshTime / 1000} sec`)
       }
     } catch (err) {
       console.log(err);
@@ -49,5 +49,5 @@ export default class Fees {
   async getGasCost (gasPrice, gasLimit, inGwei = false) {
     const cost = gasPrice * gasLimit
     return inGwei ? cost : cost / denom
-  } 
+  }
 }

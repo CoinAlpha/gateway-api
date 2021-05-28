@@ -5,7 +5,7 @@ import { getParamData, latency, statusMessages } from '../services/utils';
 import { logger } from '../services/logger';
 import PerpetualFinance from '../services/perpetual_finance';
 
-require('dotenv').config()
+// require('dotenv').config()
 
 const router = express.Router()
 const perpFi = new PerpetualFinance(process.env.ETHEREUM_CHAIN)

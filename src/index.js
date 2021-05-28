@@ -2,15 +2,15 @@
 
 // absolute imports
 import https from 'https'
-import dotenv from 'dotenv'
 import fs from 'fs'
+import yenv from 'yenv'
 
 // relative imports
 import app from './app'
 import { logger } from './services/logger'
 
 // terminate if environment not found
-const result = dotenv.config();
+const result2 = yenv()
 if (result.error) {
   logger.info(result.error);
   process.exit(1);

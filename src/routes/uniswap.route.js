@@ -7,7 +7,7 @@ import Ethereum from '../services/eth';
 import Uniswap from '../services/uniswap';
 import Fees from '../services/fees';
 
-require('dotenv').config()
+// require('dotenv').config()
 
 const debug = require('debug')('router')
 const router = express.Router()

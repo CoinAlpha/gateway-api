@@ -1,5 +1,5 @@
 import { getLocalDate } from './utils'
-require('dotenv').config()
+// require('dotenv').config()
 const appRoot = require('app-root-path')
 const winston = require('winston')
 require('winston-daily-rotate-file');

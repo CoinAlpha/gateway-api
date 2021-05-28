@@ -7,6 +7,7 @@ const fs = require('fs');
 const ethers = require('ethers')
 const abi = require('../static/abi')
 
+
 // constants
 const APPROVAL_GAS_LIMIT = process.env.ETH_APPROVAL_GAS_LIMIT || 50000;
 
