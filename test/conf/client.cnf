@@ -1,0 +1,13 @@
+[ req ]
+default_bits           = 4096
+days                   = 365
+distinguished_name     = req_distinguished_name
+attributes             = req_attributes
+prompt                 = no
+
+[ req_distinguished_name ]
+O                      = Hummingbot
+CN                     = client
+
+[ req_attributes ]
+challengePassword      = password

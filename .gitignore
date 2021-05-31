@@ -6,7 +6,7 @@ Desktop.ini
 .idea
 
 # Configuration files
-*conf/
+conf/*
 # except the example conf/global_conf.yml.example
 !conf/global_conf.yml.example
 

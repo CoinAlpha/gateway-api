@@ -9,7 +9,12 @@ const GlobalConfigFilePath = "./conf/global_conf.yml"
 
 export default class ConfigurationManager {
   constructor () {
+  try{
     this.globalConfFile = fs.readFileSync(GlobalConfigFilePath, 'utf8')
+  } catch (err) {
+    fs.copyFileSync(GlobalConfigFilePath + ".example", GlobalConfigFilePath)
+    this.globalConfFile = fs.readFileSync(GlobalConfigFilePath, 'utf8')
+  }
     this.configs = YAML.parseDocument(this.globalConfFile)
     this.fileWatcher()
   }
