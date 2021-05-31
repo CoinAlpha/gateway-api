@@ -1,0 +1,31 @@
+# OS files
+**/.DS_Store
+Desktop.ini
+
+# IDEA files
+.idea
+
+# Configuration files
+*conf/
+# except the example conf/global_conf.yml.example
+!conf/global_conf.yml.example
+
+# node installs
+node_modules/
+
+# debug logs
+npm-debug.log
+
+# distribution files
+dist/
+
+# misc
+logs/
+
+# cert
+*.pem
+*.srl
+*.key
+*.crt
+*.log
+*.lock
