@@ -11,7 +11,7 @@ import { logger } from './services/logger'
 const globalConfig = require('./services/configuration_manager').configManagerInstance.readAllConfigs()
 
 const env = globalConfig.CORE.NODE_ENV
-const port = int(globalConfig.CORE.PORT)
+const port = globalConfig.CORE.PORT
 const certPassphrase = globalConfig.CERT_PASSPHRASE
 const ethereumChain = globalConfig.ETHEREUM_CHAIN
 const terraChain = globalConfig.TERRA_CHAIN
