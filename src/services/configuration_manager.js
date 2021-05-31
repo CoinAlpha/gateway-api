@@ -48,6 +48,10 @@ export default class ConfigurationManager {
     return this.configs.get(key)
   }
 
+  getCoreConfig(key) {
+    return this.configs.get('CORE').get(key)
+  }
+
   fileWatcher() {
     fs.watchFile(GlobalConfigFilePath, { persistent: true, interval: 1000 }, (curr, prev) => {
     if (prev.mtime !== curr.mtime) {

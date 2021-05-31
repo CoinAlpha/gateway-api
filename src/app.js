@@ -26,7 +26,7 @@ const app = express();
 // https://www.npmjs.com/package/helmet
 app.use(helmet());
 
-const ipWhitelist = globalConfig.getConfig("IP_WHITELIST")
+const ipWhitelist = globalConfig.getCoreConfig("IP_WHITELIST")
 if (ipWhitelist) {
   app.use(IpFilter(JSON.parse(ipWhitelist), { mode: 'allow' }))
 }
