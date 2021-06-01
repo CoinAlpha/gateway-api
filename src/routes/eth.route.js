@@ -11,7 +11,9 @@ const router = express.Router()
 const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
 const spenders = {
   balancer: process.env.EXCHANGE_PROXY,
-  uniswap: process.env.UNISWAP_ROUTER
+  uniswap: process.env.UNISWAP_ROUTER,
+  uniswapV3Router: process.env.UNISWAP_V3_ROUTER,
+  uniswapV3NFTManager: process.env.UNISWAP_V3_NFT_MANAGER
 }
 const fees = new Fees()
 
@@ -76,7 +78,7 @@ router.post('/balances', async (req, res) => {
           }
         }
       )).then(() => {
-        console.log('eth.route - Get Account Balance', { message: JSON.stringify(tokenList) })
+        debug('eth.route - Get Account Balance', { message: JSON.stringify(tokenList) })
         res.status(200).json({
         network: eth.network,
         timestamp: initTime,
@@ -312,7 +314,7 @@ router.post('/approve', async (req, res) => {
 
   let amount
   paramData.amount  ? amount = ethers.utils.parseUnits(paramData.amount, decimals)
-                    : amount = ethers.utils.parseUnits('1000000000', decimals) // approve for 1 billion units if no amount specified
+                    : amount = ethers.constants.MaxUint256  // approve max possible units if no amount specified
   let gasPrice
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice)
@@ -357,6 +359,7 @@ router.post('/poll', async (req, res) => {
     receipt.blockNumber = txReceipt.blockNumber
     receipt.confirmations = txReceipt.confirmations
     receipt.status = txReceipt.status
+    receipt.logs = txReceipt.logs
   }
   logger.info(`eth.route - Get TX Receipt: ${txHash}`, { message: JSON.stringify(receipt) })
   res.status(200).json({
