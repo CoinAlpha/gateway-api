@@ -25,7 +25,7 @@ TERRA_CHAIN:
 # - rpc url: infura or other rpc url
 # - token list: erc20 token list source (ref: https://tokenlists.org/)
 ETHEREUM_CHAIN:
-ETHEREUM_RPC_URL: https://{chain}.infura.io/v3/{api_key}
+ETHEREUM_RPC_URL: "https://{chain}.infura.io/v3/{api_key}"
 ETHEREUM_TOKEN_LIST_URL: https://wispy-bird-88a7.uniswap.workers.dev/?url=http://tokens.1inch.eth.link
 
 # Balancer
@@ -46,7 +46,7 @@ EXCHANGE_PROXY:
 # Reference: https://uniswap.org/docs/v2/smart-contracts/router02/
 # UniswapV2Router02 is deployed at 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D on the Ethereum mainnet, and the Ropsten, Rinkeby, Görli, and Kovan testnets.
 # It was built from commit 6961711.
-UNISWAP_ROUTER: 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
+UNISWAP_ROUTER:
 # allowed slippage for swap transactions
 UNISWAP_ALLOWED_SLIPPAGE: 1.5
 # restrict updating pairs that have no reserves or failed for 5 minutes

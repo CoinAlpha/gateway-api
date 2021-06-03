@@ -1,4 +1,4 @@
-FROM node:10.22.0-alpine
+FROM node:12.13.0-alpine
 
 # Add timezone database
 RUN apk add --no-cache tzdata
