@@ -21,6 +21,7 @@ dist/
 
 # misc
 logs/
+package-lock.json
 
 # cert
 *.pem

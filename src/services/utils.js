@@ -5,7 +5,7 @@ const config = require('./configuration_manager')
 const lodash = require('lodash')
 const moment = require('moment')
 const globalConfig = require('../services/configuration_manager').configManagerInstance
-
+const { NonceManager } = require('@ethersproject/experimental')
 
 export const statusMessages = {
   ssl_cert_required: 'SSL Certificate required',
@@ -100,4 +100,20 @@ export const getLocalDate = () => {
     newDate = moment().utcOffset(gmtOffset, false).format('YYYY-MM-DD hh:mm:ss').trim()
   }
   return newDate
+}
+
+
+export const nonceManagerCache = {}
+
+export const getNonceManager = async (signer) => {
+  let key = await signer.getAddress()
+  if (signer.provider) {
+    key += (await signer.provider.getNetwork()).chainId
+  }
+  let nonceManager = nonceManagerCache[key]
+  if (typeof nonceManager === 'undefined') {
+    nonceManager = new NonceManager(signer)
+    nonceManagerCache[key] = nonceManager
+  }
+  return nonceManager
 }
