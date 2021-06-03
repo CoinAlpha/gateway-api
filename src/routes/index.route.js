@@ -1,16 +1,16 @@
-import { loadConfig } from '../services/utils';
+import { loadConfig } from '../services/utils'
 
-const express = require('express');
+const express = require('express')
 
-const router = express.Router();
+const router = express.Router()
 
 router.get('/', (req, res) => {
   res.status(200).json({
     app: process.env.APPNAME,
     image: process.env.IMAGE,
     config: loadConfig(),
-    status: 'ok',
-  });
-});
+    status: 'ok'
+  })
+})
 
-module.exports = router;
+module.exports = router

@@ -1,7 +1,8 @@
 module.exports = {
-  extends: 'airbnb-base',
+  extends: ['airbnb-base', 'eslint:recommended', 'prettier'],
+  plugins: ['prettier'],
   env: {
-    node: true,
+    node: true
   },
   rules: {
     camelcase: 'off',
@@ -25,6 +26,7 @@ module.exports = {
     'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     'no-underscore-dangle': 'off',
     'prefer-destructuring': 'off',
-    radix: 'off',
-  },
-};
+    'prettier/prettier': 'error',
+    radix: 'off'
+  }
+}
