@@ -9,6 +9,7 @@
     "start": "babel-node src/index.js",
     "dev": "nodemon --exec babel-node src/index.js",
     "debug": "DEBUG=*router nodemon --exec babel-node src/index.js",
+    "lint": "node_modules/.bin/eslint src --format table",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -40,9 +41,10 @@
     "@babel/core": "^7.11.6",
     "@babel/node": "^7.10.5",
     "@babel/preset-env": "^7.11.5",
-    "eslint": "^7.10.0",
+    "eslint": "^7.27.0",
+    "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-import": "^2.23.3",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",

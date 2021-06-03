@@ -1,14 +1,27 @@
 module.exports = {
-  extends: 'standard',
+  extends: 'airbnb-base',
+  env: {
+    node: true,
+  },
   rules: {
-    // disable semicolon check
-    semi: 'off',
-
-    // override default options for rules from base configurations
-    'comma-dangle': 'off',
-
-    // disable rules from base configurations
+    camelcase: 'off',
+    'consistent-return': 'off',
+    'class-methods-use-this': 'off',
+    'guard-for-in': 'off',
+    'import/prefer-default-export': 'off',
+    'max-len': 'off',
+    'no-await-in-loop': 'off',
+    'no-case-declarations': 'off',
     'no-console': 'off',
-    'no-multi-spaces': 'off',
-  }
+    'no-mixed-operators': 'off',
+    'no-plusplus': 'off',
+    'no-prototype-builtins': 'off',
+    'no-restricted-syntax': 'off',
+    'no-return-assign': 'off',
+    'no-unused-expressions': 'off',
+    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'no-underscore-dangle': 'off',
+    'prefer-destructuring': 'off',
+    radix: 'off',
+  },
 };

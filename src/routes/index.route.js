@@ -11,6 +11,6 @@ router.get('/', (req, res) => {
     config: loadConfig(),
     status: 'ok',
   });
-})
+});
 
 module.exports = router;
