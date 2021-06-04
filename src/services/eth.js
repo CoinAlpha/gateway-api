@@ -17,10 +17,13 @@ export default class Ethereum {
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
     this.erc20TokenListURL = process.env.ETHEREUM_TOKEN_LIST_URL
     this.network = network
+    /*
     this.spenders = {
       balancer: process.env.EXCHANGE_PROXY,
-      uniswap: process.env.UNISWAP_ROUTER
+      uniswap: process.env.UNISWAP_ROUTER,
+      uniswapV3: process.UNISWAP_V3_ROUTER
     }
+    */
     // update token list
     this.getERC20TokenList() // erc20TokenList
   }
@@ -157,10 +160,18 @@ export default class Ethereum {
     }
   }
 
+  // Refactor name to getERC20TokenByName
   getERC20TokenAddresses (tokenSymbol) {
     const tokenContractAddress = this.erc20TokenList.tokens.filter(obj => {
       return obj.symbol === tokenSymbol.toUpperCase()
     })
     return tokenContractAddress[0]
+  }
+
+  getERC20TokenByAddress (tokenAddress) {
+    const tokenContract = this.erc20TokenList.tokens.filter(obj => {
+      return obj.address.toUpperCase() === tokenAddress.toUpperCase()
+    })
+    return tokenContract[0]
   }
 }
