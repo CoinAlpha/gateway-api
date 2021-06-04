@@ -1,32 +1,17 @@
 module.exports = {
-  extends: ['airbnb-base', 'eslint:recommended', 'prettier'],
+  extends: ['eslint:recommended', 'prettier'],
+  parser: 'babel-eslint',
   plugins: ['prettier'],
   env: {
-    node: true
+    node: true,
+    es6: true
   },
   rules: {
-    camelcase: 'off',
-    'consistent-return': 'off',
-    'class-methods-use-this': 'off',
-    'guard-for-in': 'off',
-    'import/prefer-default-export': 'off',
-    'max-len': 'off',
-    'new-cap': 'off',
-    'no-await-in-loop': 'off',
-    'no-bitwise': 'off',
-    'no-case-declarations': 'off',
-    'no-console': 'off',
-    'no-mixed-operators': 'off',
-    'no-multi-assign': 'off',
-    'no-plusplus': 'off',
-    'no-prototype-builtins': 'off',
-    'no-restricted-syntax': 'off',
-    'no-return-assign': 'off',
-    'no-unused-expressions': 'off',
-    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'comma-dangle': ['error', 'never'],
+    'no-multi-spaces': 'off',
     'no-underscore-dangle': 'off',
-    'prefer-destructuring': 'off',
+    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     'prettier/prettier': 'error',
-    radix: 'off'
+    semi: [2, 'always']
   }
-}
+};

@@ -221,7 +221,7 @@ const ERC20Abi = [
     name: 'Transfer',
     type: 'event'
   }
-]
+];
 
 const KovanWETHAbi = [
   {
@@ -375,12 +375,12 @@ const KovanWETHAbi = [
     name: 'Withdrawal',
     type: 'event'
   }
-]
+];
 
-const KovanFaucetAddress = '0xb48Cc42C45d262534e46d5965a9Ac496F1B7a830'
+const KovanFaucetAddress = '0xb48Cc42C45d262534e46d5965a9Ac496F1B7a830';
 
 module.exports = {
   ERC20Abi,
   KovanWETHAbi,
   KovanFaucetAddress
-}
+};

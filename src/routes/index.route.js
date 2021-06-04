@@ -1,8 +1,8 @@
-import { loadConfig } from '../services/utils'
+import { loadConfig } from '../services/utils';
 
-const express = require('express')
+const express = require('express');
 
-const router = express.Router()
+const router = express.Router();
 
 router.get('/', (req, res) => {
   res.status(200).json({
@@ -10,7 +10,7 @@ router.get('/', (req, res) => {
     image: process.env.IMAGE,
     config: loadConfig(),
     status: 'ok'
-  })
-})
+  });
+});
 
-module.exports = router
+module.exports = router;

@@ -1,70 +1,71 @@
-import { logger } from './logger'
+import { logger } from './logger';
 
-const fetch = require('cross-fetch')
+const fetch = require('cross-fetch');
 
-const Ethers = require('ethers')
-const AmmArtifact = require('@perp/contract/build/contracts/Amm.json')
-const ClearingHouseArtifact = require('@perp/contract/build/contracts/ClearingHouse.json')
-const ClearingHouseViewerArtifact = require('@perp/contract/build/contracts/ClearingHouseViewer.json')
-const TetherTokenArtifact = require('@perp/contract/build/contracts/TetherToken.json')
+const Ethers = require('ethers');
+const AmmArtifact = require('@perp/contract/build/contracts/Amm.json');
+const ClearingHouseArtifact = require('@perp/contract/build/contracts/ClearingHouse.json');
+const ClearingHouseViewerArtifact = require('@perp/contract/build/contracts/ClearingHouseViewer.json');
+const TetherTokenArtifact = require('@perp/contract/build/contracts/TetherToken.json');
 
-const GAS_LIMIT = 2123456
-const DEFAULT_DECIMALS = 18
-const CONTRACT_ADDRESSES = 'https://metadata.perp.exchange/'
-const XDAI_PROVIDER = process.env.XDAI_PROVIDER || 'https://dai.poa.network'
-const PNL_OPTION_SPOT_PRICE = 0
-const UPDATE_PERIOD = 60000 // stop updating prices after 30 secs from last request
+const GAS_LIMIT = 2123456;
+const DEFAULT_DECIMALS = 18;
+const CONTRACT_ADDRESSES = 'https://metadata.perp.exchange/';
+const XDAI_PROVIDER = process.env.XDAI_PROVIDER || 'https://dai.poa.network';
+const PNL_OPTION_SPOT_PRICE = 0;
+const UPDATE_PERIOD = 60000; // stop updating prices after 30 secs from last request
 
 export default class PerpetualFinance {
   constructor(network = 'mainnet') {
-    this.providerUrl = XDAI_PROVIDER
-    this.network = network
-    this.provider = new Ethers.providers.JsonRpcProvider(this.providerUrl)
-    this.gasLimit = GAS_LIMIT
-    this.contractAddressesUrl = CONTRACT_ADDRESSES
-    this.amm = {}
-    this.priceCache = {}
-    this.cacheExpirary = {}
-    this.pairAmountCache = {}
+    this.providerUrl = XDAI_PROVIDER;
+    this.network = network;
+    this.provider = new Ethers.providers.JsonRpcProvider(this.providerUrl);
+    this.gasLimit = GAS_LIMIT;
+    this.contractAddressesUrl = CONTRACT_ADDRESSES;
+    this.amm = {};
+    this.priceCache = {};
+    this.cacheExpirary = {};
+    this.pairAmountCache = {};
 
     switch (network) {
       case 'mainnet':
-        this.contractAddressesUrl += 'production.json'
-        break
+        this.contractAddressesUrl += 'production.json';
+        break;
       case 'kovan':
-        this.contractAddressesUrl += 'staging.json'
-        break
-      default:
-        const err = `Invalid network ${network}`
-        logger.error(err)
-        throw Error(err)
+        this.contractAddressesUrl += 'staging.json';
+        break;
+      default: {
+        const err = `Invalid network ${network}`;
+        logger.error(err);
+        throw Error(err);
+      }
     }
 
-    this.loadedMetadata = this.load_metadata()
+    this.loadedMetadata = this.load_metadata();
   }
 
   async load_metadata() {
     try {
       const metadata = await fetch(this.contractAddressesUrl).then((res) =>
         res.json()
-      )
-      const layer2 = Object.keys(metadata.layers.layer2.contracts)
+      );
+      const layer2 = Object.keys(metadata.layers.layer2.contracts);
 
       for (const key of layer2) {
         if (metadata.layers.layer2.contracts[key].name === 'Amm') {
-          this.amm[key] = metadata.layers.layer2.contracts[key].address
+          this.amm[key] = metadata.layers.layer2.contracts[key].address;
         } else {
-          this[key] = metadata.layers.layer2.contracts[key].address
+          this[key] = metadata.layers.layer2.contracts[key].address;
         }
       }
 
       this.layer2AmbAddr =
-        metadata.layers.layer2.externalContracts.ambBridgeOnXDai
-      this.xUsdcAddr = metadata.layers.layer2.externalContracts.usdc
-      this.loadedMetadata = true
-      return true
+        metadata.layers.layer2.externalContracts.ambBridgeOnXDai;
+      this.xUsdcAddr = metadata.layers.layer2.externalContracts.usdc;
+      this.loadedMetadata = true;
+      return true;
     } catch (err) {
-      return false
+      return false;
     }
   }
 
@@ -72,8 +73,8 @@ export default class PerpetualFinance {
     if (Object.keys(this.cacheExpirary).length > 0) {
       for (const pair in this.cacheExpirary) {
         if (this.cacheExpirary[pair] <= Date.now()) {
-          delete this.cacheExpirary[pair]
-          delete this.priceCache[pair]
+          delete this.cacheExpirary[pair];
+          delete this.priceCache[pair];
         }
       }
 
@@ -82,7 +83,7 @@ export default class PerpetualFinance {
           this.amm[pair],
           AmmArtifact.abi,
           this.provider
-        )
+        );
         await Promise.allSettled([
           amm.getInputPrice(0, {
             d: Ethers.utils.parseUnits(
@@ -97,33 +98,33 @@ export default class PerpetualFinance {
             )
           })
         ]).then((values) => {
-          if (!this.priceCache.hasOwnProperty(pair)) {
-            this.priceCache[pair] = []
+          if (!Object.prototype.hasOwnProperty.call(this.priceCache, pair)) {
+            this.priceCache[pair] = [];
           }
           this.priceCache[pair][0] =
             this.pairAmountCache[pair] /
-            Ethers.utils.formatUnits(values[0].value.d)
+            Ethers.utils.formatUnits(values[0].value.d);
           this.priceCache[pair][1] =
             Ethers.utils.formatUnits(values[1].value.d) /
-            this.pairAmountCache[pair]
-        })
+            this.pairAmountCache[pair];
+        });
       }
     }
-    setTimeout(this.update_price_loop.bind(this), 10000) // update every 10 seconds
+    setTimeout(this.update_price_loop.bind(this), 10000); // update every 10 seconds
   }
 
   // get XDai balance
   async getXdaiBalance(wallet) {
     try {
-      const xDaiBalance = await wallet.getBalance()
-      return Ethers.utils.formatEther(xDaiBalance)
+      const xDaiBalance = await wallet.getBalance();
+      return Ethers.utils.formatEther(xDaiBalance);
     } catch (err) {
-      logger.error(err)
-      let reason
+      logger.error(err);
+      let reason;
       err.reason
         ? (reason = err.reason)
-        : (reason = 'error xDai balance lookup')
-      return reason
+        : (reason = 'error xDai balance lookup');
+      return reason;
     }
   }
 
@@ -134,15 +135,15 @@ export default class PerpetualFinance {
         this.xUsdcAddr,
         TetherTokenArtifact.abi,
         wallet
-      )
-      const layer2UsdcBalance = await layer2Usdc.balanceOf(wallet.address)
-      const layer2UsdcDecimals = await layer2Usdc.decimals()
-      return Ethers.utils.formatUnits(layer2UsdcBalance, layer2UsdcDecimals)
+      );
+      const layer2UsdcBalance = await layer2Usdc.balanceOf(wallet.address);
+      const layer2UsdcDecimals = await layer2Usdc.decimals();
+      return Ethers.utils.formatUnits(layer2UsdcBalance, layer2UsdcDecimals);
     } catch (err) {
-      logger.error(err)
-      let reason
-      err.reason ? (reason = err.reason) : (reason = 'error balance lookup')
-      return reason
+      logger.error(err);
+      let reason;
+      err.reason ? (reason = err.reason) : (reason = 'error balance lookup');
+      return reason;
     }
   }
 
@@ -153,23 +154,23 @@ export default class PerpetualFinance {
       this.xUsdcAddr,
       TetherTokenArtifact.abi,
       wallet
-    )
+    );
 
     try {
       const allowanceForClearingHouse = await layer2Usdc.allowance(
         wallet.address,
         this.ClearingHouse
-      )
+      );
 
       return Ethers.utils.formatUnits(
         allowanceForClearingHouse,
         DEFAULT_DECIMALS
-      )
+      );
     } catch (err) {
-      logger.error(err)
-      let reason
-      err.reason ? (reason = err.reason) : (reason = 'error allowance lookup')
-      return reason
+      logger.error(err);
+      let reason;
+      err.reason ? (reason = err.reason) : (reason = 'error allowance lookup');
+      return reason;
     }
   }
 
@@ -181,18 +182,18 @@ export default class PerpetualFinance {
         this.xUsdcAddr,
         TetherTokenArtifact.abi,
         wallet
-      )
+      );
       const tx = await layer2Usdc.approve(
         this.ClearingHouse,
         Ethers.utils.parseUnits(amount, DEFAULT_DECIMALS)
-      )
+      );
       // TO-DO: We may want to supply custom gasLimit value above
-      return tx.hash
+      return tx.hash;
     } catch (err) {
-      logger.error(err)
-      let reason
-      err.reason ? (reason = err.reason) : (reason = 'error approval')
-      return reason
+      logger.error(err);
+      let reason;
+      err.reason ? (reason = err.reason) : (reason = 'error approval');
+      return reason;
     }
   }
 
@@ -201,16 +202,16 @@ export default class PerpetualFinance {
     try {
       const quoteAssetAmount = {
         d: Ethers.utils.parseUnits(margin, DEFAULT_DECIMALS)
-      }
-      const leverage = { d: Ethers.utils.parseUnits(levrg, DEFAULT_DECIMALS) }
+      };
+      const leverage = { d: Ethers.utils.parseUnits(levrg, DEFAULT_DECIMALS) };
       const minBaseAssetAmount = {
         d: Ethers.utils.parseUnits(minBaseAmount, DEFAULT_DECIMALS)
-      }
+      };
       const clearingHouse = new Ethers.Contract(
         this.ClearingHouse,
         ClearingHouseArtifact.abi,
         wallet
-      )
+      );
       const tx = await clearingHouse.openPosition(
         this.amm[pair],
         side,
@@ -218,13 +219,13 @@ export default class PerpetualFinance {
         leverage,
         minBaseAssetAmount,
         { gasLimit: this.gasLimit }
-      )
-      return tx
+      );
+      return tx;
     } catch (err) {
-      logger.error(err)
-      let reason
-      err.reason ? (reason = err.reason) : (reason = 'error opening position')
-      return reason
+      logger.error(err);
+      let reason;
+      err.reason ? (reason = err.reason) : (reason = 'error opening position');
+      return reason;
     }
   }
 
@@ -233,36 +234,36 @@ export default class PerpetualFinance {
     try {
       const minimalQuoteAsset = {
         d: Ethers.utils.parseUnits(minimalQuote, DEFAULT_DECIMALS)
-      }
+      };
       const clearingHouse = new Ethers.Contract(
         this.ClearingHouse,
         ClearingHouseArtifact.abi,
         wallet
-      )
+      );
       const tx = await clearingHouse.closePosition(
         this.amm[pair],
         minimalQuoteAsset,
         { gasLimit: this.gasLimit }
-      )
-      return tx
+      );
+      return tx;
     } catch (err) {
-      logger.error(err)
-      let reason
-      err.reason ? (reason = err.reason) : (reason = 'error closing position')
-      return reason
+      logger.error(err);
+      let reason;
+      err.reason ? (reason = err.reason) : (reason = 'error closing position');
+      return reason;
     }
   }
 
   // get active position
   async getPosition(wallet, pair) {
     try {
-      const positionValues = {}
+      const positionValues = {};
       const clearingHouse = new Ethers.Contract(
         this.ClearingHouse,
         ClearingHouseArtifact.abi,
         wallet
-      )
-      let premIndex = 0
+      );
+      let premIndex = 0;
       await Promise.allSettled([
         clearingHouse.getPosition(this.amm[pair], wallet.address),
         clearingHouse.getLatestCumulativePremiumFraction(this.amm[pair]),
@@ -275,47 +276,47 @@ export default class PerpetualFinance {
         positionValues.openNotional = Ethers.utils.formatUnits(
           values[0].value.openNotional.d,
           DEFAULT_DECIMALS
-        )
+        );
         positionValues.size = Ethers.utils.formatUnits(
           values[0].value.size.d,
           DEFAULT_DECIMALS
-        )
+        );
         positionValues.margin = Ethers.utils.formatUnits(
           values[0].value.margin.d,
           DEFAULT_DECIMALS
-        )
+        );
         positionValues.cumulativePremiumFraction = Ethers.utils.formatUnits(
           values[0].value.lastUpdatedCumulativePremiumFraction.d,
           DEFAULT_DECIMALS
-        )
+        );
         premIndex = Ethers.utils.formatUnits(
           values[1].value.d,
           DEFAULT_DECIMALS
-        )
+        );
         positionValues.pnl = Ethers.utils.formatUnits(
           values[2].value.unrealizedPnl.d,
           DEFAULT_DECIMALS
-        )
+        );
         positionValues.positionNotional = Ethers.utils.formatUnits(
           values[2].value.positionNotional.d,
           DEFAULT_DECIMALS
-        )
-      })
+        );
+      });
 
       positionValues.entryPrice = Math.abs(
         positionValues.openNotional / positionValues.size
-      )
+      );
       positionValues.fundingPayment =
         (premIndex - positionValues.cumulativePremiumFraction) *
-        positionValues.size // * -1
-      return positionValues
+        positionValues.size; // * -1
+      return positionValues;
     } catch (err) {
-      logger.error(err)
-      let reason
+      logger.error(err);
+      let reason;
       err.reason
         ? (reason = err.reason)
-        : (reason = 'error getting active position')
-      return reason
+        : (reason = 'error getting active position');
+      return reason;
     }
   }
 
@@ -326,70 +327,70 @@ export default class PerpetualFinance {
         this.ClearingHouseViewer,
         ClearingHouseViewerArtifact.abi,
         wallet
-      )
+      );
       const activeMargin =
         await clearingHouseViewer.getPersonalBalanceWithFundingPayment(
           this.xUsdcAddr,
           wallet.address
-        )
-      return activeMargin / (1e18).toString()
+        );
+      return activeMargin / (1e18).toString();
     } catch (err) {
-      logger.error(err)
-      let reason
+      logger.error(err);
+      let reason;
       err.reason
         ? (reason = err.reason)
-        : (reason = 'error getting active position')
-      return reason
+        : (reason = 'error getting active position');
+      return reason;
     }
   }
 
   // get Price
   async getPrice(side, amount, pair) {
     try {
-      let price
-      this.cacheExpirary[pair] = Date.now() + UPDATE_PERIOD
-      this.pairAmountCache[pair] = amount
-      if (!this.priceCache.hasOwnProperty(pair)) {
+      let price;
+      this.cacheExpirary[pair] = Date.now() + UPDATE_PERIOD;
+      this.pairAmountCache[pair] = amount;
+      if (!Object.prototype.hasOwnProperty.call(this.priceCache, pair)) {
         const amm = new Ethers.Contract(
           this.amm[pair],
           AmmArtifact.abi,
           this.provider
-        )
+        );
         if (side === 'buy') {
           price = await amm.getInputPrice(0, {
             d: Ethers.utils.parseUnits(amount, DEFAULT_DECIMALS)
-          })
-          price = amount / Ethers.utils.formatUnits(price.d)
+          });
+          price = amount / Ethers.utils.formatUnits(price.d);
         } else {
           price = await amm.getOutputPrice(0, {
             d: Ethers.utils.parseUnits(amount, DEFAULT_DECIMALS)
-          })
-          price = Ethers.utils.formatUnits(price.d) / amount
+          });
+          price = Ethers.utils.formatUnits(price.d) / amount;
         }
       } else if (side === 'buy') {
-        price = this.priceCache[pair][0]
+        price = this.priceCache[pair][0];
       } else {
-        price = this.priceCache[pair][1]
+        price = this.priceCache[pair][1];
       }
-      return price
+      return price;
     } catch (err) {
-      console.log(err)
-      logger.error(err)
-      let reason
-      err.reason ? (reason = err.reason) : (reason = 'error getting Price')
-      return reason
+      console.log(err);
+      logger.error(err);
+      let reason;
+      err.reason ? (reason = err.reason) : (reason = 'error getting Price');
+      return reason;
     }
   }
 
   // get getFundingRate
   async getFundingRate(pair) {
     try {
-      const funding = {}
+      const funding = {};
       const amm = new Ethers.Contract(
         this.amm[pair],
         AmmArtifact.abi,
         this.provider
-      )
+      );
       await Promise.allSettled([
         amm.getUnderlyingTwapPrice(3600),
         amm.getTwapPrice(3600),
@@ -397,22 +398,22 @@ export default class PerpetualFinance {
       ]).then((values) => {
         funding.indexPrice = parseFloat(
           Ethers.utils.formatUnits(values[0].value.d)
-        )
+        );
         funding.markPrice = parseFloat(
           Ethers.utils.formatUnits(values[1].value.d)
-        )
-        funding.nextFundingTime = parseInt(values[2].value.toString())
-      })
+        );
+        funding.nextFundingTime = parseInt(values[2].value.toString());
+      });
 
       funding.rate =
-        (funding.markPrice - funding.indexPrice) / 24 / funding.indexPrice
-      return funding
+        (funding.markPrice - funding.indexPrice) / 24 / funding.indexPrice;
+      return funding;
     } catch (err) {
-      console.log(err)
-      logger.error(err)()
-      let reason
-      err.reason ? (reason = err.reason) : (reason = 'error getting fee')
-      return reason
+      console.log(err);
+      logger.error(err)();
+      let reason;
+      err.reason ? (reason = err.reason) : (reason = 'error getting fee');
+      return reason;
     }
   }
 }

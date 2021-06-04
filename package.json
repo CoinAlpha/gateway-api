@@ -10,6 +10,7 @@
     "dev": "nodemon --exec babel-node src/index.js",
     "debug": "DEBUG=*router nodemon --exec babel-node src/index.js",
     "lint": "node_modules/.bin/eslint src --format table",
+    "prettier": "node_modules/.bin/prettier . --write",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -47,14 +48,14 @@
     "@babel/core": "^7.14.0",
     "@babel/node": "^7.10.5",
     "@babel/preset-env": "^7.14.1",
+    "babel-eslint": "^10.1.0",
     "eslint": "^7.25.0",
-    "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-import": "^2.23.3",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.4.0",
-    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-promise": "^5.1.0",
     "eslint-plugin-standard": "^4.0.1",
     "nodemon": "^2.0.4",
     "prettier": "^2.3.0"
