@@ -9,7 +9,7 @@
     "start": "babel-node src/index.js",
     "dev": "nodemon --exec babel-node src/index.js",
     "debug": "DEBUG=*router nodemon --exec babel-node src/index.js",
-    "lint": "node_modules/.bin/eslint src --format table",
+    "lint": "node_modules/.bin/eslint src test --format table",
     "prettier": "node_modules/.bin/prettier . --write",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
