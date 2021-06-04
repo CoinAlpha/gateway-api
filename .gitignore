@@ -5,11 +5,10 @@ Desktop.ini
 # IDEA files
 .idea
 
-# Environment files
-*.env
-*.env.*
-# except the example .env.example
-!.env.example
+# Configuration files
+conf/*
+# except the example conf/global_conf.yml.example
+!conf/global_conf.yml.example
 
 # node installs
 node_modules/
@@ -22,9 +21,12 @@ dist/
 
 # misc
 logs/
+package-lock.json
 
 # cert
 *.pem
 *.srl
 *.key
 *.crt
+*.log
+*.lock

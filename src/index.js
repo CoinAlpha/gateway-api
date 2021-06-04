@@ -2,26 +2,20 @@
 
 // absolute imports
 import https from 'https'
-import dotenv from 'dotenv'
 import fs from 'fs'
 
 // relative imports
 import app from './app'
 import { logger } from './services/logger'
 
-// terminate if environment not found
-const result = dotenv.config();
-if (result.error) {
-  logger.info(result.error);
-  process.exit(1);
-}
+const globalConfig = require('./services/configuration_manager').configManagerInstance.readAllConfigs()
 
-const env = process.env.NODE_ENV
-const port = process.env.PORT
-const certPassphrase = process.env.CERT_PASSPHRASE
-const ethereumChain = process.env.ETHEREUM_CHAIN
-const terraChain = process.env.TERRA_CHAIN
-let certPath = process.env.CERT_PATH
+const env = globalConfig.CORE.NODE_ENV
+const port = globalConfig.CORE.PORT
+const certPassphrase = globalConfig.CERT_PASSPHRASE
+const ethereumChain = globalConfig.ETHEREUM_CHAIN
+const terraChain = globalConfig.TERRA_CHAIN
+let certPath = globalConfig.CERT_PATH
 
 if ((typeof certPath === 'undefined' && certPath == null) || certPath === '') {
   // assuming it is local development using test script to generate certs

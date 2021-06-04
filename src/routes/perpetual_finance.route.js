@@ -1,14 +1,13 @@
 import { ethers, BigNumber } from 'ethers';
 import express from 'express';
-
 import { getParamData, latency, statusMessages } from '../services/utils';
 import { logger } from '../services/logger';
 import PerpetualFinance from '../services/perpetual_finance';
 
-require('dotenv').config()
 
 const router = express.Router()
-const perpFi = new PerpetualFinance(process.env.ETHEREUM_CHAIN)
+const globalConfig = require('../services/configuration_manager').configManagerInstance
+const perpFi = new PerpetualFinance(globalConfig.getConfig("ETHEREUM_CHAIN"))
 setTimeout(perpFi.update_price_loop.bind(perpFi), 2000)
 
 const getErrorMessage = (err) => {
