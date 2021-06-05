@@ -6,7 +6,7 @@
   "license": "Apache 2",
   "repository": "https://github.com/coinalpha/gateway-api",
   "scripts": {
-    "start": "pm2 start babel-node -- src/index.js",
+    "start": "pm2 start babel-node --no-daemon -- src/index.js",
     "status": "pm2 monit",
     "stop": "pm2 stop all",
     "logs": "pm2 logs",
