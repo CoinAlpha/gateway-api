@@ -23,7 +23,7 @@ export default class Fees {
   // get ETH Gas Station
   async getETHGasStationFee (gasLevel = this.ethGasStationGasLevel, interval = defaultRefreshInterval) {
     try {
-      if (ethGasStationEnabled === true || ethGasStationEnabled.toLowerCase() === 'true') {
+      if (ethGasStationEnabled === true || ethGasStationEnabled.toString().toLowerCase() === 'true') {
         const response = await axios.get(ethGasStationURL)
         // divite by 10 to convert it to Gwei)
         this.ethGasPrice = response.data[gasLevel] / 10
