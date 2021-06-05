@@ -6,8 +6,10 @@
   "license": "Apache 2",
   "repository": "https://github.com/coinalpha/gateway-api",
   "scripts": {
-    "start": "babel-node src/index.js",
-    "dev": "nodemon --exec babel-node src/index.js",
+    "start": "pm2 start babel-node -- src/index.js",
+    "status": "pm2 monit",
+    "stop": "pm2 stop all",
+    "logs": "pm2 logs",
     "debug": "DEBUG=*router nodemon --exec babel-node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -28,8 +30,8 @@
     "capture-console": "^1.0.1",
     "cross-fetch": "^3.0.6",
     "debug": "^4.2.0",
-    "dotenv": "^8.6.0",
-    "ethers": "^5.1.4",
+    "yaml": "^1.10.2",
+    "ethers": "^5.0.14",
     "express": "^4.17.1",
     "express-ipfilter": "^1.1.2",
     "helmet": "^4.6.0",
@@ -51,10 +53,11 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
-    "nodemon": "^2.0.4"
+    "nodemon": "^2.0.4",
+    "pm2": "^4.5.6"
   },
   "engines": {
-    "node": "10.x"
+    "node": "12.x"
   },
   "type": "module"
 }

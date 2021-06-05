@@ -1,4 +1,3 @@
-import dotenv from 'dotenv';
 import bodyParser from 'body-parser'
 import express from 'express'
 import helmet from 'helmet'
@@ -17,12 +16,8 @@ import uniswapRoutes from './routes/uniswap.route'
 import uniswapV3Routes from './routes/uniswap_v3.route'
 import perpFiRoutes from './routes/perpetual_finance.route'
 
-// terminate if environment not found
-const result = dotenv.config();
-if (result.error) {
-  logger.error(result.error);
-  process.exit(1);
-}
+//load configs
+const globalConfig = require('./services/configuration_manager').configManagerInstance
 
 // create app
 const app = express();
@@ -32,7 +27,7 @@ const app = express();
 // https://www.npmjs.com/package/helmet
 app.use(helmet());
 
-const ipWhitelist = process.env.IP_WHITELIST;
+const ipWhitelist = globalConfig.getCoreConfig("IP_WHITELIST")
 if (ipWhitelist) {
   app.use(IpFilter(JSON.parse(ipWhitelist), { mode: 'allow' }))
 }

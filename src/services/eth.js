@@ -2,20 +2,21 @@ import { logger } from './logger';
 import axios from 'axios'
 
 const debug = require('debug')('router')
-require('dotenv').config()
 const fs = require('fs');
 const ethers = require('ethers')
 const abi = require('../static/abi')
+const globalConfig = require('../services/configuration_manager').configManagerInstance
+
 
 // constants
-const APPROVAL_GAS_LIMIT = process.env.ETH_APPROVAL_GAS_LIMIT || 50000;
+const APPROVAL_GAS_LIMIT = globalConfig.getConfig("ETH_APPROVAL_GAS_LIMIT") || 50000;
 
 export default class Ethereum {
   constructor (network = 'mainnet') {
     // network defaults to kovan
-    const providerUrl = process.env.ETHEREUM_RPC_URL
+    const providerUrl = globalConfig.getConfig("ETHEREUM_RPC_URL")
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl)
-    this.erc20TokenListURL = process.env.ETHEREUM_TOKEN_LIST_URL
+    this.erc20TokenListURL = globalConfig.getConfig("ETHEREUM_TOKEN_LIST_URL")
     this.network = network
     /*
     this.spenders = {

@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js'
 import { getHummingbotMemo } from './utils';
 
 const debug = require('debug')('router')
-require('dotenv').config()
+const globalConfig = require('../services/configuration_manager').configManagerInstance
 
 // constants
 const TERRA_TOKENS = {
@@ -22,8 +22,8 @@ const GAS_ADJUSTMENT = 1.4
 
 export default class Terra {
   constructor () {
-    this.lcdUrl = process.env.TERRA_LCD_URL;
-    this.network =  process.env.TERRA_CHAIN;
+    this.lcdUrl = globalConfig.getConfig("TERRA_LCD_URL");
+    this.network =  globalConfig.getConfig("TERRA_CHAIN");
     this.tokens = TERRA_TOKENS
     this.denomUnitMultiplier = DENOM_UNIT
     this.tobinTax = TOBIN_TAX

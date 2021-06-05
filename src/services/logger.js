@@ -1,8 +1,8 @@
 import { getLocalDate } from './utils'
-require('dotenv').config()
 const appRoot = require('app-root-path')
 const winston = require('winston')
 require('winston-daily-rotate-file');
+const globalConfig = require('../services/configuration_manager').configManagerInstance
 
 const logFormat = winston.format.combine(
   winston.format.timestamp(),
@@ -16,7 +16,7 @@ const logFormat = winston.format.combine(
 )
 
 const getLogPath = () => {
-  let logPath = process.env.LOG_PATH
+  let logPath = globalConfig.getConfig("LOG_PATH")
   if (typeof logPath === 'undefined' || logPath == null || logPath === '') {
     logPath = [appRoot.path, 'logs'].join('/')
   }

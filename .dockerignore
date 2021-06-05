@@ -2,11 +2,11 @@
 node_modules
 npm-debug.log
 .git
-# Environment files
-*.env
-*.env.*
-# except the example .env.example
-!.env.example
+
+# Configuration files
+conf/*
+# except the example conf/global_conf.yml.example
+!conf/global_conf.yml.example
 
 # Gateway API files
 *.pem

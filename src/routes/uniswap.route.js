@@ -7,12 +7,12 @@ import Ethereum from '../services/eth';
 import Uniswap from '../services/uniswap';
 import Fees from '../services/fees';
 
-require('dotenv').config()
 
 const debug = require('debug')('router')
 const router = express.Router()
-const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
-const uniswap = new Uniswap(process.env.ETHEREUM_CHAIN)
+const globalConfig = require('../services/configuration_manager').configManagerInstance
+const eth = new Ethereum(globalConfig.getConfig("ETHEREUM_CHAIN"))
+const uniswap = new Uniswap(globalConfig.getConfig("ETHEREUM_CHAIN"))
 uniswap.generate_tokens()
 setTimeout(uniswap.update_pairs.bind(uniswap), 2000)
 const fees = new Fees()

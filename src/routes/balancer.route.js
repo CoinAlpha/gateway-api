@@ -11,8 +11,9 @@ import { logger } from '../services/logger';
 
 const debug = require('debug')('router')
 const router = express.Router()
-const eth = new Ethereum(process.env.ETHEREUM_CHAIN)
-const balancer = new Balancer(process.env.ETHEREUM_CHAIN)
+const globalConfig = require('../services/configuration_manager').configManagerInstance
+const eth = new Ethereum(globalConfig.getConfig("ETHEREUM_CHAIN"))
+const balancer = new Balancer(globalConfig.getConfig("ETHEREUM_CHAIN"))
 const fees = new Fees()
 
 const swapMoreThanMaxPriceError = 'Price too high'

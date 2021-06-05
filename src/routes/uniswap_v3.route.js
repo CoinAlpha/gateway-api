@@ -8,12 +8,12 @@ import Ethereum from '../services/eth';
 import UniswapV3 from '../services/uniswap_v3';
 import Fees from '../services/fees';
 
-require('dotenv').config();
+const globalConfig = require('../services/configuration_manager').configManagerInstance
 
 const debug = require('debug')('router');
 const router = express.Router();
-const eth = new Ethereum(process.env.ETHEREUM_CHAIN);
-const uniswap = new UniswapV3(process.env.ETHEREUM_CHAIN);
+const eth = new Ethereum(globalConfig.getConfig("ETHEREUM_CHAIN"));
+const uniswap = new UniswapV3(globalConfig.getConfig("ETHEREUM_CHAIN"));
 
 const fees = new Fees();
 
