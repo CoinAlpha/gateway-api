@@ -2,19 +2,11 @@
 
 // absolute imports
 import https from 'https';
-import dotenv from 'dotenv';
 import fs from 'fs';
 
 // relative imports
 import app from './app';
 import { logger } from './services/logger';
-
-// terminate if environment not found
-const result = dotenv.config();
-if (result.error) {
-  logger.info(result.error);
-  process.exit(1);
-}
 
 const env = process.env.NODE_ENV;
 const port = process.env.PORT;

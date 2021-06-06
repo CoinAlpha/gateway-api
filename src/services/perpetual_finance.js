@@ -7,11 +7,14 @@ const AmmArtifact = require('@perp/contract/build/contracts/Amm.json');
 const ClearingHouseArtifact = require('@perp/contract/build/contracts/ClearingHouse.json');
 const ClearingHouseViewerArtifact = require('@perp/contract/build/contracts/ClearingHouseViewer.json');
 const TetherTokenArtifact = require('@perp/contract/build/contracts/TetherToken.json');
+const globalConfig =
+  require('../services/configuration_manager').configManagerInstance;
 
 const GAS_LIMIT = 2123456;
 const DEFAULT_DECIMALS = 18;
 const CONTRACT_ADDRESSES = 'https://metadata.perp.exchange/';
-const XDAI_PROVIDER = process.env.XDAI_PROVIDER || 'https://dai.poa.network';
+const XDAI_PROVIDER =
+  globalConfig.getConfig('XDAI_PROVIDER') || 'https://dai.poa.network';
 const PNL_OPTION_SPOT_PRICE = 0;
 const UPDATE_PERIOD = 60000; // stop updating prices after 30 secs from last request
 

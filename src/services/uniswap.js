@@ -6,29 +6,34 @@ const uni = require('@uniswap/sdk');
 const ethers = require('ethers');
 const proxyArtifact = require('../static/uniswap_v2_router_abi.json');
 const routeTokens = require('../static/uniswap_route_tokens.json');
+const globalConfig =
+  require('../services/configuration_manager').configManagerInstance;
 
 // constants
-const ROUTER = process.env.UNISWAP_ROUTER;
-const GAS_LIMIT = process.env.UNISWAP_GAS_LIMIT || 150688;
-const TTL = process.env.UNISWAP_TTL || 300;
-const UPDATE_PERIOD = process.env.UNISWAP_UPDATE_PERIOD || 300000; // stop updating pair after 5 minutes from last request
+const ROUTER = globalConfig.getConfig('UNISWAP_ROUTER');
+const GAS_LIMIT = globalConfig.getConfig('UNISWAP_GAS_LIMIT') || 150688;
+const TTL = globalConfig.getConfig('UNISWAP_TTL') || 300;
+const UPDATE_PERIOD = globalConfig.getConfig('UNISWAP_UPDATE_PERIOD') || 300000; // stop updating pair after 5 minutes from last request
 
 export default class Uniswap {
   constructor(network = 'mainnet') {
-    this.providerUrl = process.env.ETHEREUM_RPC_URL;
-    this.network = process.env.ETHEREUM_CHAIN;
+    this.providerUrl = globalConfig.getConfig('ETHEREUM_RPC_URL');
+    this.network = globalConfig.getConfig('ETHEREUM_CHAIN');
     this.provider = new ethers.providers.JsonRpcProvider(this.providerUrl);
     this.router = ROUTER;
-    this.slippage = math.fraction(process.env.UNISWAP_ALLOWED_SLIPPAGE);
+    this.slippage = math.fraction(
+      globalConfig.getConfig('UNISWAP_ALLOWED_SLIPPAGE')
+    );
     this.allowedSlippage = new uni.Percent(
       this.slippage.n,
       this.slippage.d * 100
     );
-    this.pairsCacheTime = process.env.UNISWAP_PAIRS_CACHE_TIME;
+    this.pairsCacheTime = globalConfig.getConfig('UNISWAP_PAIRS_CACHE_TIME');
     this.gasLimit = GAS_LIMIT;
     this.expireTokenPairUpdate = UPDATE_PERIOD;
-    this.zeroReserveCheckInterval =
-      process.env.UNISWAP_NO_RESERVE_CHECK_INTERVAL;
+    this.zeroReserveCheckInterval = globalConfig.getConfig(
+      'UNISWAP_NO_RESERVE_CHECK_INTERVAL'
+    );
     this.zeroReservePairs = {}; // No reserve pairs
     this.tokenList = {};
     this.pairs = [];

@@ -1,29 +1,29 @@
-import { logger } from './logger';
-
+import { logger } from '../services/logger';
 const debug = require('debug')('router');
-require('dotenv').config(); // DO NOT REMOVE. needed to configure REACT_APP_SUBGRAPH_URL used by @balancer-labs/sor
 const sor = require('@balancer-labs/sor');
 const BigNumber = require('bignumber.js');
 const ethers = require('ethers');
 const proxyArtifact = require('../static/ExchangeProxy.json');
+const globalConfig =
+  require('../services/configuration_manager').configManagerInstance;
 
 // constants
 const MULTI = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441';
 const MULTI_KOVAN = ' 0x2cc8688C5f75E365aaEEb4ea8D6a480405A48D2A';
 const MAX_UINT = ethers.constants.MaxUint256;
-const GAS_BASE = process.env.BALANCER_GAS_BASE || 200688;
-const GAS_PER_SWAP = process.env.BALANCER_GAS_PER_SWAP || 100000;
+const GAS_BASE = globalConfig.getConfig('BALANCER_GAS_BASE') || 200688;
+const GAS_PER_SWAP = globalConfig.getConfig('BALANCER_GAS_PER_SWAP') || 100000;
 
 export default class Balancer {
   constructor(network = 'kovan') {
-    const providerUrl = process.env.ETHEREUM_RPC_URL;
-    this.network = process.env.ETHEREUM_CHAIN;
+    const providerUrl = globalConfig.getConfig('ETHEREUM_RPC_URL');
+    this.network = globalConfig.getConfig('ETHEREUM_CHAIN');
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl);
-    this.subgraphUrl = process.env.REACT_APP_SUBGRAPH_URL;
+    this.subgraphUrl = globalConfig.getConfig('REACT_APP_SUBGRAPH_URL');
     this.gasBase = GAS_BASE;
     this.gasPerSwap = GAS_PER_SWAP;
-    this.maxSwaps = process.env.BALANCER_MAX_SWAPS || 4;
-    this.exchangeProxy = process.env.EXCHANGE_PROXY;
+    this.maxSwaps = globalConfig.getConfig('BALANCER_MAX_SWAPS') || 4;
+    this.exchangeProxy = globalConfig.getConfig('EXCHANGE_PROXY');
     this.cachedPools = [];
 
     switch (network) {

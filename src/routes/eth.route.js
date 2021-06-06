@@ -7,14 +7,15 @@ import Fees from '../services/fees';
 import { logger } from '../services/logger';
 
 const debug = require('debug')('router');
-
 const router = express.Router();
-const eth = new Ethereum(process.env.ETHEREUM_CHAIN);
+const globalConfig =
+  require('../services/configuration_manager').configManagerInstance;
+const eth = new Ethereum(globalConfig.getConfig('ETHEREUM_CHAIN'));
 const spenders = {
-  balancer: process.env.EXCHANGE_PROXY,
-  uniswap: process.env.UNISWAP_ROUTER,
-  uniswapV3Router: process.env.UNISWAP_V3_ROUTER,
-  uniswapV3NFTManager: process.env.UNISWAP_V3_NFT_MANAGER
+  balancer: globalConfig.getConfig('EXCHANGE_PROXY'),
+  uniswap: globalConfig.getConfig('UNISWAP_ROUTER'),
+  uniswapV3Router: globalConfig.getConfig('UNISWAP_V3_ROUTER'),
+  uniswapV3NFTManager: globalConfig.getConfig('UNISWAP_V3_NFT_MANAGER')
 };
 const fees = new Fees();
 
