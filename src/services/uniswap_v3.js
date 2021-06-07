@@ -8,18 +8,20 @@ const debug = require('debug')('router');
 const math = require('mathjs');
 const uni = require('@uniswap/sdk');
 const ethers = require('ethers');
+const globalConfig =
+  require('../services/configuration_manager').configManagerInstance;
 const coreArtifact = require('@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json');
 const nftArtifact = require('@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json');
 const routerArtifact = require('@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json');
 const poolArtifact = require('@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json');
-//const routeTokens = require('../static/uniswap_route_tokens.json')
+
 const abiDecoder = require('abi-decoder');
 
 // constants
 const FeeAmount = { LOW: 500, MEDIUM: 3000, HIGH: 10000 };
-const GAS_LIMIT = process.env.UNISWAP_GAS_LIMIT || 5506880;
-const TTL = process.env.UNISWAP_TTL || 300;
-const UPDATE_PERIOD = process.env.UNISWAP_UPDATE_PERIOD || 300000; // stop updating pair after 5 minutes from last request
+const GAS_LIMIT = globalConfig.getConfig('UNISWAP_GAS_LIMIT') || 5506880;
+const TTL = globalConfig.getConfig('UNISWAP_TTL') || 300;
+const UPDATE_PERIOD = globalConfig.getConfig('UNISWAP_UPDATE_PERIOD') || 300000; // stop updating pair after 5 minutes from last request
 const MaxUint128 = ethers.BigNumber.from(2).pow(128).sub(1);
 
 abiDecoder.addABI(nftArtifact.abi);
@@ -27,18 +29,19 @@ abiDecoder.addABI(routerArtifact.abi);
 
 export default class UniswapV3 {
   constructor(network = 'mainnet') {
-    this.providerUrl = process.env.ETHEREUM_RPC_URL;
-    this.network = process.env.ETHEREUM_CHAIN;
+    this.providerUrl = globalConfig.getConfig('ETHEREUM_RPC_URL');
+    this.network = globalConfig.getConfig('ETHEREUM_CHAIN');
     this.provider = new ethers.providers.JsonRpcProvider(this.providerUrl);
-    this.router = process.env.UNISWAP_V3_ROUTER;
-    this.nftManager = process.env.UNISWAP_V3_NFT_MANAGER;
-    this.core = process.env.UNISWAP_V3_CORE;
-    this.slippage = process.env.UNISWAP_ALLOWED_SLIPPAGE;
-    this.pairsCacheTime = process.env.UNISWAP_PAIRS_CACHE_TIME;
+    this.router = globalConfig.getConfig('UNISWAP_V3_ROUTER');
+    this.nftManager = globalConfig.getConfig('UNISWAP_V3_NFT_MANAGER');
+    this.core = globalConfig.getConfig('UNISWAP_V3_CORE');
+    this.slippage = globalConfig.getConfig('UNISWAP_ALLOWED_SLIPPAGE');
+    this.pairsCacheTime = globalConfig.getConfig('UNISWAP_PAIRS_CACHE_TIME');
     this.gasLimit = GAS_LIMIT;
     this.expireTokenPairUpdate = UPDATE_PERIOD;
-    this.zeroReserveCheckInterval =
-      process.env.UNISWAP_NO_RESERVE_CHECK_INTERVAL;
+    this.zeroReserveCheckInterval = globalConfig.getConfig(
+      'UNISWAP_NO_RESERVE_CHECK_INTERVAL'
+    );
     this.zeroReservePairs = {}; // No reserve pairs
     this.tokenList = {};
     this.pairs = [];
@@ -384,39 +387,6 @@ export default class UniswapV3 {
       gasLimit: GAS_LIMIT
     });
   }
-  /*
-  async adjustLiquidity (wallet, action, tokenId, token0, token1, amount0, amount1) {
-    const contract = this.get_contract("nft", wallet);
-    const parsedAmount0 = ethers.utils.parseUnits(amount0, token0.decimals)
-    const parsedAmount1 = ethers.utils.parseUnits(amount1, token1.decimals)
-    if (action === "INCREASE") {
-      return await contract.increaseLiquidity({
-        tokenId: tokenId,
-        amount0Desired: parsedAmount0,
-        amount1Desired: parsedAmount1,
-        amount0Min: 0,
-        amount1Min: 0,
-        deadline: Date.now() + TTL},
-        { gasLimit: GAS_LIMIT });
-    } else {
-      //const liquidity = getLiquidity(ethers.utils.parseUnits(amount0, 6), ethers.utils.parseUnits(amount1, 6)) // use method from sdk to calculate liquidity from amount correctly
-      const liquidity = getLiquidity(amount0, amount1)
-      const decreaseLiquidityData = contract.interface.encodeFunctionData('decreaseLiquidity', [{
-        tokenId: tokenId,
-        liquidity: liquidity,
-        amount0Min: 0,
-        amount1Min: 0,
-        deadline: Date.now() + TTL}]);
-      const collectFeesData = contract.interface.encodeFunctionData('collect', [{
-        tokenId: tokenId,
-        recipient: wallet.signer.address,
-        amount0Max: MaxUint128,
-        amount1Max: MaxUint128}]);
-
-      //return await contract.multicall([decreaseLiquidityData, collectFeesData], { gasLimit: GAS_LIMIT });
-    }
-  }
-  */
 
   async collectFees(wallet, tokenId) {
     const contract = this.get_contract('nft', wallet);
