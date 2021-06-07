@@ -54,7 +54,7 @@ export default class PerpetualFinance {
       );
       const layer2 = Object.keys(metadata.layers.layer2.contracts);
 
-      for (const key of layer2) {
+      for (var key of layer2) {
         if (metadata.layers.layer2.contracts[key].name === 'Amm') {
           this.amm[key] = metadata.layers.layer2.contracts[key].address;
         } else {
@@ -74,15 +74,15 @@ export default class PerpetualFinance {
 
   async update_price_loop() {
     if (Object.keys(this.cacheExpirary).length > 0) {
-      for (const pair in this.cacheExpirary) {
+      for (let pair in this.cacheExpirary) {
         if (this.cacheExpirary[pair] <= Date.now()) {
           delete this.cacheExpirary[pair];
           delete this.priceCache[pair];
         }
       }
 
-      for (const pair in this.cacheExpirary) {
-        const amm = new Ethers.Contract(
+      for (let pair in this.cacheExpirary) {
+        let amm = new Ethers.Contract(
           this.amm[pair],
           AmmArtifact.abi,
           this.provider
@@ -139,7 +139,7 @@ export default class PerpetualFinance {
         TetherTokenArtifact.abi,
         wallet
       );
-      const layer2UsdcBalance = await layer2Usdc.balanceOf(wallet.address);
+      let layer2UsdcBalance = await layer2Usdc.balanceOf(wallet.address);
       const layer2UsdcDecimals = await layer2Usdc.decimals();
       return Ethers.utils.formatUnits(layer2UsdcBalance, layer2UsdcDecimals);
     } catch (err) {
@@ -200,7 +200,7 @@ export default class PerpetualFinance {
     }
   }
 
-  // open Position
+  //open Position
   async openPosition(side, margin, levrg, pair, minBaseAmount, wallet) {
     try {
       const quoteAssetAmount = {
@@ -232,7 +232,7 @@ export default class PerpetualFinance {
     }
   }
 
-  // close Position
+  //close Position
   async closePosition(wallet, pair, minimalQuote) {
     try {
       const minimalQuoteAsset = {
@@ -257,7 +257,7 @@ export default class PerpetualFinance {
     }
   }
 
-  // get active position
+  //get active position
   async getPosition(wallet, pair) {
     try {
       const positionValues = {};
@@ -323,7 +323,7 @@ export default class PerpetualFinance {
     }
   }
 
-  // get active margin
+  //get active margin
   async getActiveMargin(wallet) {
     try {
       const clearingHouseViewer = new Ethers.Contract(
@@ -370,10 +370,12 @@ export default class PerpetualFinance {
           });
           price = Ethers.utils.formatUnits(price.d) / amount;
         }
-      } else if (side === 'buy') {
-        price = this.priceCache[pair][0];
       } else {
-        price = this.priceCache[pair][1];
+        if (side === 'buy') {
+          price = this.priceCache[pair][0];
+        } else {
+          price = this.priceCache[pair][1];
+        }
       }
       return price;
     } catch (err) {
@@ -388,7 +390,7 @@ export default class PerpetualFinance {
   // get getFundingRate
   async getFundingRate(pair) {
     try {
-      const funding = {};
+      let funding = {};
       const amm = new Ethers.Contract(
         this.amm[pair],
         AmmArtifact.abi,

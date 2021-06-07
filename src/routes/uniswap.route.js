@@ -20,7 +20,9 @@ const fees = new Fees();
 const swapMoreThanMaxPriceError = 'Price too high';
 const swapLessThanMaxPriceError = 'Price too low';
 
-const estimateGasLimit = () => uniswap.gasLimit;
+const estimateGasLimit = () => {
+  return uniswap.gasLimit;
+};
 
 const getErrorMessage = (err) => {
   /*
@@ -61,7 +63,7 @@ router.post('/gas-limit', async (req, res) => {
   try {
     res.status(200).json({
       network: uniswap.network,
-      gasLimit,
+      gasLimit: gasLimit,
       timestamp: Date.now()
     });
   } catch (err) {
@@ -134,10 +136,10 @@ router.get('/start', async (req, res) => {
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
     success: true,
-    pairs,
-    gasPrice,
-    gasLimit,
-    gasCost
+    pairs: pairs,
+    gasPrice: gasPrice,
+    gasLimit: gasLimit,
+    gasCost: gasCost
   };
   res.status(200).json(result);
 });
@@ -214,10 +216,10 @@ router.post('/trade', async (req, res) => {
           latency: latency(initTime, Date.now()),
           base: baseTokenAddress,
           quote: quoteTokenAddress,
-          amount,
+          amount: amount,
           expectedIn: expectedAmount.toSignificant(8),
-          price,
-          gasPrice,
+          price: price,
+          gasPrice: gasPrice,
           gasLimit,
           gasCost,
           txHash: tx.hash
@@ -253,9 +255,9 @@ router.post('/trade', async (req, res) => {
           amount: parseFloat(paramData.amount),
           expectedOut: expectedAmount.toSignificant(8),
           price: parseFloat(price),
-          gasPrice,
+          gasPrice: gasPrice,
           gasLimit,
-          gasCost,
+          gasCost: gasCost,
           txHash: tx.hash
         });
       } else {
@@ -343,10 +345,10 @@ router.post('/price', async (req, res) => {
         amount: tradeAmount,
         expectedAmount: expectedTradeAmount,
         price: tradePrice,
-        gasPrice,
-        gasLimit,
-        gasCost,
-        trade
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+        gasCost: gasCost,
+        trade: trade
       };
       debug(
         `Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`
@@ -365,7 +367,8 @@ router.post('/price', async (req, res) => {
     let errCode = 500;
     if (Object.keys(err).includes('isInsufficientReservesError')) {
       errCode = 200;
-      reason = `${statusMessages.insufficient_reserves} in ${side} at Uniswap`;
+      reason =
+        statusMessages.insufficient_reserves + ' in ' + side + ' at Uniswap';
     } else if (Object.getOwnPropertyNames(err).includes('message')) {
       reason = getErrorMessage(err.message);
       if (reason === statusMessages.no_pool_available) {

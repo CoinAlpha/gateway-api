@@ -11,7 +11,7 @@ export const validateAccess = (req, res, next) => {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const method = req.method;
     const url = req.url;
-    const requestInfo = `Request from IP: ${ip} ${method} ${url}`;
+    const requestInfo = 'Request from IP: ' + ip + ' ' + method + ' ' + url;
     console.log(requestInfo);
     next();
   } else if (cert.subject) {

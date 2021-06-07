@@ -1,14 +1,15 @@
 import bodyParser from 'body-parser';
 import express from 'express';
 import helmet from 'helmet';
-import { IpFilter } from 'express-ipfilter';
 import { statusMessages } from './services/utils';
 import { validateAccess } from './services/access';
+import { IpFilter } from 'express-ipfilter';
 import { logger } from './services/logger';
 
 // Routes
 import apiRoutes from './routes/index.route';
 import balancerRoutes from './routes/balancer.route';
+// import celoRoutes from './routes/celo.route'
 import ethRoutes from './routes/eth.route';
 import terraRoutes from './routes/terra.route';
 import uniswapRoutes from './routes/uniswap.route';
@@ -58,7 +59,7 @@ app.use((req, res, _next) => {
   logger.error(message);
   res.status(404).send({
     error: 'Page not found',
-    message
+    message: message
   });
 });
 

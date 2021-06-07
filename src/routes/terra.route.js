@@ -1,3 +1,5 @@
+'use strict';
+
 import express from 'express';
 import {
   getParamData,
@@ -21,7 +23,7 @@ router.post('/', async (req, res) => {
     POST /
   */
   res.status(200).json({
-    network,
+    network: network,
     lcdUrl: terra.lcd.config.URL,
     gasPrices: terra.lcd.config.gasPrices,
     gasAdjustment: terra.lcd.config.gasAdjustment,
@@ -40,7 +42,7 @@ router.post('/balances', async (req, res) => {
   const paramData = getParamData(req.body);
   const address = paramData.address;
 
-  const balances = {};
+  let balances = {};
 
   try {
     await terra.lcd.bank.balance(address).then((bal) => {
@@ -54,10 +56,10 @@ router.post('/balances', async (req, res) => {
     });
     logger.info('terra.route - Get Account Balance');
     res.status(200).json({
-      network,
+      network: network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      balances
+      balances: balances
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -75,7 +77,7 @@ router.post('/balances', async (req, res) => {
     }
     res.status(500).json({
       error: reason,
-      message
+      message: message
     });
   }
 });
@@ -95,7 +97,7 @@ router.post('/start', async (req, res) => {
   const quoteTokenSymbol = paramData.quote;
 
   const result = {
-    network,
+    network: network,
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
     success: true,
@@ -136,13 +138,13 @@ router.post('/price', async (req, res) => {
       });
 
     res.status(200).json({
-      network,
+      network: network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
       base: baseToken,
       quote: quoteToken,
-      amount,
-      tradeType,
+      amount: amount,
+      tradeType: tradeType,
       price: exchangeRate.price.amount,
       cost: exchangeRate.cost.amount,
       txFee: exchangeRate.txFee.amount
@@ -163,7 +165,7 @@ router.post('/price', async (req, res) => {
     }
     res.status(500).json({
       error: reason,
-      message
+      message: message
     });
   }
 });
@@ -213,13 +215,13 @@ router.post('/trade', async (req, res) => {
       });
 
     const swapResult = {
-      network,
+      network: network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
       base: baseToken,
-      tradeType,
+      tradeType: tradeType,
       quote: quoteToken,
-      amount
+      amount: amount
     };
     Object.assign(swapResult, tokenSwaps);
     logger.info(
@@ -242,7 +244,7 @@ router.post('/trade', async (req, res) => {
     }
     res.status(500).json({
       error: reason,
-      message
+      message: message
     });
   }
 });

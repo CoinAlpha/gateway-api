@@ -56,8 +56,7 @@ export default class Uniswap {
   }
 
   async fetch_route(tIn, tOut) {
-    let route;
-    let pair;
+    var route, pair;
 
     try {
       pair = await uni.Fetcher.fetchPairData(tIn, tOut);
@@ -69,19 +68,19 @@ export default class Uniswap {
   }
 
   generate_tokens() {
-    for (const token of routeTokens[this.network]) {
-      this.tokenList[token.address] = new uni.Token(
+    for (let token of routeTokens[this.network]) {
+      this.tokenList[token['address']] = new uni.Token(
         this.chainID,
-        token.address,
-        token.decimals,
-        token.symbol,
-        token.name
+        token['address'],
+        token['decimals'],
+        token['symbol'],
+        token['name']
       );
     }
   }
 
   async extend_update_pairs(tokens = []) {
-    for (const token of tokens) {
+    for (let token of tokens) {
       if (!Object.prototype.hasOwnProperty.call(this.tokenList, token)) {
         this.tokenList[token] = await uni.Fetcher.fetchTokenData(
           this.chainID,
@@ -95,7 +94,7 @@ export default class Uniswap {
   async update_pairs() {
     // Remove banned pairs after ban period
     if (Object.keys(this.zeroReservePairs).length > 0) {
-      for (const pair in this.zeroReservePairs) {
+      for (let pair in this.zeroReservePairs) {
         if (this.zeroReservePairs[pair] <= Date.now()) {
           delete this.zeroReservePairs[pair];
           // delete this.tokenList[token];
@@ -105,21 +104,19 @@ export default class Uniswap {
     // Generate all possible pair combinations of tokens
     // This is done by generating an upper triangular matrix or right triangular matrix
     if (Object.keys(this.tokenSwapList).length > 0) {
-      for (const token in this.tokenSwapList) {
+      for (let token in this.tokenSwapList) {
         if (this.tokenSwapList[token] <= Date.now()) {
           delete this.tokenSwapList[token];
           // delete this.tokenList[token];
         }
       }
 
-      const tokens = Object.keys(this.tokenList);
-      let firstToken;
-      let secondToken;
-      let position;
-      const length = tokens.length;
-      const pairs = [];
-      const pairAddressRequests = [];
-      const pairAddressResponses = [];
+      let tokens = Object.keys(this.tokenList);
+      var firstToken, secondToken, position;
+      let length = tokens.length;
+      let pairs = [];
+      let pairAddressRequests = [];
+      let pairAddressResponses = [];
       for (firstToken = 0; firstToken < length; firstToken++) {
         for (
           secondToken = firstToken + 1;
@@ -127,9 +124,10 @@ export default class Uniswap {
           secondToken++
         ) {
           try {
-            const pairString = `${this.tokenList[tokens[firstToken]].address}-${
-              this.tokenList[tokens[secondToken]].address
-            }`;
+            let pairString =
+              this.tokenList[tokens[firstToken]].address +
+              '-' +
+              this.tokenList[tokens[secondToken]].address;
             if (
               !Object.prototype.hasOwnProperty.call(
                 this.zeroReservePairs,

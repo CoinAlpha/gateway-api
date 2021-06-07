@@ -58,7 +58,7 @@ router.post('/gas-limit', async (req, res) => {
 
     res.status(200).json({
       network: balancer.network,
-      gasLimit,
+      gasLimit: gasLimit,
       timestamp: Date.now()
     });
   } catch (err) {
@@ -135,10 +135,10 @@ router.get('/start', async (req, res) => {
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
     success: true,
-    pairs,
-    gasPrice,
-    gasLimit,
-    gasCost
+    pairs: pairs,
+    gasPrice: gasPrice,
+    gasLimit: gasLimit,
+    gasCost: gasCost
   };
   console.log('Initializing balancer');
   res.status(200).json(result);
@@ -210,13 +210,13 @@ router.post('/price', async (req, res) => {
         base: baseTokenContractInfo,
         quote: quoteTokenContractInfo,
         amount: tradeAmount,
-        side,
+        side: side,
         expectedAmount: expectedTradeAmount,
         price: tradePrice,
-        gasPrice,
-        gasLimit,
-        gasCost,
-        swaps
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+        gasCost: gasCost,
+        swaps: swaps
       };
       debug(
         `Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`
@@ -329,10 +329,10 @@ router.post('/trade', async (req, res) => {
           quote: quoteTokenContractInfo,
           amount: parseFloat(paramData.amount),
           expectedIn: expectedAmount / quoteDenomMultiplier,
-          price,
-          gasPrice,
-          gasLimit,
-          gasCost,
+          price: price,
+          gasPrice: gasPrice,
+          gasLimit: gasLimit,
+          gasCost: gasCost,
           txHash: tx.hash
         });
       } else {
@@ -370,10 +370,10 @@ router.post('/trade', async (req, res) => {
           quote: quoteTokenContractInfo,
           amount: parseFloat(paramData.amount),
           expectedOut: expectedAmount / quoteDenomMultiplier,
-          price,
-          gasPrice,
-          gasLimit,
-          gasCost,
+          price: price,
+          gasPrice: gasPrice,
+          gasLimit: gasLimit,
+          gasCost: gasCost,
           txHash: tx.hash
         });
       } else {

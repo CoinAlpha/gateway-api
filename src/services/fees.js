@@ -1,6 +1,6 @@
+import { logger } from './logger';
 import axios from 'axios';
 import BigNumber from 'bignumber.js';
-import { logger } from './logger';
 
 // constants
 const ethGasStationHost = 'https://ethgasstation.info';

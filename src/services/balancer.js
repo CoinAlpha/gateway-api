@@ -108,12 +108,12 @@ export default class Balancer {
       debug(`Expected Out: ${expectedAmount.toString()} (${tokenOut})`);
 
       // Create correct swap format for new proxy
-      const swaps = [];
+      let swaps = [];
       for (let i = 0; i < swapsFormatted.length; i++) {
-        const swap = {
+        let swap = {
           pool: swapsFormatted[i].pool,
-          tokenIn,
-          tokenOut,
+          tokenIn: tokenIn,
+          tokenOut: tokenOut,
           swapAmount: swapsFormatted[i].tokenInParam,
           limitReturnAmount: swapsFormatted[i].tokenOutParam,
           maxPrice: swapsFormatted[i].maxPrice.toString()
@@ -172,12 +172,12 @@ export default class Balancer {
       debug(`Expected In: ${expectedAmount.toString()} (${tokenIn})`);
 
       // Create correct swap format for new proxy
-      const swaps = [];
+      let swaps = [];
       for (let i = 0; i < swapsFormatted.length; i++) {
-        const swap = {
+        let swap = {
           pool: swapsFormatted[i].pool,
-          tokenIn,
-          tokenOut,
+          tokenIn: tokenIn,
+          tokenOut: tokenOut,
           swapAmount: swapsFormatted[i].tokenOutParam,
           limitReturnAmount: swapsFormatted[i].tokenInParam,
           maxPrice: swapsFormatted[i].maxPrice.toString()

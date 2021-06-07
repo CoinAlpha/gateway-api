@@ -8,12 +8,15 @@ import fs from 'fs';
 import app from './app';
 import { logger } from './services/logger';
 
-const env = process.env.NODE_ENV;
-const port = process.env.PORT;
-const certPassphrase = process.env.CERT_PASSPHRASE;
-const ethereumChain = process.env.ETHEREUM_CHAIN;
-const terraChain = process.env.TERRA_CHAIN;
-let certPath = process.env.CERT_PATH;
+const globalConfig =
+  require('./services/configuration_manager').configManagerInstance.readAllConfigs();
+
+const env = globalConfig.CORE.NODE_ENV;
+const port = globalConfig.CORE.PORT;
+const certPassphrase = globalConfig.CERT_PASSPHRASE;
+const ethereumChain = globalConfig.ETHEREUM_CHAIN;
+const terraChain = globalConfig.TERRA_CHAIN;
+let certPath = globalConfig.CERT_PATH;
 
 if ((typeof certPath === 'undefined' && certPath == null) || certPath === '') {
   // assuming it is local development using test script to generate certs
@@ -48,16 +51,16 @@ const onError = (error) => {
     throw error;
   }
 
-  const bind = typeof port === 'string' ? `Pipe ${port}` : `Port ${port}`;
+  const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(`${bind} requires elevated privileges`);
+      console.error(bind + ' requires elevated privileges');
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(`${bind} is already in use`);
+      console.error(bind + ' is already in use');
       process.exit(1);
       break;
     default:
@@ -68,9 +71,9 @@ const onError = (error) => {
 // event listener for "listening" event.
 const onListening = () => {
   const addr = server.address();
-  const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
-  console.log(`listening on ${bind}`);
-  logger.debug(`listening on ${bind}`);
+  const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
+  console.log('listening on ' + bind);
+  logger.debug('listening on ' + bind);
 };
 
 // listen on provided port, on all network interfaces.
@@ -80,9 +83,9 @@ server.on('listening', onListening);
 
 const serverConfig = {
   app: 'gateway-api',
-  port,
-  ethereumChain,
-  terraChain
+  port: port,
+  ethereumChain: ethereumChain,
+  terraChain: terraChain
 };
 
 logger.info(JSON.stringify(serverConfig));

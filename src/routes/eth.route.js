@@ -91,7 +91,7 @@ router.post('/balances', async (req, res) => {
         network: eth.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        balances
+        balances: balances
       });
     });
   } catch (err) {
@@ -163,8 +163,8 @@ router.post('/allowances', async (req, res) => {
         network: eth.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        spender,
-        approvals
+        spender: spender,
+        approvals: approvals
       });
     });
   } catch (err) {
@@ -230,7 +230,7 @@ router.post('/balances-2', async (req, res) => {
         network: eth.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        balances
+        balances: balances
       });
     });
   } catch (err) {
@@ -297,8 +297,8 @@ router.post('/allowances-2', async (req, res) => {
         network: eth.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        spender,
-        approvals
+        spender: spender,
+        approvals: approvals
       });
     });
   } catch (err) {
@@ -372,10 +372,10 @@ router.post('/approve', async (req, res) => {
       network: eth.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      tokenAddress,
-      spender,
+      tokenAddress: tokenAddress,
+      spender: spender,
       amount: amount / (1e18).toString(),
-      approval
+      approval: approval
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -396,7 +396,7 @@ router.post('/poll', async (req, res) => {
   const txHash = paramData.txHash;
   const txReceipt = await eth.provider.getTransactionReceipt(txHash);
   const receipt = {};
-  const confirmed = !!(txReceipt && txReceipt.blockNumber);
+  const confirmed = txReceipt && txReceipt.blockNumber ? true : false;
   if (confirmed) {
     receipt.gasUsed = BigNumber.from(txReceipt.gasUsed).toNumber();
     receipt.blockNumber = txReceipt.blockNumber;
@@ -411,9 +411,9 @@ router.post('/poll', async (req, res) => {
     network: eth.network,
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
-    txHash,
-    confirmed,
-    receipt
+    txHash: txHash,
+    confirmed: confirmed,
+    receipt: receipt
   });
   return txReceipt;
 });

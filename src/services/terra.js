@@ -1,3 +1,4 @@
+import { logger } from './logger';
 import {
   LCDClient,
   Coin,
@@ -6,7 +7,6 @@ import {
   isTxError
 } from '@terra-money/terra.js';
 import BigNumber from 'bignumber.js';
-import { logger } from './logger';
 import { getHummingbotMemo } from './utils';
 
 const debug = require('debug')('router');
@@ -93,7 +93,7 @@ export default class Terra {
   // get Token Symbol
   getTokenSymbol(denom) {
     try {
-      const { symbol } = TERRA_TOKENS[denom];
+      const symbol = TERRA_TOKENS[denom].symbol;
       return symbol;
     } catch (err) {
       logger.error(err);
@@ -106,7 +106,7 @@ export default class Terra {
   }
 
   getTxAttributes(attributes) {
-    const attrib = {};
+    let attrib = {};
     attributes.forEach((item) => {
       attrib[item.key] = item.value;
     });
@@ -144,7 +144,7 @@ export default class Terra {
   async getTxFee() {
     try {
       const lunaFee = GAS_PRICE.uluna * GAS_ADJUSTMENT;
-      const feeList = { uluna: lunaFee };
+      let feeList = { uluna: lunaFee };
       await this.lcd.oracle.exchangeRates().then((rates) => {
         Object.keys(rates._coins).forEach((key) => {
           feeList[key] = rates._coins[key].amount * lunaFee;
@@ -166,14 +166,14 @@ export default class Terra {
   // get Terra Swap Rate
   async getSwapRate(baseToken, quoteToken, amount, tradeType) {
     try {
-      let exchangeRate;
-      let offerCoin;
-      let offerDenom;
-      let swapDenom;
-      let cost;
-      let costAmount;
-      let offer;
-      const swaps = {};
+      let exchangeRate,
+        offerCoin,
+        offerDenom,
+        swapDenom,
+        cost,
+        costAmount,
+        offer;
+      let swaps = {};
 
       if (tradeType.toLowerCase() === 'sell') {
         // sell base
@@ -184,7 +184,7 @@ export default class Terra {
         await this.lcd.market
           .swapRate(offerCoin, swapDenom)
           .then((swapCoin) => {
-            offer = { amount };
+            offer = { amount: amount };
             exchangeRate = {
               amount: swapCoin.amount / DENOM_UNIT / amount,
               token: quoteToken
@@ -273,11 +273,9 @@ export default class Terra {
       const baseDenom = this.getTokenDenom(baseToken);
       const quoteDenom = this.getTokenDenom(quoteToken);
 
-      let offerDenom;
-      let swapDenom;
-      let swaps;
-      let txAttributes;
-      const tokenSwap = {};
+      let offerDenom, swapDenom;
+      let swaps, txAttributes;
+      let tokenSwap = {};
 
       if (tradeType.toLowerCase() === 'sell') {
         offerDenom = baseDenom;
@@ -309,7 +307,7 @@ export default class Terra {
         txOptions = {
           msgs: [msgSwap],
           gasPrices: { uluna: parseFloat(gasPrice) },
-          gasAdjustment,
+          gasAdjustment: gasAdjustment,
           memo: this.memo
         };
       } else {
@@ -335,8 +333,10 @@ export default class Terra {
             );
           }
           const txHash = txResult.txhash;
-          const { events } = JSON.parse(txResult.raw_log)[0];
-          const swap = events.find((obj) => obj.type === 'swap');
+          const events = JSON.parse(txResult.raw_log)[0].events;
+          const swap = events.find((obj) => {
+            return obj.type === 'swap';
+          });
           txAttributes = this.getTxAttributes(swap.attributes);
           const offer = Coin.fromString(txAttributes.offer);
           const ask = Coin.fromString(txAttributes.swap_coin);

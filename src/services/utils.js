@@ -1,7 +1,6 @@
 /*
   Hummingbot Utils
 */
-
 const config = require('./configuration_manager');
 const lodash = require('lodash');
 const moment = require('moment');
@@ -24,8 +23,8 @@ export const latency = (startTime, endTime) =>
 
 export const isValidParams = (params) => {
   const values = Object.values(params);
-  // DO NOT use forEach, it returns callback without breaking the loop
   for (let i = 0; i < values.length; i++) {
+    // DO NOT use forEach, it returns callback without breaking the loop
     if (typeof values[i] === 'undefined') {
       throw new Error('Invalid input params');
     }
@@ -96,6 +95,11 @@ export const loadConfig = () => {
   return config.configManagerInstance.readAllConfigs();
 };
 
+export const updateConfig = (data) => {
+  globalConfig.updateConfig(data);
+  return true;
+};
+
 export const getLocalDate = () => {
   const gmtOffset = globalConfig.getConfig('GMT_OFFSET');
   let newDate = moment().format('YYYY-MM-DD hh:mm:ss').trim();
@@ -110,11 +114,6 @@ export const getLocalDate = () => {
       .trim();
   }
   return newDate;
-};
-
-export const updateConfig = (data) => {
-  globalConfig.updateConfig(data);
-  return true;
 };
 
 export const nonceManagerCache = {};

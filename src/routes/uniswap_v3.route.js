@@ -1,12 +1,8 @@
 import { ethers } from 'ethers';
 import express from 'express';
-import {
-  getNonceManager,
-  getParamData,
-  latency,
-  statusMessages
-} from '../services/utils';
+import { getNonceManager } from '../services/utils';
 
+import { getParamData, latency, statusMessages } from '../services/utils';
 import { logger } from '../services/logger';
 import Ethereum from '../services/eth';
 import UniswapV3 from '../services/uniswap_v3';
@@ -16,17 +12,18 @@ const globalConfig =
   require('../services/configuration_manager').configManagerInstance;
 
 const debug = require('debug')('router');
-
 const router = express.Router();
 const eth = new Ethereum(globalConfig.getConfig('ETHEREUM_CHAIN'));
 const uniswap = new UniswapV3(globalConfig.getConfig('ETHEREUM_CHAIN'));
 
 const fees = new Fees();
 
-// const swapMoreThanMaxPriceError = 'Price too high'
-// const swapLessThanMaxPriceError = 'Price too low'
+//const swapMoreThanMaxPriceError = 'Price too high'
+//const swapLessThanMaxPriceError = 'Price too low'
 
-const estimateGasLimit = () => uniswap.gasLimit;
+const estimateGasLimit = () => {
+  return uniswap.gasLimit;
+};
 
 const getErrorMessage = (err) => {
   /*
@@ -67,7 +64,7 @@ router.post('/gas-limit', async (req, res) => {
   try {
     res.status(200).json({
       network: uniswap.network,
-      gasLimit,
+      gasLimit: gasLimit,
       timestamp: Date.now()
     });
   } catch (err) {
@@ -166,12 +163,12 @@ router.post('/trade', async (req, res) => {
         latency: latency(initTime, Date.now()),
         base: baseTokenAddress,
         quote: quoteTokenAddress,
-        amount,
+        amount: amount,
         expectedIn: tx.expectedAmount,
         price: limitPrice,
-        gasPrice,
-        gasLimit,
-        gasCost,
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+        gasCost: gasCost,
         txHash: tx.hash
       });
     } else {
@@ -196,9 +193,9 @@ router.post('/trade', async (req, res) => {
         amount: parseFloat(paramData.amount),
         expectedOut: tx.expectedAmount,
         price: limitPrice,
-        gasPrice,
-        gasLimit,
-        gasCost,
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+        gasCost: gasCost,
         txHash: tx.hash
       });
     }
@@ -236,6 +233,7 @@ router.post('/price', async (req, res) => {
   const baseTokenAddress = baseTokenContractInfo.address;
   const quoteTokenAddress = quoteTokenContractInfo.address;
 
+  //const side = paramData.side.toUpperCase() // not used for now
   let gasPrice;
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice);
@@ -259,10 +257,10 @@ router.post('/price', async (req, res) => {
       latency: latency(initTime, Date.now()),
       base: baseTokenAddress,
       quote: quoteTokenAddress,
-      prices,
-      gasPrice,
-      gasLimit,
-      gasCost
+      prices: prices,
+      gasPrice: gasPrice,
+      gasLimit: gasLimit,
+      gasCost: gasCost
     };
     debug(
       `Mid Price ${baseTokenContractInfo.symbol}-${
@@ -278,7 +276,7 @@ router.post('/price', async (req, res) => {
     let errCode = 500;
     if (Object.keys(err).includes('isInsufficientReservesError')) {
       errCode = 200;
-      reason = `${statusMessages.insufficient_reserves} at Uniswap`;
+      reason = statusMessages.insufficient_reserves + ' in ' + ' at Uniswap';
     } else if (Object.getOwnPropertyNames(err).includes('message')) {
       reason = getErrorMessage(err.message);
       if (reason === statusMessages.no_pool_available) {
@@ -394,15 +392,15 @@ router.post('/add-position', async (req, res) => {
       latency: latency(initTime, Date.now()),
       token0: paramData.token0,
       token1: paramData.token1,
-      fee,
-      amount0,
-      amount1,
-      lowerPrice,
-      upperPrice,
+      fee: fee,
+      amount0: amount0,
+      amount1: amount1,
+      lowerPrice: lowerPrice,
+      upperPrice: upperPrice,
       hash: newPosition.hash,
-      gasPrice,
-      gasLimit,
-      gasCost
+      gasPrice: gasPrice,
+      gasLimit: gasLimit,
+      gasCost: gasCost
     };
     debug(`New Position: ${newPosition.hash}`);
     res.status(200).json(result);
@@ -447,16 +445,16 @@ router.post('/remove-position', async (req, res) => {
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
       hash: removelp.hash,
-      gasPrice,
-      gasLimit,
-      gasCost
+      gasPrice: gasPrice,
+      gasLimit: gasLimit,
+      gasCost: gasCost
     };
     debug(`Remove lp: ${removelp.hash}`);
     res.status(200).json(result);
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
     let reason;
-    const errCode = 500;
+    let errCode = 500;
     err.reason
       ? (reason = err.reason)
       : (reason = statusMessages.operation_error);
@@ -525,13 +523,13 @@ router.post('/replace-position', async (req, res) => {
       network: uniswap.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      tokenId,
-      amount0,
-      amount1,
+      tokenId: tokenId,
+      amount0: amount0,
+      amount1: amount1,
       hash: positionChange.hash,
-      gasPrice,
-      gasLimit,
-      gasCost
+      gasPrice: gasPrice,
+      gasLimit: gasLimit,
+      gasCost: gasCost
     };
     debug(`Position change ${positionChange.hash}`);
     res.status(200).json(result);
@@ -578,11 +576,11 @@ router.post('/collect-fees', async (req, res) => {
       network: uniswap.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      tokenId,
+      tokenId: tokenId,
       hash: collect.hash,
-      gasPrice,
-      gasLimit,
-      gasCost
+      gasPrice: gasPrice,
+      gasLimit: gasLimit,
+      gasCost: gasCost
     };
     debug(`Fees: ${collect.hash}`);
     res.status(200).json(result);

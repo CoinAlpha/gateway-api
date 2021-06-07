@@ -12,7 +12,7 @@ const coreArtifact = require('@uniswap/v3-core/artifacts/contracts/UniswapV3Fact
 const nftArtifact = require('@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json');
 const routerArtifact = require('@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json');
 const poolArtifact = require('@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json');
-// const routeTokens = require('../static/uniswap_route_tokens.json')
+//const routeTokens = require('../static/uniswap_route_tokens.json')
 const abiDecoder = require('abi-decoder');
 
 // constants
@@ -63,18 +63,17 @@ export default class UniswapV3 {
   get_contract(contract, wallet) {
     if (contract === 'core') {
       return new ethers.Contract(this.core, coreArtifact.abi, wallet);
-    }
-    if (contract === 'router') {
+    } else if (contract === 'router') {
       return new ethers.Contract(this.router, routerArtifact.abi, wallet);
+    } else {
+      return new ethers.Contract(this.nftManager, nftArtifact.abi, wallet);
     }
-    return new ethers.Contract(this.nftManager, nftArtifact.abi, wallet);
   }
 
   async currentPrice(wallet, tokenIn, tokenOut) {
-    let pool;
-    let poolContract;
-    const poolPrices = [];
-    const poolLiquidity = [];
+    let pool, poolContract;
+    let poolPrices = [];
+    let poolLiquidity = [];
     const keys = ['LOW', 'MEDIUM', 'HIGH'];
     const coreContract = this.get_contract('core', wallet);
 
@@ -101,7 +100,7 @@ export default class UniswapV3 {
       for (pool = 0; pool < 3; pool++) {
         poolPrices[pool] = poolLiquidity[pool] = 0;
         if (values[pool].value) {
-          for (const tick of values[pool].value.tickCumulatives) {
+          for (let tick of values[pool].value.tickCumulatives) {
             poolPrices[pool] = tick.toNumber() - poolPrices[pool];
           }
           poolPrices[pool] = math.pow(1.0001, poolPrices[pool]);
@@ -120,7 +119,7 @@ export default class UniswapV3 {
     tier,
     _gasPrice
   ) {
-    // sell, In => base, Out => quote
+    //sell, In => base, Out => quote
     const minPercentOut = 1 - this.slippage / 100;
     const amountOutMinimum =
       Math.floor(
@@ -129,7 +128,7 @@ export default class UniswapV3 {
           minPercentOut *
           quoteTokenContractInfo.decimals
       ) / quoteTokenContractInfo.decimals;
-    // const priceFraction =  math.fraction(limitPrice)
+    //const priceFraction =  math.fraction(limitPrice)
     const contract = this.get_contract('router', wallet);
     const tx = await contract.exactInputSingle(
       {
@@ -146,9 +145,11 @@ export default class UniswapV3 {
           amountOutMinimum.toString(),
           quoteTokenContractInfo.decimals
         ),
+        //sqrtPriceLimitX96: encodePriceSqrt(priceFraction.d, priceFraction.n)
         sqrtPriceLimitX96: 0
       },
       {
+        //gasPrice: gasPrice * 1e9,
         gasLimit: GAS_LIMIT
       }
     );
@@ -167,13 +168,13 @@ export default class UniswapV3 {
     tier,
     _gasPrice
   ) {
-    // buy, In => quote, Out => base
+    //buy, In => quote, Out => base
     const maxPercentIn = 1 + this.slippage / 100;
     const amountInMaximum =
       Math.ceil(
         baseAmount * limitPrice * maxPercentIn * quoteTokenContractInfo.decimals
       ) / quoteTokenContractInfo.decimals;
-    // const priceFraction = math.fraction(limitPrice)
+    //const priceFraction = math.fraction(limitPrice)
     const contract = this.get_contract('router', wallet);
     const tx = await contract.exactOutputSingle(
       {
@@ -190,9 +191,11 @@ export default class UniswapV3 {
           amountInMaximum.toString(),
           quoteTokenContractInfo.decimals
         ),
+        //sqrtPriceLimitX96: encodePriceSqrt(priceFraction.d, priceFraction.n)
         sqrtPriceLimitX96: 0
       },
       {
+        //gasPrice: gasPrice * 1e9,
         gasLimit: GAS_LIMIT
       }
     );
@@ -228,8 +231,8 @@ export default class UniswapV3 {
       'decreaseLiquidity',
       [
         {
-          tokenId,
-          liquidity,
+          tokenId: tokenId,
+          liquidity: liquidity,
           amount0Min: 0,
           amount1Min: 0,
           deadline: Date.now() + TTL
@@ -238,7 +241,7 @@ export default class UniswapV3 {
     );
     const collectFeesData = contract.interface.encodeFunctionData('collect', [
       {
-        tokenId,
+        tokenId: tokenId,
         recipient: wallet.signer.address,
         amount0Max: MaxUint128,
         amount1Max: MaxUint128
@@ -321,15 +324,16 @@ export default class UniswapV3 {
       upperPrice
     );
 
-    const calls = [mintData];
+    let calls = [mintData];
     if (pool === ethers.constants.AddressZero) {
       const tx = await nftContract.multicall([initPoolData, mintData], {
         gasLimit: GAS_LIMIT
       });
       return tx;
+    } else {
+      const tx = await nftContract.multicall(calls, { gasLimit: GAS_LIMIT });
+      return tx;
     }
-    const tx = await nftContract.multicall(calls, { gasLimit: GAS_LIMIT });
-    return tx;
   }
 
   async removePosition(wallet, tokenId) {
@@ -342,7 +346,7 @@ export default class UniswapV3 {
       tokenId,
       positionData.liquidity
     );
-    return contract.multicall(data, { gasLimit: GAS_LIMIT });
+    return await contract.multicall(data, { gasLimit: GAS_LIMIT });
   }
 
   async replacePosition(
@@ -357,7 +361,7 @@ export default class UniswapV3 {
     upperPrice
   ) {
     const contract = this.get_contract('nft', wallet);
-    const positionData = await this.getPosition(wallet, tokenId);
+    let positionData = await this.getPosition(wallet, tokenId);
     const removeData = this.getRemoveLiquidityData(
       wallet,
       contract,
@@ -376,16 +380,49 @@ export default class UniswapV3 {
       upperPrice
     );
 
-    return contract.multicall(removeData.concat(mintData), {
+    return await contract.multicall(removeData.concat(mintData), {
       gasLimit: GAS_LIMIT
     });
   }
+  /*
+  async adjustLiquidity (wallet, action, tokenId, token0, token1, amount0, amount1) {
+    const contract = this.get_contract("nft", wallet);
+    const parsedAmount0 = ethers.utils.parseUnits(amount0, token0.decimals)
+    const parsedAmount1 = ethers.utils.parseUnits(amount1, token1.decimals)
+    if (action === "INCREASE") {
+      return await contract.increaseLiquidity({
+        tokenId: tokenId,
+        amount0Desired: parsedAmount0,
+        amount1Desired: parsedAmount1,
+        amount0Min: 0,
+        amount1Min: 0,
+        deadline: Date.now() + TTL},
+        { gasLimit: GAS_LIMIT });
+    } else {
+      //const liquidity = getLiquidity(ethers.utils.parseUnits(amount0, 6), ethers.utils.parseUnits(amount1, 6)) // use method from sdk to calculate liquidity from amount correctly
+      const liquidity = getLiquidity(amount0, amount1)
+      const decreaseLiquidityData = contract.interface.encodeFunctionData('decreaseLiquidity', [{
+        tokenId: tokenId,
+        liquidity: liquidity,
+        amount0Min: 0,
+        amount1Min: 0,
+        deadline: Date.now() + TTL}]);
+      const collectFeesData = contract.interface.encodeFunctionData('collect', [{
+        tokenId: tokenId,
+        recipient: wallet.signer.address,
+        amount0Max: MaxUint128,
+        amount1Max: MaxUint128}]);
+
+      //return await contract.multicall([decreaseLiquidityData, collectFeesData], { gasLimit: GAS_LIMIT });
+    }
+  }
+  */
 
   async collectFees(wallet, tokenId) {
     const contract = this.get_contract('nft', wallet);
-    return contract.collect(
+    return await contract.collect(
       {
-        tokenId,
+        tokenId: tokenId,
         recipient: wallet.signer.address,
         amount0Max: MaxUint128,
         amount1Max: MaxUint128

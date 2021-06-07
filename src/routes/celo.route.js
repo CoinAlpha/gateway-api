@@ -1,5 +1,6 @@
-const express = require('express');
+'use strict';
 
+const express = require('express');
 const router = express.Router();
 const BigNumber = require('bignumber.js');
 const debug = require('debug')('router');
@@ -10,7 +11,6 @@ const celocli = 'celocli';
 const DENOM_UNIT_MULTIPLIER = BigNumber('1e+18');
 
 const hbUtils = require('../services/utils');
-
 const separator = '=>';
 
 router.use((req, res, next) => {
@@ -29,8 +29,8 @@ router.get('/status', (req, res) => {
 
   const nodeSync = spawn(celocli, ['node:synced']);
 
-  const err_message = [];
-  const out_message = [];
+  let err_message = [],
+    out_message = [];
 
   nodeSync.stdout.on('data', (out) => {
     out_message.push(out.toString().trim());
@@ -74,8 +74,8 @@ router.get('/price', (req, res) => {
 
   const nodeSync = spawn(celocli, ['exchange:show', '--amount', amount]);
 
-  const err_message = [];
-  const out_message = [];
+  let err_message = [],
+    out_message = [];
 
   nodeSync.stdout.on('data', (out) => {
     out_message.push(out.toString().trim());
@@ -86,17 +86,17 @@ router.get('/price', (req, res) => {
   });
 
   nodeSync.on('close', (code) => {
-    const exchange_rates = {};
+    let exchange_rates = {};
     let price;
 
     if (code === 0) {
       // extract exchange rate from cli output
       out_message.forEach((item, _index) => {
         if (item.includes(separator)) {
-          const exchangeInfo = item.split(separator);
-          const base = exchangeInfo[0].trim().split(' ');
-          const quote = exchangeInfo[1].trim().split(' ');
-          const market = [base[1].toUpperCase(), quote[1].toUpperCase()].join(
+          let exchangeInfo = item.split(separator);
+          let base = exchangeInfo[0].trim().split(' ');
+          let quote = exchangeInfo[1].trim().split(' ');
+          let market = [base[1].toUpperCase(), quote[1].toUpperCase()].join(
             '-'
           );
           exchange_rates[market] = quote[0] / DENOM_UNIT_MULTIPLIER;
@@ -107,7 +107,7 @@ router.get('/price', (req, res) => {
       price = exchange_rates[tradingPair];
 
       const result = Object.assign(paramData, {
-        price,
+        price: price,
         timestamp: initTime,
         latency: hbUtils.latency(initTime, Date.now())
       });
@@ -128,9 +128,9 @@ router.get('/balance', (req, res) => {
 
   const balance = spawn(celocli, ['account:balance', address]);
 
-  const err_message = [];
-  const out_message = [];
-  const walletBalances = {};
+  let err_message = [],
+    out_message = [];
+  let walletBalances = {};
 
   balance.stdout.on('data', (out) => {
     out_message.push(out.toString().trim());
@@ -150,9 +150,9 @@ router.get('/balance', (req, res) => {
           item.toLowerCase().includes('lockedcelo') ||
           item.toLowerCase().includes('lockedgold')
         ) {
-          const balanceArray = item.split('\n');
+          let balanceArray = item.split('\n');
           balanceArray.forEach((x) => {
-            const keyValue = x.split(':');
+            let keyValue = x.split(':');
             walletBalances[keyValue[0].trim()] =
               keyValue[1].trim() / DENOM_UNIT_MULTIPLIER;
           });
@@ -161,7 +161,7 @@ router.get('/balance', (req, res) => {
       });
 
       res.status(200).json({
-        address,
+        address: address,
         balance: walletBalances,
         timestamp: Date.now()
       });
@@ -197,8 +197,8 @@ router.post('/unlock', (req, res) => {
     secret
   ]);
 
-  const err_message = [];
-  const out_message = [];
+  let err_message = [],
+    out_message = [];
 
   lockStatus.stdout.on('data', (out) => {
     out_message.push(out.toString().trim());
@@ -223,7 +223,7 @@ router.post('/unlock', (req, res) => {
         unlocked = true;
       }
       res.status(200).json({
-        unlocked,
+        unlocked: unlocked,
         message: out_message.join(),
         timestamp: Date.now()
       });

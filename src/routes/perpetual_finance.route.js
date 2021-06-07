@@ -31,7 +31,7 @@ router.get('/load-metadata', async (req, res) => {
   res.status(200).json({
     network: perpFi.network,
     provider: perpFi.provider.connection.url,
-    loadedMetadata,
+    loadedMetadata: loadedMetadata,
     connection: true,
     timestamp: Date.now()
   });
@@ -61,14 +61,14 @@ router.post('/balances', async (req, res) => {
   }
 
   const balances = {};
-  balances.XDAI = await perpFi.getXdaiBalance(wallet);
-  balances.USDC = await perpFi.getUSDCBalance(wallet);
+  balances['XDAI'] = await perpFi.getXdaiBalance(wallet);
+  balances['USDC'] = await perpFi.getUSDCBalance(wallet);
   try {
     res.status(200).json({
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      balances
+      balances: balances
     });
   } catch (err) {
     let reason;
@@ -106,13 +106,13 @@ router.post('/allowances', async (req, res) => {
   }
 
   const approvals = {};
-  approvals.USDC = await perpFi.getAllowance(wallet);
+  approvals['USDC'] = await perpFi.getAllowance(wallet);
   try {
     res.status(200).json({
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      approvals
+      approvals: approvals
     });
   } catch (err) {
     let reason;
@@ -162,8 +162,8 @@ router.post('/approve', async (req, res) => {
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      amount,
-      approval
+      amount: amount,
+      approval: approval
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -229,10 +229,10 @@ router.post('/open', async (req, res) => {
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      margin,
-      side,
-      leverage,
-      minBaseAssetAmount,
+      margin: margin,
+      side: side,
+      leverage: leverage,
+      minBaseAssetAmount: minBaseAssetAmount,
       txHash: tx.hash
     });
   } catch (err) {
@@ -285,7 +285,7 @@ router.post('/close', async (req, res) => {
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      minimalQuoteAsset,
+      minimalQuoteAsset: minimalQuoteAsset,
       txHash: tx.hash
     });
   } catch (err) {
@@ -336,7 +336,7 @@ router.post('/position', async (req, res) => {
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      position
+      position: position
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -411,7 +411,7 @@ router.post('/receipt', async (req, res) => {
   const txHash = paramData.txHash;
   const txReceipt = await perpFi.provider.getTransactionReceipt(txHash);
   const receipt = {};
-  const confirmed = !!(txReceipt && txReceipt.blockNumber);
+  const confirmed = txReceipt && txReceipt.blockNumber ? true : false;
   if (txReceipt !== null) {
     receipt.gasUsed = ethers.utils.formatEther(txReceipt.gasUsed);
     receipt.blockNumber = txReceipt.blockNumber;
@@ -425,9 +425,9 @@ router.post('/receipt', async (req, res) => {
     network: perpFi.network,
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
-    txHash,
-    confirmed,
-    receipt
+    txHash: txHash,
+    confirmed: confirmed,
+    receipt: receipt
   });
   return txReceipt;
 });
@@ -456,8 +456,8 @@ router.post('/price', async (req, res) => {
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      side,
-      price
+      side: side,
+      price: price
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -518,7 +518,7 @@ router.post('/funding', async (req, res) => {
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      fr
+      fr: fr
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });

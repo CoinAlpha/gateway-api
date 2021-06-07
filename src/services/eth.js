@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { logger } from './logger';
+import axios from 'axios';
 
 const fs = require('fs');
 const ethers = require('ethers');
@@ -18,7 +18,13 @@ export default class Ethereum {
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl);
     this.erc20TokenListURL = globalConfig.getConfig('ETHEREUM_TOKEN_LIST_URL');
     this.network = network;
-
+    /*
+    this.spenders = {
+      balancer: process.env.EXCHANGE_PROXY,
+      uniswap: process.env.UNISWAP_ROUTER,
+      uniswapV3: process.UNISWAP_V3_ROUTER
+    }
+    */
     // update token list
     this.getERC20TokenList(); // erc20TokenList
   }
@@ -48,7 +54,7 @@ export default class Ethereum {
     );
     try {
       const balance = await contract.balanceOf(wallet.address);
-      return balance / (10 ** decimals).toString();
+      return balance / Math.pow(10, decimals).toString();
     } catch (err) {
       logger.error(err);
       let reason;
@@ -67,7 +73,7 @@ export default class Ethereum {
     );
     try {
       const allowance = await contract.allowance(wallet.address, spender);
-      return allowance / (10 ** decimals).toString();
+      return allowance / Math.pow(10, decimals).toString();
     } catch (err) {
       logger.error(err);
       let reason;
@@ -105,7 +111,7 @@ export default class Ethereum {
   // get current Gas
   async getCurrentGasPrice() {
     try {
-      this.provider.getGasPrice().then((gas) => {
+      this.provider.getGasPrice().then(function (gas) {
         // gasPrice is a BigNumber; convert it to a decimal string
         const gasPrice = gas.toString();
         return gasPrice;
@@ -135,7 +141,7 @@ export default class Ethereum {
       return await contract.deposit({
         value: amount,
         gasPrice: gasPrice * 1e9,
-        gasLimit
+        gasLimit: gasLimit
       });
     } catch (err) {
       logger.error(err);
@@ -189,16 +195,16 @@ export default class Ethereum {
 
   // Refactor name to getERC20TokenByName
   getERC20TokenAddresses(tokenSymbol) {
-    const tokenContractAddress = this.erc20TokenList.tokens.filter(
-      (obj) => obj.symbol === tokenSymbol.toUpperCase()
-    );
+    const tokenContractAddress = this.erc20TokenList.tokens.filter((obj) => {
+      return obj.symbol === tokenSymbol.toUpperCase();
+    });
     return tokenContractAddress[0];
   }
 
   getERC20TokenByAddress(tokenAddress) {
-    const tokenContract = this.erc20TokenList.tokens.filter(
-      (obj) => obj.address.toUpperCase() === tokenAddress.toUpperCase()
-    );
+    const tokenContract = this.erc20TokenList.tokens.filter((obj) => {
+      return obj.address.toUpperCase() === tokenAddress.toUpperCase();
+    });
     return tokenContract[0];
   }
 }
