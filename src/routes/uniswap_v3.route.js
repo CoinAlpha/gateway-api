@@ -8,12 +8,13 @@ import Ethereum from '../services/eth';
 import UniswapV3 from '../services/uniswap_v3';
 import Fees from '../services/fees';
 
-const globalConfig = require('../services/configuration_manager').configManagerInstance
+const globalConfig =
+  require('../services/configuration_manager').configManagerInstance;
 
 const debug = require('debug')('router');
 const router = express.Router();
-const eth = new Ethereum(globalConfig.getConfig("ETHEREUM_CHAIN"));
-const uniswap = new UniswapV3(globalConfig.getConfig("ETHEREUM_CHAIN"));
+const eth = new Ethereum(globalConfig.getConfig('ETHEREUM_CHAIN'));
+const uniswap = new UniswapV3(globalConfig.getConfig('ETHEREUM_CHAIN'));
 
 const fees = new Fees();
 
@@ -22,7 +23,7 @@ const fees = new Fees();
 
 const estimateGasLimit = () => {
   return uniswap.gasLimit;
-}
+};
 
 const getErrorMessage = (err) => {
   /*
@@ -39,7 +40,7 @@ const getErrorMessage = (err) => {
     message = statusMessages.no_pool_available;
   }
   return message;
-}
+};
 
 router.post('/', async (req, res) => {
   /*
@@ -50,32 +51,34 @@ router.post('/', async (req, res) => {
     provider: uniswap.provider.connection.url,
     uniswap_router: uniswap.router,
     connection: true,
-    timestamp: Date.now(),
-  })
-})
+    timestamp: Date.now()
+  });
+});
 
 router.post('/gas-limit', async (req, res) => {
   /*
     POST: /gas-limit
   */
-  const gasLimit = estimateGasLimit()
+  const gasLimit = estimateGasLimit();
 
   try {
     res.status(200).json({
       network: uniswap.network,
       gasLimit: gasLimit,
-      timestamp: Date.now(),
-    })
+      timestamp: Date.now()
+    });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
     let reason;
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
       message: err
-    })
+    });
   }
-})
+});
 
 router.post('/result', async (req, res) => {
   /*
@@ -93,12 +96,12 @@ router.post('/result', async (req, res) => {
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
     info: uniswap.abiDecoder.decodeLogs(logs)
-  }
+  };
   res.status(200).json(result);
-})
+});
 
 router.post('/trade', async (req, res) => {
-/*
+  /*
       POST: /trade
       x-www-form-urlencoded: {
         "quote":"BAT"
@@ -115,7 +118,9 @@ router.post('/trade', async (req, res) => {
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const paramData = getParamData(req.body);
   const privateKey = paramData.privateKey;
-  const wallet = await getNonceManager(new ethers.Wallet(privateKey, uniswap.provider));
+  const wallet = await getNonceManager(
+    new ethers.Wallet(privateKey, uniswap.provider)
+  );
   const amount = paramData.amount;
 
   const baseTokenContractInfo = eth.getERC20TokenAddresses(paramData.base);
@@ -128,7 +133,9 @@ router.post('/trade', async (req, res) => {
   let limitPrice;
   if (paramData.limitPrice) {
     limitPrice = parseFloat(paramData.limitPrice);
-  } else { limitPrice = 0}
+  } else {
+    limitPrice = 0;
+  }
   let gasPrice;
   if (paramData.gasPrice) {
     gasPrice = parseFloat(paramData.gasPrice);
@@ -140,69 +147,70 @@ router.post('/trade', async (req, res) => {
 
   try {
     if (side === 'BUY') {
-        const tx = await uniswap.swapExactOut(
-          wallet,
-          baseTokenContractInfo,    // tokenIn is quote asset
-          quoteTokenContractInfo,     // tokenOut is base asset
-          amount,
-          limitPrice,
-          tier,
-          gasPrice
-        )
-        // submit response
-        res.status(200).json({
-          network: uniswap.network,
-          timestamp: initTime,
-          latency: latency(initTime, Date.now()),
-          base: baseTokenAddress,
-          quote: quoteTokenAddress,
-          amount: amount,
-          expectedIn: tx.expectedAmount,
-          price: limitPrice,
-          gasPrice: gasPrice,
-          gasLimit: gasLimit,
-          gasCost: gasCost,
-          txHash: tx.hash
-        })
-
+      const tx = await uniswap.swapExactOut(
+        wallet,
+        baseTokenContractInfo, // tokenIn is quote asset
+        quoteTokenContractInfo, // tokenOut is base asset
+        amount,
+        limitPrice,
+        tier,
+        gasPrice
+      );
+      // submit response
+      res.status(200).json({
+        network: uniswap.network,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        base: baseTokenAddress,
+        quote: quoteTokenAddress,
+        amount: amount,
+        expectedIn: tx.expectedAmount,
+        price: limitPrice,
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+        gasCost: gasCost,
+        txHash: tx.hash
+      });
     } else {
       // sell
-        const tx = await uniswap.swapExactIn(
-          wallet,
-          baseTokenContractInfo,    // tokenIn is quote asset
-          quoteTokenContractInfo,     // tokenOut is base asset
-          amount,
-          limitPrice,
-          tier,
-          gasPrice
-        )
+      const tx = await uniswap.swapExactIn(
+        wallet,
+        baseTokenContractInfo, // tokenIn is quote asset
+        quoteTokenContractInfo, // tokenOut is base asset
+        amount,
+        limitPrice,
+        tier,
+        gasPrice
+      );
 
-        // submit response
-        res.status(200).json({
-          network: uniswap.network,
-          timestamp: initTime,
-          latency: latency(initTime, Date.now()),
-          base: baseTokenAddress,
-          quote: quoteTokenAddress,
-          amount: parseFloat(paramData.amount),
-          expectedOut: tx.expectedAmount,
-          price: limitPrice,
-          gasPrice: gasPrice,
-          gasLimit: gasLimit,
-          gasCost: gasCost,
-          txHash: tx.hash,
-        })
+      // submit response
+      res.status(200).json({
+        network: uniswap.network,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        base: baseTokenAddress,
+        quote: quoteTokenAddress,
+        amount: parseFloat(paramData.amount),
+        expectedOut: tx.expectedAmount,
+        price: limitPrice,
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+        gasCost: gasCost,
+        txHash: tx.hash
+      });
     }
   } catch (err) {
-    logger.error(req.originalUrl, { message: err })
-    let reason
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error
+    logger.error(req.originalUrl, { message: err });
+    let reason;
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
       message: err
-    })
+    });
   }
-})
+});
 
 router.post('/price', async (req, res) => {
   /*
@@ -216,7 +224,9 @@ router.post('/price', async (req, res) => {
   // params: base (required), quote (required), amount (required)
   const paramData = getParamData(req.body);
   const privateKey = paramData.privateKey;
-  const wallet = await getNonceManager(new ethers.Wallet(privateKey, uniswap.provider));
+  const wallet = await getNonceManager(
+    new ethers.Wallet(privateKey, uniswap.provider)
+  );
 
   const baseTokenContractInfo = eth.getERC20TokenAddresses(paramData.base);
   const quoteTokenContractInfo = eth.getERC20TokenAddresses(paramData.quote);
@@ -233,10 +243,13 @@ router.post('/price', async (req, res) => {
   const gasLimit = estimateGasLimit();
   const gasCost = await fees.getGasCost(gasPrice, gasLimit);
 
-
   try {
     // fetch pools for all tiers
-    const prices = await uniswap.currentPrice(wallet, baseTokenAddress, quoteTokenAddress);
+    const prices = await uniswap.currentPrice(
+      wallet,
+      baseTokenAddress,
+      quoteTokenAddress
+    );
 
     const result = {
       network: uniswap.network,
@@ -247,9 +260,15 @@ router.post('/price', async (req, res) => {
       prices: prices,
       gasPrice: gasPrice,
       gasLimit: gasLimit,
-      gasCost: gasCost,
-    }
-    debug(`Mid Price ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | (rate:${JSON.stringify(prices)}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`)
+      gasCost: gasCost
+    };
+    debug(
+      `Mid Price ${baseTokenContractInfo.symbol}-${
+        quoteTokenContractInfo.symbol
+      } | (rate:${JSON.stringify(
+        prices
+      )}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`
+    );
     res.status(200).json(result);
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -257,7 +276,7 @@ router.post('/price', async (req, res) => {
     let errCode = 500;
     if (Object.keys(err).includes('isInsufficientReservesError')) {
       errCode = 200;
-      reason = statusMessages.insufficient_reserves + ' in ' + side + ' at Uniswap';
+      reason = statusMessages.insufficient_reserves + ' in ' + ' at Uniswap';
     } else if (Object.getOwnPropertyNames(err).includes('message')) {
       reason = getErrorMessage(err.message);
       if (reason === statusMessages.no_pool_available) {
@@ -265,17 +284,19 @@ router.post('/price', async (req, res) => {
         res.status(errCode).json({
           info: reason,
           message: err
-        })
+        });
       }
     } else {
-      err.reason ? reason = err.reason : reason = statusMessages.operation_error
+      err.reason
+        ? (reason = err.reason)
+        : (reason = statusMessages.operation_error);
     }
     res.status(errCode).json({
       error: reason,
       message: err
-    })
+    });
   }
-})
+});
 
 // LP section
 
@@ -289,7 +310,9 @@ router.post('/position', async (req, res) => {
   const initTime = Date.now();
   const paramData = getParamData(req.body);
   const privateKey = paramData.privateKey;
-  const wallet = await getNonceManager(new ethers.Wallet(privateKey, uniswap.provider));
+  const wallet = await getNonceManager(
+    new ethers.Wallet(privateKey, uniswap.provider)
+  );
   const tokenId = paramData.tokenId;
 
   try {
@@ -301,7 +324,7 @@ router.post('/position', async (req, res) => {
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
       position: positionData
-    }
+    };
     debug(`Position data: ${positionData} `);
     res.status(200).json(result);
   } catch (err) {
@@ -309,9 +332,9 @@ router.post('/position', async (req, res) => {
     res.status(500).json({
       info: statusMessages.operation_error,
       position: {}
-    })
+    });
   }
-})
+});
 
 router.post('/add-position', async (req, res) => {
   /*
@@ -329,7 +352,9 @@ router.post('/add-position', async (req, res) => {
   const initTime = Date.now();
   const paramData = getParamData(req.body);
   const privateKey = paramData.privateKey;
-  const wallet = await getNonceManager(new ethers.Wallet(privateKey, uniswap.provider));
+  const wallet = await getNonceManager(
+    new ethers.Wallet(privateKey, uniswap.provider)
+  );
 
   const baseTokenContractInfo = eth.getERC20TokenAddresses(paramData.token0);
   const quoteTokenContractInfo = eth.getERC20TokenAddresses(paramData.token1);
@@ -348,10 +373,18 @@ router.post('/add-position', async (req, res) => {
   const gasLimit = estimateGasLimit();
   const gasCost = await fees.getGasCost(gasPrice, gasLimit);
 
-
   try {
     // add position to pool
-    const newPosition = await uniswap.addPosition(wallet, baseTokenContractInfo, quoteTokenContractInfo, amount0, amount1, fee, lowerPrice, upperPrice);
+    const newPosition = await uniswap.addPosition(
+      wallet,
+      baseTokenContractInfo,
+      quoteTokenContractInfo,
+      amount0,
+      amount1,
+      fee,
+      lowerPrice,
+      upperPrice
+    );
 
     const result = {
       network: uniswap.network,
@@ -368,7 +401,7 @@ router.post('/add-position', async (req, res) => {
       gasPrice: gasPrice,
       gasLimit: gasLimit,
       gasCost: gasCost
-    }
+    };
     debug(`New Position: ${newPosition.hash}`);
     res.status(200).json(result);
   } catch (err) {
@@ -376,9 +409,9 @@ router.post('/add-position', async (req, res) => {
     res.status(200).json({
       info: statusMessages.operation_error,
       message: err
-    })
+    });
   }
-})
+});
 
 router.post('/remove-position', async (req, res) => {
   /*
@@ -390,9 +423,10 @@ router.post('/remove-position', async (req, res) => {
   const initTime = Date.now();
   const paramData = getParamData(req.body);
   const privateKey = paramData.privateKey;
-  const wallet = await getNonceManager(new ethers.Wallet(privateKey, uniswap.provider));
+  const wallet = await getNonceManager(
+    new ethers.Wallet(privateKey, uniswap.provider)
+  );
   const tokenId = paramData.tokenId;
-
 
   let gasPrice;
   if (paramData.gasPrice) {
@@ -403,32 +437,33 @@ router.post('/remove-position', async (req, res) => {
   const gasLimit = estimateGasLimit();
   const gasCost = await fees.getGasCost(gasPrice, gasLimit);
 
-
   try {
-      const removelp = await uniswap.removePosition(wallet, tokenId);
+    const removelp = await uniswap.removePosition(wallet, tokenId);
 
-      const result = {
-        network: uniswap.network,
-        timestamp: initTime,
-        latency: latency(initTime, Date.now()),
-        hash: removelp.hash,
-        gasPrice: gasPrice,
-        gasLimit: gasLimit,
-        gasCost: gasCost,
-      }
-      debug(`Remove lp: ${removelp.hash}`);
-      res.status(200).json(result);
+    const result = {
+      network: uniswap.network,
+      timestamp: initTime,
+      latency: latency(initTime, Date.now()),
+      hash: removelp.hash,
+      gasPrice: gasPrice,
+      gasLimit: gasLimit,
+      gasCost: gasCost
+    };
+    debug(`Remove lp: ${removelp.hash}`);
+    res.status(200).json(result);
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
     let reason;
     let errCode = 500;
-    err.reason ? reason = err.reason : reason = statusMessages.operation_error;
+    err.reason
+      ? (reason = err.reason)
+      : (reason = statusMessages.operation_error);
     res.status(errCode).json({
       error: reason,
       message: err
-    })
+    });
   }
-})
+});
 
 router.post('/replace-position', async (req, res) => {
   /*
@@ -447,7 +482,9 @@ router.post('/replace-position', async (req, res) => {
   const initTime = Date.now();
   const paramData = getParamData(req.body);
   const privateKey = paramData.privateKey;
-  const wallet = await getNonceManager(new ethers.Wallet(privateKey, uniswap.provider));
+  const wallet = await getNonceManager(
+    new ethers.Wallet(privateKey, uniswap.provider)
+  );
   const tokenId = paramData.tokenId;
   const baseTokenContractInfo = eth.getERC20TokenAddresses(paramData.token0);
   const quoteTokenContractInfo = eth.getERC20TokenAddresses(paramData.token1);
@@ -466,12 +503,21 @@ router.post('/replace-position', async (req, res) => {
   const gasLimit = estimateGasLimit();
   const gasCost = await fees.getGasCost(gasPrice, gasLimit);
 
-
   try {
     // const position = await uniswap.getPosition(wallet, tokenId)
     // const token0 = eth.getERC20TokenByAddress(position.token0)
     // const token1 = eth.getERC20TokenByAddress(position.token1)
-    const positionChange = await uniswap.replacePosition(wallet, tokenId, baseTokenContractInfo, quoteTokenContractInfo, amount0, amount1, fee, lowerPrice, upperPrice);
+    const positionChange = await uniswap.replacePosition(
+      wallet,
+      tokenId,
+      baseTokenContractInfo,
+      quoteTokenContractInfo,
+      amount0,
+      amount1,
+      fee,
+      lowerPrice,
+      upperPrice
+    );
 
     const result = {
       network: uniswap.network,
@@ -483,8 +529,8 @@ router.post('/replace-position', async (req, res) => {
       hash: positionChange.hash,
       gasPrice: gasPrice,
       gasLimit: gasLimit,
-      gasCost: gasCost,
-    }
+      gasCost: gasCost
+    };
     debug(`Position change ${positionChange.hash}`);
     res.status(200).json(result);
   } catch (err) {
@@ -492,9 +538,9 @@ router.post('/replace-position', async (req, res) => {
     res.status(200).json({
       info: statusMessages.operation_error,
       message: err
-    })
+    });
   }
-})
+});
 
 router.post('/collect-fees', async (req, res) => {
   /*
@@ -508,7 +554,9 @@ router.post('/collect-fees', async (req, res) => {
   const initTime = Date.now();
   const paramData = getParamData(req.body);
   const privateKey = paramData.privateKey;
-  const wallet = await getNonceManager(new ethers.Wallet(privateKey, uniswap.provider));
+  const wallet = await getNonceManager(
+    new ethers.Wallet(privateKey, uniswap.provider)
+  );
   const tokenId = paramData.tokenId;
 
   let gasPrice;
@@ -519,7 +567,6 @@ router.post('/collect-fees', async (req, res) => {
   }
   const gasLimit = estimateGasLimit();
   const gasCost = await fees.getGasCost(gasPrice, gasLimit);
-
 
   try {
     // withdraw fees
@@ -533,8 +580,8 @@ router.post('/collect-fees', async (req, res) => {
       hash: collect.hash,
       gasPrice: gasPrice,
       gasLimit: gasLimit,
-      gasCost: gasCost,
-    }
+      gasCost: gasCost
+    };
     debug(`Fees: ${collect.hash}`);
     res.status(200).json(result);
   } catch (err) {
@@ -542,8 +589,8 @@ router.post('/collect-fees', async (req, res) => {
     res.status(200).json({
       info: statusMessages.operation_error,
       message: err
-    })
+    });
   }
-})
+});
 
 export default router;

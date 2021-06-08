@@ -1,27 +1,26 @@
-import { getLocalDate } from './utils'
-const appRoot = require('app-root-path')
-const winston = require('winston')
+import { getLocalDate } from './utils';
+const appRoot = require('app-root-path');
+const winston = require('winston');
 require('winston-daily-rotate-file');
-const globalConfig = require('../services/configuration_manager').configManagerInstance
+const globalConfig =
+  require('../services/configuration_manager').configManagerInstance;
 
 const logFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.align(),
-  winston.format.printf(
-    info => {
-      const localDate = getLocalDate()
-      return `${localDate} | ${info.level} | ${info.message}`
-    }
-  ),
-)
+  winston.format.printf((info) => {
+    const localDate = getLocalDate();
+    return `${localDate} | ${info.level} | ${info.message}`;
+  })
+);
 
 const getLogPath = () => {
-  let logPath = globalConfig.getConfig("LOG_PATH")
+  let logPath = globalConfig.getConfig('LOG_PATH');
   if (typeof logPath === 'undefined' || logPath == null || logPath === '') {
-    logPath = [appRoot.path, 'logs'].join('/')
+    logPath = [appRoot.path, 'logs'].join('/');
   }
-  return logPath
-}
+  return logPath;
+};
 
 const config = {
   file: {
@@ -31,14 +30,16 @@ const config = {
     handleExceptions: true,
     handleRejections: true
   }
-}
+};
 
-const allLogsFileTransport = new winston.transports.DailyRotateFile(config.file)
+const allLogsFileTransport = new winston.transports.DailyRotateFile(
+  config.file
+);
 
 const options = {
   format: logFormat,
   transports: [allLogsFileTransport],
-  exitOnError: false,
-}
+  exitOnError: false
+};
 
-export const logger = winston.createLogger(options)
+export const logger = winston.createLogger(options);

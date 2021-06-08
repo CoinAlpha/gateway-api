@@ -11,17 +11,19 @@
     "stop": "pm2 stop all",
     "logs": "pm2 logs",
     "debug": "DEBUG=*router nodemon --exec babel-node src/index.js",
+    "lint": "eslint src test --format table",
+    "format": "prettier . --write",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@balancer-labs/sor": "^0.3.3",
+    "@ethersproject/experimental": "^5.1.2",
     "@perp/contract": "^1.0.6",
     "@terra-money/terra.js": "^1.7.0",
     "@uniswap/sdk": "^3.0.3",
     "@uniswap/v3-core": "^1.0.0",
     "@uniswap/v3-periphery": "^1.0.0",
     "@uniswap/v3-sdk": "^1.0.3",
-    "@ethersproject/experimental": "^5.1.2",
     "abi-decoder": "^2.4.0",
     "app-root-path": "^3.0.0",
     "axios": "^0.21.1",
@@ -47,17 +49,20 @@
     "@babel/core": "^7.14.0",
     "@babel/node": "^7.10.5",
     "@babel/preset-env": "^7.14.1",
+    "babel-eslint": "^10.1.0",
     "eslint": "^7.25.0",
-    "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-import": "^2.22.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-promise": "^5.1.0",
     "eslint-plugin-standard": "^4.0.1",
     "nodemon": "^2.0.4",
+    "prettier": "^2.3.0",
     "pm2": "^4.5.6"
   },
   "engines": {
     "node": "12.x"
-  },
-  "type": "module"
+  }
 }

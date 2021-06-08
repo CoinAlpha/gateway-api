@@ -1,14 +1,17 @@
 module.exports = {
-  extends: 'standard',
+  extends: ['eslint:recommended', 'prettier'],
+  parser: 'babel-eslint',
+  plugins: ['prettier'],
+  env: {
+    node: true,
+    es6: true
+  },
   rules: {
-    // disable semicolon check
-    semi: 'off',
-
-    // override default options for rules from base configurations
-    'comma-dangle': 'off',
-
-    // disable rules from base configurations
-    'no-console': 'off',
+    'comma-dangle': ['error', 'never'],
     'no-multi-spaces': 'off',
+    'no-underscore-dangle': 'off',
+    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'prettier/prettier': 'error',
+    semi: [2, 'always']
   }
 };
