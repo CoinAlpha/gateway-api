@@ -1,2 +1,2 @@
 # turn off specific file for eslint
-/*.js
+/node_modules
