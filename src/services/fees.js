@@ -1,5 +1,6 @@
 import { logger } from './logger';
 import axios from 'axios';
+import BigNumber from 'bignumber.js';
 
 // constants
 const ethGasStationHost = 'https://ethgasstation.info';
@@ -12,13 +13,9 @@ const ethManualGasPrice = parseInt(globalConfig.getConfig('MANUAL_GAS_PRICE'));
 const ethGasStationURL =
   ethGasStationHost + '/api/ethgasAPI.json?api-key=' + ethGasStationApiKey;
 const defaultRefreshInterval = 120;
-const denom = BigInt('1e+9');
+const denom = BigNumber('1e+9');
 
 export default class Fees {
-  ethGasStationGasLevel = 0;
-  ethGasStationRefreshTime = 0;
-  ethGasPrice = 0;
-
   constructor() {
     this.ethGasStationGasLevel = globalConfig.getConfig(
       'ETH_GAS_STATION_GAS_LEVEL'
@@ -29,12 +26,11 @@ export default class Fees {
     this.getETHGasStationFee(this.ethGasStationGasLevel, 0);
   }
 
-  // : Promise<void>
   // get ETH Gas Station
   async getETHGasStationFee(
     gasLevel = this.ethGasStationGasLevel,
     interval = defaultRefreshInterval
-  ): Promise<void> {
+  ) {
     try {
       if (
         ethGasStationEnabled === true ||
@@ -74,10 +70,9 @@ export default class Fees {
     }
   }
 
-  // : Promise:<number>
   // get gas cost
-  getGasCost(gasPrice: number, gasLimit: number, inGwei = false): bigint {
-    const cost = BigInt(gasPrice * gasLimit);
+  async getGasCost(gasPrice, gasLimit, inGwei = false) {
+    const cost = gasPrice * gasLimit;
     return inGwei ? cost : cost / denom;
   }
 }

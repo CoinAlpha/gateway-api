@@ -14,7 +14,7 @@
     "status": "pm2 monit",
     "stop": "pm2 stop all",
     "logs": "pm2 logs",
-    "debug": "DEBUG=*router nodemon --exec babel-node dist/index.js",
+    "debug": "DEBUG=*router nodemon --ext 'ts,js,json' --exec 'ts-node' src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
