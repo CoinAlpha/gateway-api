@@ -1,8 +1,6 @@
 /*
   Hummingbot Utils
 */
-import { Response } from 'express';
-import { ethers } from 'ethers';
 const config = require('./configuration_manager');
 const lodash = require('lodash');
 const moment = require('moment');
@@ -20,10 +18,10 @@ export const statusMessages = {
   page_not_found: 'Page not found. Invalid path'
 };
 
-export const latency = (startTime: number, endTime: number): number =>
-  (endTime - startTime) / 1000;
+export const latency = (startTime, endTime) =>
+  parseFloat((endTime - startTime) / 1000);
 
-export const isValidParams = (params: Record<any, any>): boolean => {
+export const isValidParams = (params) => {
   const values = Object.values(params);
   for (let i = 0; i < values.length; i++) {
     // DO NOT use forEach, it returns callback without breaking the loop
@@ -34,10 +32,7 @@ export const isValidParams = (params: Record<any, any>): boolean => {
   return true;
 };
 
-export const isValidData = (
-  data: Record<any, any>,
-  format: Array<string>
-): boolean => {
+export const isValidData = (data, format) => {
   if (
     typeof data !== 'undefined' &&
     Object.keys(data).length !== 0 &&
@@ -48,34 +43,28 @@ export const isValidData = (
   return false;
 };
 
-export const getParamData = (
-  data: Record<string, any>,
-  format: Array<string> | null = null
-): Record<string, any> => {
-  const dataObject: Record<string, any> = {};
+export const getParamData = (data, format = null) => {
+  const dataObject = {};
   if (format !== null) {
     if (isValidData(data, format)) {
-      format.forEach((key: string, _index: number) => {
+      format.forEach((key, _index) => {
         dataObject[key] = data[key];
       });
     }
   } else {
-    Object.keys(data).forEach((key: string, _index: number) => {
+    Object.keys(data).forEach((key, _index) => {
       dataObject[key] = data[key];
     });
   }
   return dataObject;
 };
 
-export const splitParamData = (
-  param: string,
-  separator = ','
-): Array<string> => {
+export const splitParamData = (param, separator = ',') => {
   const dataArray = param.split(separator);
   return dataArray;
 };
 
-export const getSymbols = (tradingPair: string): Record<string, string> => {
+export const getSymbols = (tradingPair) => {
   const symbols = tradingPair.split('-');
   const baseQuotePair = {
     base: symbols[0].toUpperCase(),
@@ -84,16 +73,16 @@ export const getSymbols = (tradingPair: string): Record<string, string> => {
   return baseQuotePair;
 };
 
-export const reportConnectionError = (res: Response, error: any): void => {
+export const reportConnectionError = (res, error) => {
   res.json({
     error: error.errno,
     code: error.code
   });
 };
 
-export const strToDecimal = (str: string): number => parseInt(str) / 100;
+export const strToDecimal = (str) => parseInt(str) / 100;
 
-export const getHummingbotMemo = (): string => {
+export const getHummingbotMemo = () => {
   const prefix = 'hbot';
   const clientId = globalConfig.getConfig('HUMMINGBOT_INSTANCE_ID');
   if (typeof clientId !== 'undefined' && clientId != null && clientId !== '') {
@@ -102,16 +91,16 @@ export const getHummingbotMemo = (): string => {
   return prefix;
 };
 
-export const loadConfig = (): any => {
+export const loadConfig = () => {
   return config.configManagerInstance.readAllConfigs();
 };
 
-export const updateConfig = (data: Record<any, any>): boolean => {
+export const updateConfig = (data) => {
   globalConfig.updateConfig(data);
   return true;
 };
 
-export const getLocalDate = (): Date => {
+export const getLocalDate = () => {
   const gmtOffset = globalConfig.getConfig('GMT_OFFSET');
   let newDate = moment().format('YYYY-MM-DD hh:mm:ss').trim();
   if (
@@ -127,11 +116,9 @@ export const getLocalDate = (): Date => {
   return newDate;
 };
 
-export const nonceManagerCache: Record<string, ethers.Wallet> = {};
+export const nonceManagerCache = {};
 
-export const getNonceManager = async (
-  signer: ethers.Wallet
-): Promise<typeof NonceManager> => {
+export const getNonceManager = async (signer) => {
   let key = await signer.getAddress();
   if (signer.provider) {
     key += (await signer.provider.getNetwork()).chainId;
