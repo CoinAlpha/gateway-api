@@ -1,15 +1,18 @@
 import bn from 'bignumber.js';
 import { BigNumber } from 'ethers';
+import math from 'mathjs';
 
-const math = require('mathjs');
-const TICK_SPACINGS = { LOW: 10, MEDIUM: 60, HIGH: 2000 };
+export type Tier = 'LOW' | 'MEDIUM' | 'HIGH';
+export type Ticks = Record<Tier, number>;
+
+const TICK_SPACINGS: Ticks = { LOW: 10, MEDIUM: 60, HIGH: 2000 };
 
 bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 
 // returns the sqrt price as a 64x96
 export function encodePriceSqrt(
-  reserve1: mathjs.Fraction,
-  reserve0: mathjs.Fraction
+  reserve1: math.Fraction,
+  reserve0: math.Fraction
 ): BigNumber {
   return BigNumber.from(
     new bn(reserve1.toString())
@@ -23,7 +26,7 @@ export function encodePriceSqrt(
 
 export function getTickFromPrice(
   price: number,
-  tier: string,
+  tier: Tier,
   side: string
 ): number {
   let tick = 0;
@@ -46,10 +49,10 @@ export function getTickFromPrice(
   }
 }
 
-export function getMinTick(tier: string): number {
+export function getMinTick(tier: Tier): number {
   return Math.ceil(-887272 / TICK_SPACINGS[tier]) * TICK_SPACINGS[tier];
 }
 
-export function getMaxTick(tier: string): number {
+export function getMaxTick(tier: Tier): number {
   return Math.floor(887272 / TICK_SPACINGS[tier]) * TICK_SPACINGS[tier];
 }

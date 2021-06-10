@@ -1,7 +1,8 @@
 /*
   Hummingbot Utils
 */
-import { Response, Error } from 'express';
+import { Response } from 'express';
+import { ethers } from 'ethers';
 const config = require('./configuration_manager');
 const lodash = require('lodash');
 const moment = require('moment');
@@ -20,9 +21,9 @@ export const statusMessages = {
 };
 
 export const latency = (startTime: number, endTime: number): number =>
-  parseFloat((endTime - startTime) / 1000);
+  (endTime - startTime) / 1000;
 
-export const isValidParams = (params: Record<any, any>): bool => {
+export const isValidParams = (params: Record<any, any>): boolean => {
   const values = Object.values(params);
   for (let i = 0; i < values.length; i++) {
     // DO NOT use forEach, it returns callback without breaking the loop
@@ -36,7 +37,7 @@ export const isValidParams = (params: Record<any, any>): bool => {
 export const isValidData = (
   data: Record<any, any>,
   format: Array<string>
-): bool => {
+): boolean => {
   if (
     typeof data !== 'undefined' &&
     Object.keys(data).length !== 0 &&
@@ -48,18 +49,18 @@ export const isValidData = (
 };
 
 export const getParamData = (
-  data: Record<any, any>,
-  format = null
-): Record<any, any> => {
-  const dataObject = {};
+  data: Record<string, any>,
+    format: Array<string> | null = null
+): Record<string, any> => {
+    const dataObject: Record<string, any> = {};
   if (format !== null) {
     if (isValidData(data, format)) {
-      format.forEach((key, _index) => {
+        format.forEach((key: string, _index: number) => {
         dataObject[key] = data[key];
       });
     }
   } else {
-    Object.keys(data).forEach((key, _index) => {
+      Object.keys(data).forEach((key: string, _index: number) => {
       dataObject[key] = data[key];
     });
   }
@@ -85,8 +86,8 @@ export const getSymbols = (tradingPair: string): Record<string, string> => {
 
 export const reportConnectionError = (
   res: Response,
-  error: Error
-): Response => {
+  error: any
+): void => {
   res.json({
     error: error.errno,
     code: error.code
@@ -108,7 +109,7 @@ export const loadConfig = (): any => {
   return config.configManagerInstance.readAllConfigs();
 };
 
-export const updateConfig = (data: Record<any, any>): bool => {
+export const updateConfig = (data: Record<any, any>): boolean => {
   globalConfig.updateConfig(data);
   return true;
 };
@@ -129,11 +130,11 @@ export const getLocalDate = (): Date => {
   return newDate;
 };
 
-export const nonceManagerCache = {};
+export const nonceManagerCache: Record<string,ethers.Wallet>  = {};
 
 export const getNonceManager = async (
-  signer: string
-): Promise<NonceManager> => {
+  signer: ethers.Wallet
+): Promise<typeof NonceManager> => {
   let key = await signer.getAddress();
   if (signer.provider) {
     key += (await signer.provider.getNetwork()).chainId;
