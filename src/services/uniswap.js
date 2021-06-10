@@ -55,8 +55,8 @@ export default class Uniswap {
     }
   }
 
-  async fetch_route(tIn: uni.Token, tOut: uni.Token): Promise<uni.Route> {
-    let route, pair;
+  async fetch_route(tIn, tOut) {
+    var route, pair;
 
     try {
       pair = await uni.Fetcher.fetchPairData(tIn, tOut);
@@ -67,8 +67,8 @@ export default class Uniswap {
     return route;
   }
 
-  generate_tokens(): void {
-    for (const token of routeTokens[this.network]) {
+  generate_tokens() {
+    for (let token of routeTokens[this.network]) {
       this.tokenList[token['address']] = new uni.Token(
         this.chainID,
         token['address'],
@@ -79,8 +79,8 @@ export default class Uniswap {
     }
   }
 
-  async extend_update_pairs(tokens: Array<uni.Token> = []): Promise<void> {
-    for (const token of tokens) {
+  async extend_update_pairs(tokens = []) {
+    for (let token of tokens) {
       if (!Object.prototype.hasOwnProperty.call(this.tokenList, token)) {
         this.tokenList[token] = await uni.Fetcher.fetchTokenData(
           this.chainID,
@@ -91,10 +91,10 @@ export default class Uniswap {
     }
   }
 
-  async update_pairs(): Promise<void> {
+  async update_pairs() {
     // Remove banned pairs after ban period
     if (Object.keys(this.zeroReservePairs).length > 0) {
-      for (const pair in this.zeroReservePairs) {
+      for (let pair in this.zeroReservePairs) {
         if (this.zeroReservePairs[pair] <= Date.now()) {
           delete this.zeroReservePairs[pair];
           // delete this.tokenList[token];
@@ -104,19 +104,19 @@ export default class Uniswap {
     // Generate all possible pair combinations of tokens
     // This is done by generating an upper triangular matrix or right triangular matrix
     if (Object.keys(this.tokenSwapList).length > 0) {
-      for (const token in this.tokenSwapList) {
+      for (let token in this.tokenSwapList) {
         if (this.tokenSwapList[token] <= Date.now()) {
           delete this.tokenSwapList[token];
           // delete this.tokenList[token];
         }
       }
 
-      const tokens = Object.keys(this.tokenList);
-      let firstToken, secondToken, position;
-      const length = tokens.length;
-      const pairs = [];
-      const pairAddressRequests = [];
-      const pairAddressResponses = [];
+      let tokens = Object.keys(this.tokenList);
+      var firstToken, secondToken, position;
+      let length = tokens.length;
+      let pairs = [];
+      let pairAddressRequests = [];
+      let pairAddressResponses = [];
       for (firstToken = 0; firstToken < length; firstToken++) {
         for (
           secondToken = firstToken + 1;
@@ -124,7 +124,7 @@ export default class Uniswap {
           secondToken++
         ) {
           try {
-            const pairString =
+            let pairString =
               this.tokenList[tokens[firstToken]].address +
               '-' +
               this.tokenList[tokens[secondToken]].address;
@@ -163,11 +163,7 @@ export default class Uniswap {
     setTimeout(this.update_pairs.bind(this), 1000);
   }
 
-  async priceSwapIn(
-    tokenIn: uni.Token,
-    tokenOut: uni.Token,
-    tokenInAmount: number
-  ): Promise<Record<string, any>> {
+  async priceSwapIn(tokenIn, tokenOut, tokenInAmount) {
     await this.extend_update_pairs([tokenIn, tokenOut]);
     const tIn = this.tokenList[tokenIn];
     const tOut = this.tokenList[tokenOut];
@@ -200,11 +196,7 @@ export default class Uniswap {
     return { trade, expectedAmount };
   }
 
-  async priceSwapOut(
-    tokenIn: uni.Token,
-    tokenOut: uni.Token,
-    tokenOutAmount: number
-  ): Promise<Record<string, any>> {
+  async priceSwapOut(tokenIn, tokenOut, tokenOutAmount) {
     await this.extend_update_pairs([tokenIn, tokenOut]);
     const tOut = this.tokenList[tokenOut];
     const tIn = this.tokenList[tokenIn];
@@ -237,12 +229,7 @@ export default class Uniswap {
     return { trade, expectedAmount };
   }
 
-  async swapExactIn(
-    wallet: string,
-    trade: string,
-    tokenAddress: string,
-    gasPrice: number
-  ): string {
+  async swapExactIn(wallet, trade, tokenAddress, gasPrice) {
     const result = uni.Router.swapCallParameters(trade, {
       ttl: TTL,
       recipient: wallet.address,
@@ -264,12 +251,7 @@ export default class Uniswap {
     return tx;
   }
 
-  async swapExactOut(
-    wallet: string,
-    trade: string,
-    tokenAddress: string,
-    gasPrice: number
-  ): string {
+  async swapExactOut(wallet, trade, tokenAddress, gasPrice) {
     const result = uni.Router.swapCallParameters(trade, {
       ttl: TTL,
       recipient: wallet.address,

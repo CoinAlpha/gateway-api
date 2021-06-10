@@ -42,7 +42,7 @@ router.post('/balances', async (req, res) => {
   const paramData = getParamData(req.body);
   const address = paramData.address;
 
-  const balances = {};
+  let balances = {};
 
   try {
     await terra.lcd.bank.balance(address).then((bal) => {

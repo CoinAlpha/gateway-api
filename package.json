@@ -6,7 +6,7 @@
   "license": "Apache 2",
   "repository": "https://github.com/coinalpha/gateway-api",
   "scripts": {
-    "prebuild": "rimraf dist",
+    "prebuild": "rimraf dist && mkdir dist",
     "build": "tsc --project ./",
     "format": "prettier . --write",
     "lint": "eslint src test --format table --fix",

@@ -2,15 +2,10 @@
   middleware for validating mutual authentication access
 */
 
-import { Request, Response, NextFunction } from 'express';
 import { logger } from './logger';
 import { statusMessages } from './utils';
 
-export const validateAccess = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
+export const validateAccess = (req, res, next) => {
   const cert = req.connection.getPeerCertificate();
   if (req.client.authorized) {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;

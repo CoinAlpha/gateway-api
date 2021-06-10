@@ -454,7 +454,7 @@ router.post('/remove-position', async (req, res) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
     let reason;
-    const errCode = 500;
+    let errCode = 500;
     err.reason
       ? (reason = err.reason)
       : (reason = statusMessages.operation_error);
