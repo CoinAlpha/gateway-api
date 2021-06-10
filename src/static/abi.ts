@@ -1,6 +1,23 @@
 /* eslint-disable */
 
-const ERC20Abi = [
+export interface Input {
+    indexed?: boolean
+    name: string
+    type_: string
+};
+
+export interface ERC20 {
+    anonymous?: boolean
+    constant?: boolean
+    inputs?: Array<Input>
+    outputs?: Array<Input>
+    name?: string
+    payable?: boolean
+    stateMutability?: string
+    type_: string
+};
+
+export const ERC20Abi: Array<ERC20> = [
   {
     constant: true,
     inputs: [],
@@ -8,35 +25,35 @@ const ERC20Abi = [
     outputs: [
       {
         name: '',
-        type: 'string'
+        type_: 'string'
       }
     ],
     payable: false,
     stateMutability: 'view',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: false,
     inputs: [
       {
         name: '_spender',
-        type: 'address'
+        type_: 'address'
       },
       {
         name: '_value',
-        type: 'uint256'
+        type_: 'uint256'
       }
     ],
     name: 'approve',
     outputs: [
       {
         name: '',
-        type: 'bool'
+        type_: 'bool'
       }
     ],
     payable: false,
     stateMutability: 'nonpayable',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: true,
@@ -45,39 +62,39 @@ const ERC20Abi = [
     outputs: [
       {
         name: '',
-        type: 'uint256'
+        type_: 'uint256'
       }
     ],
     payable: false,
     stateMutability: 'view',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: false,
     inputs: [
       {
         name: '_from',
-        type: 'address'
+        type_: 'address'
       },
       {
         name: '_to',
-        type: 'address'
+        type_: 'address'
       },
       {
         name: '_value',
-        type: 'uint256'
+        type_: 'uint256'
       }
     ],
     name: 'transferFrom',
     outputs: [
       {
         name: '',
-        type: 'bool'
+        type_: 'bool'
       }
     ],
     payable: false,
     stateMutability: 'nonpayable',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: true,
@@ -86,31 +103,31 @@ const ERC20Abi = [
     outputs: [
       {
         name: '',
-        type: 'uint8'
+        type_: 'uint8'
       }
     ],
     payable: false,
     stateMutability: 'view',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: true,
     inputs: [
       {
         name: '_owner',
-        type: 'address'
+        type_: 'address'
       }
     ],
     name: 'balanceOf',
     outputs: [
       {
         name: 'balance',
-        type: 'uint256'
+        type_: 'uint256'
       }
     ],
     payable: false,
     stateMutability: 'view',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: true,
@@ -119,63 +136,63 @@ const ERC20Abi = [
     outputs: [
       {
         name: '',
-        type: 'string'
+        type_: 'string'
       }
     ],
     payable: false,
     stateMutability: 'view',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: false,
     inputs: [
       {
         name: '_to',
-        type: 'address'
+        type_: 'address'
       },
       {
         name: '_value',
-        type: 'uint256'
+        type_: 'uint256'
       }
     ],
     name: 'transfer',
     outputs: [
       {
         name: '',
-        type: 'bool'
+        type_: 'bool'
       }
     ],
     payable: false,
     stateMutability: 'nonpayable',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: true,
     inputs: [
       {
         name: '_owner',
-        type: 'address'
+        type_: 'address'
       },
       {
         name: '_spender',
-        type: 'address'
+        type_: 'address'
       }
     ],
     name: 'allowance',
     outputs: [
       {
         name: '',
-        type: 'uint256'
+        type_: 'uint256'
       }
     ],
     payable: false,
     stateMutability: 'view',
-    type: 'function'
+    type_: 'function'
   },
   {
     payable: true,
     stateMutability: 'payable',
-    type: 'fallback'
+    type_: 'fallback'
   },
   {
     anonymous: false,
@@ -183,21 +200,21 @@ const ERC20Abi = [
       {
         indexed: true,
         name: 'owner',
-        type: 'address'
+        type_: 'address'
       },
       {
         indexed: true,
         name: 'spender',
-        type: 'address'
+        type_: 'address'
       },
       {
         indexed: false,
         name: 'value',
-        type: 'uint256'
+        type_: 'uint256'
       }
     ],
     name: 'Approval',
-    type: 'event'
+    type_: 'event'
   },
   {
     anonymous: false,
@@ -205,115 +222,115 @@ const ERC20Abi = [
       {
         indexed: true,
         name: 'from',
-        type: 'address'
+        type_: 'address'
       },
       {
         indexed: true,
         name: 'to',
-        type: 'address'
+        type_: 'address'
       },
       {
         indexed: false,
         name: 'value',
-        type: 'uint256'
+        type_: 'uint256'
       }
     ],
     name: 'Transfer',
-    type: 'event'
+    type_: 'event'
   }
 ];
 
-const KovanWETHAbi = [
+export const KovanWETHAbi: Array<ERC20> = [
   {
     constant: true,
     inputs: [],
     name: 'name',
-    outputs: [{ name: '', type: 'string' }],
+    outputs: [{ name: '', type_: 'string' }],
     payable: false,
     stateMutability: 'view',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: false,
     inputs: [
-      { name: 'guy', type: 'address' },
-      { name: 'wad', type: 'uint256' }
+      { name: 'guy', type_: 'address' },
+      { name: 'wad', type_: 'uint256' }
     ],
     name: 'approve',
-    outputs: [{ name: '', type: 'bool' }],
+    outputs: [{ name: '', type_: 'bool' }],
     payable: false,
     stateMutability: 'nonpayable',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: true,
     inputs: [],
     name: 'totalSupply',
-    outputs: [{ name: '', type: 'uint256' }],
+    outputs: [{ name: '', type_: 'uint256' }],
     payable: false,
     stateMutability: 'view',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: false,
     inputs: [
-      { name: 'src', type: 'address' },
-      { name: 'dst', type: 'address' },
-      { name: 'wad', type: 'uint256' }
+      { name: 'src', type_: 'address' },
+      { name: 'dst', type_: 'address' },
+      { name: 'wad', type_: 'uint256' }
     ],
     name: 'transferFrom',
-    outputs: [{ name: '', type: 'bool' }],
+    outputs: [{ name: '', type_: 'bool' }],
     payable: false,
     stateMutability: 'nonpayable',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: false,
-    inputs: [{ name: 'wad', type: 'uint256' }],
+    inputs: [{ name: 'wad', type_: 'uint256' }],
     name: 'withdraw',
     outputs: [],
     payable: false,
     stateMutability: 'nonpayable',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: true,
     inputs: [],
     name: 'decimals',
-    outputs: [{ name: '', type: 'uint8' }],
+    outputs: [{ name: '', type_: 'uint8' }],
     payable: false,
     stateMutability: 'view',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: true,
-    inputs: [{ name: '', type: 'address' }],
+    inputs: [{ name: '', type_: 'address' }],
     name: 'balanceOf',
-    outputs: [{ name: '', type: 'uint256' }],
+    outputs: [{ name: '', type_: 'uint256' }],
     payable: false,
     stateMutability: 'view',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: true,
     inputs: [],
     name: 'symbol',
-    outputs: [{ name: '', type: 'string' }],
+    outputs: [{ name: '', type_: 'string' }],
     payable: false,
     stateMutability: 'view',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: false,
     inputs: [
-      { name: 'dst', type: 'address' },
-      { name: 'wad', type: 'uint256' }
+      { name: 'dst', type_: 'address' },
+      { name: 'wad', type_: 'uint256' }
     ],
     name: 'transfer',
-    outputs: [{ name: '', type: 'bool' }],
+    outputs: [{ name: '', type_: 'bool' }],
     payable: false,
     stateMutability: 'nonpayable',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: false,
@@ -322,65 +339,59 @@ const KovanWETHAbi = [
     outputs: [],
     payable: true,
     stateMutability: 'payable',
-    type: 'function'
+    type_: 'function'
   },
   {
     constant: true,
     inputs: [
-      { name: '', type: 'address' },
-      { name: '', type: 'address' }
+      { name: '', type_: 'address' },
+      { name: '', type_: 'address' }
     ],
     name: 'allowance',
-    outputs: [{ name: '', type: 'uint256' }],
+    outputs: [{ name: '', type_: 'uint256' }],
     payable: false,
     stateMutability: 'view',
-    type: 'function'
+    type_: 'function'
   },
-  { payable: true, stateMutability: 'payable', type: 'fallback' },
+  { payable: true, stateMutability: 'payable', type_: 'fallback' },
   {
     anonymous: false,
     inputs: [
-      { indexed: true, name: 'src', type: 'address' },
-      { indexed: true, name: 'guy', type: 'address' },
-      { indexed: false, name: 'wad', type: 'uint256' }
+      { indexed: true, name: 'src', type_: 'address' },
+      { indexed: true, name: 'guy', type_: 'address' },
+      { indexed: false, name: 'wad', type_: 'uint256' }
     ],
     name: 'Approval',
-    type: 'event'
+    type_: 'event'
   },
   {
     anonymous: false,
     inputs: [
-      { indexed: true, name: 'src', type: 'address' },
-      { indexed: true, name: 'dst', type: 'address' },
-      { indexed: false, name: 'wad', type: 'uint256' }
+      { indexed: true, name: 'src', type_: 'address' },
+      { indexed: true, name: 'dst', type_: 'address' },
+      { indexed: false, name: 'wad', type_: 'uint256' }
     ],
     name: 'Transfer',
-    type: 'event'
+    type_: 'event'
   },
   {
     anonymous: false,
     inputs: [
-      { indexed: true, name: 'dst', type: 'address' },
-      { indexed: false, name: 'wad', type: 'uint256' }
+      { indexed: true, name: 'dst', type_: 'address' },
+      { indexed: false, name: 'wad', type_: 'uint256' }
     ],
     name: 'Deposit',
-    type: 'event'
+    type_: 'event'
   },
   {
     anonymous: false,
     inputs: [
-      { indexed: true, name: 'src', type: 'address' },
-      { indexed: false, name: 'wad', type: 'uint256' }
+      { indexed: true, name: 'src', type_: 'address' },
+      { indexed: false, name: 'wad', type_: 'uint256' }
     ],
     name: 'Withdrawal',
-    type: 'event'
+    type_: 'event'
   }
 ];
 
-const KovanFaucetAddress = '0xb48Cc42C45d262534e46d5965a9Ac496F1B7a830';
-
-module.exports = {
-  ERC20Abi,
-  KovanWETHAbi,
-  KovanFaucetAddress
-};
+export const KovanFaucetAddress = '0xb48Cc42C45d262534e46d5965a9Ac496F1B7a830';
