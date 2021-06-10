@@ -18,19 +18,12 @@ export default class Ethereum {
     this.provider = new ethers.providers.JsonRpcProvider(providerUrl);
     this.erc20TokenListURL = globalConfig.getConfig('ETHEREUM_TOKEN_LIST_URL');
     this.network = network;
-    /*
-    this.spenders = {
-      balancer: process.env.EXCHANGE_PROXY,
-      uniswap: process.env.UNISWAP_ROUTER,
-      uniswapV3: process.UNISWAP_V3_ROUTER
-    }
-    */
     // update token list
     this.getERC20TokenList(); // erc20TokenList
   }
 
   // get ETH balance
-  async getETHBalance(wallet) {
+  async getETHBalance(wallet: string): Promise<any> {
     try {
       const balance = await wallet.getBalance();
       return balance / (1e18).toString();
@@ -45,7 +38,11 @@ export default class Ethereum {
   }
 
   // get ERC-20 token balance
-  async getERC20Balance(wallet, tokenAddress, decimals = 18) {
+  async getERC20Balance(
+    wallet: string,
+    tokenAddress: string,
+    decimals = 18
+  ): Promise<any> {
     // instantiate a contract and pass in provider for read-only access
     const contract = new ethers.Contract(
       tokenAddress,
@@ -64,7 +61,12 @@ export default class Ethereum {
   }
 
   // get ERC-20 token allowance
-  async getERC20Allowance(wallet, spender, tokenAddress, decimals = 18) {
+  async getERC20Allowance(
+    wallet: string,
+    spender: string,
+    tokenAddress: string,
+    decimals = 18
+  ): Promise<any> {
     // instantiate a contract and pass in provider for read-only access
     const contract = new ethers.Contract(
       tokenAddress,
@@ -84,13 +86,13 @@ export default class Ethereum {
 
   // approve a spender to transfer tokens from a wallet address
   async approveERC20(
-    wallet,
-    spender,
-    tokenAddress,
-    amount,
+    wallet: string,
+    spender: string,
+    tokenAddress: string,
+    amount: string,
     gasPrice = this.gasPrice,
-    _gasLimit
-  ) {
+    _gasLimit: number
+  ): Promise<any> {
     try {
       // fixate gas limit to prevent overwriting
       const approvalGasLimit = APPROVAL_GAS_LIMIT;
@@ -109,7 +111,7 @@ export default class Ethereum {
   }
 
   // get current Gas
-  async getCurrentGasPrice() {
+  async getCurrentGasPrice(): Promise<any> {
     try {
       this.provider.getGasPrice().then(function (gas) {
         // gasPrice is a BigNumber; convert it to a decimal string
@@ -125,12 +127,12 @@ export default class Ethereum {
   }
 
   async deposit(
-    wallet,
-    tokenAddress,
-    amount,
+    wallet: string,
+    tokenAddress: string,
+    amount: number,
     gasPrice = this.gasPrice,
     gasLimit = this.approvalGasLimit
-  ) {
+  ): Promise<any> {
     // deposit ETH to a contract address
     try {
       const contract = new ethers.Contract(
@@ -152,7 +154,7 @@ export default class Ethereum {
   }
 
   // get ERC20 Token List
-  async getERC20TokenList() {
+  async getERC20TokenList(): Promise<any> {
     let tokenListSource;
     try {
       if (this.network === 'kovan') {
@@ -194,14 +196,14 @@ export default class Ethereum {
   }
 
   // Refactor name to getERC20TokenByName
-  getERC20TokenAddresses(tokenSymbol) {
+  getERC20TokenAddresses(tokenSymbol: string): Promise<any> {
     const tokenContractAddress = this.erc20TokenList.tokens.filter((obj) => {
       return obj.symbol === tokenSymbol.toUpperCase();
     });
     return tokenContractAddress[0];
   }
 
-  getERC20TokenByAddress(tokenAddress) {
+  getERC20TokenByAddress(tokenAddress: string): Promise<any> {
     const tokenContract = this.erc20TokenList.tokens.filter((obj) => {
       return obj.address.toUpperCase() === tokenAddress.toUpperCase();
     });

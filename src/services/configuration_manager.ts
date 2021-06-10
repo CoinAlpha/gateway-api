@@ -19,11 +19,11 @@ export default class ConfigurationManager {
     this.fileWatcher();
   }
 
-  readAllConfigs() {
+  readAllConfigs(): any {
     return this.configs.toJSON();
   }
 
-  updateConfig(data) {
+  updateConfig(data: Record<string, any>): void {
     // Hummingbot client will ideally make 1 update per request.
     // However, other softwares using gateway may be designed to update multiple configs per request. Hence, the reason for iterating.
     let toExit = false;
@@ -46,15 +46,15 @@ export default class ConfigurationManager {
     process.exit(1);
   }
 
-  getConfig(key) {
+  getConfig(key: string): any {
     return this.configs.get(key);
   }
 
-  getCoreConfig(key) {
+  getCoreConfig(key: string): any {
     return this.configs.get('CORE').get(key);
   }
 
-  fileWatcher() {
+  fileWatcher(): void {
     fs.watchFile(
       GlobalConfigFilePath,
       { persistent: true, interval: 1000 },

@@ -7,7 +7,10 @@ const TICK_SPACINGS = { LOW: 10, MEDIUM: 60, HIGH: 2000 };
 bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 
 // returns the sqrt price as a 64x96
-export function encodePriceSqrt(reserve1, reserve0) {
+export function encodePriceSqrt(
+  reserve1: mathjs.Fraction,
+  reserve0: mathjs.Fraction
+): BigNumber {
   return BigNumber.from(
     new bn(reserve1.toString())
       .div(reserve0.toString())
@@ -18,8 +21,12 @@ export function encodePriceSqrt(reserve1, reserve0) {
   );
 }
 
-export function getTickFromPrice(price, tier, side) {
-  var tick = 0;
+export function getTickFromPrice(
+  price: number,
+  tier: string,
+  side: string
+): number {
+  let tick = 0;
   if (side === 'UPPER') {
     tick =
       math.ceil(math.log(price, 1.0001) / TICK_SPACINGS[tier]) *
@@ -39,10 +46,10 @@ export function getTickFromPrice(price, tier, side) {
   }
 }
 
-export function getMinTick(tier) {
+export function getMinTick(tier: string): number {
   return Math.ceil(-887272 / TICK_SPACINGS[tier]) * TICK_SPACINGS[tier];
 }
 
-export function getMaxTick(tier) {
+export function getMaxTick(tier: string): number {
   return Math.floor(887272 / TICK_SPACINGS[tier]) * TICK_SPACINGS[tier];
 }

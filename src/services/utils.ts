@@ -1,6 +1,7 @@
 /*
   Hummingbot Utils
 */
+import { Response, Error } from 'express';
 const config = require('./configuration_manager');
 const lodash = require('lodash');
 const moment = require('moment');
@@ -18,10 +19,10 @@ export const statusMessages = {
   page_not_found: 'Page not found. Invalid path'
 };
 
-export const latency = (startTime, endTime) =>
+export const latency = (startTime: number, endTime: number): number =>
   parseFloat((endTime - startTime) / 1000);
 
-export const isValidParams = (params) => {
+export const isValidParams = (params: Record<any, any>): bool => {
   const values = Object.values(params);
   for (let i = 0; i < values.length; i++) {
     // DO NOT use forEach, it returns callback without breaking the loop
@@ -32,7 +33,10 @@ export const isValidParams = (params) => {
   return true;
 };
 
-export const isValidData = (data, format) => {
+export const isValidData = (
+  data: Record<any, any>,
+  format: Array<string>
+): bool => {
   if (
     typeof data !== 'undefined' &&
     Object.keys(data).length !== 0 &&
@@ -43,7 +47,10 @@ export const isValidData = (data, format) => {
   return false;
 };
 
-export const getParamData = (data, format = null) => {
+export const getParamData = (
+  data: Record<any, any>,
+  format = null
+): Record<any, any> => {
   const dataObject = {};
   if (format !== null) {
     if (isValidData(data, format)) {
@@ -59,12 +66,15 @@ export const getParamData = (data, format = null) => {
   return dataObject;
 };
 
-export const splitParamData = (param, separator = ',') => {
+export const splitParamData = (
+  param: string,
+  separator = ','
+): Array<string> => {
   const dataArray = param.split(separator);
   return dataArray;
 };
 
-export const getSymbols = (tradingPair) => {
+export const getSymbols = (tradingPair: string): Record<string, string> => {
   const symbols = tradingPair.split('-');
   const baseQuotePair = {
     base: symbols[0].toUpperCase(),
@@ -73,16 +83,19 @@ export const getSymbols = (tradingPair) => {
   return baseQuotePair;
 };
 
-export const reportConnectionError = (res, error) => {
+export const reportConnectionError = (
+  res: Response,
+  error: Error
+): Response => {
   res.json({
     error: error.errno,
     code: error.code
   });
 };
 
-export const strToDecimal = (str) => parseInt(str) / 100;
+export const strToDecimal = (str: string): number => parseInt(str) / 100;
 
-export const getHummingbotMemo = () => {
+export const getHummingbotMemo = (): string => {
   const prefix = 'hbot';
   const clientId = globalConfig.getConfig('HUMMINGBOT_INSTANCE_ID');
   if (typeof clientId !== 'undefined' && clientId != null && clientId !== '') {
@@ -91,16 +104,16 @@ export const getHummingbotMemo = () => {
   return prefix;
 };
 
-export const loadConfig = () => {
+export const loadConfig = (): any => {
   return config.configManagerInstance.readAllConfigs();
 };
 
-export const updateConfig = (data) => {
+export const updateConfig = (data: Record<any, any>): bool => {
   globalConfig.updateConfig(data);
   return true;
 };
 
-export const getLocalDate = () => {
+export const getLocalDate = (): Date => {
   const gmtOffset = globalConfig.getConfig('GMT_OFFSET');
   let newDate = moment().format('YYYY-MM-DD hh:mm:ss').trim();
   if (
@@ -118,7 +131,9 @@ export const getLocalDate = () => {
 
 export const nonceManagerCache = {};
 
-export const getNonceManager = async (signer) => {
+export const getNonceManager = async (
+  signer: string
+): Promise<NonceManager> => {
   let key = await signer.getAddress();
   if (signer.provider) {
     key += (await signer.provider.getNetwork()).chainId;

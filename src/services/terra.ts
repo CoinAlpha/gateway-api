@@ -53,7 +53,7 @@ export default class Terra {
   }
 
   // connect Terra LCD
-  connect() {
+  connect(): any {
     try {
       const lcd = new LCDClient({
         URL: this.lcdUrl,
@@ -71,7 +71,7 @@ export default class Terra {
   }
 
   // get Token Denom
-  getTokenDenom(symbol) {
+  getTokenDenom(symbol: string): any {
     try {
       let denom;
       Object.keys(TERRA_TOKENS).forEach((item) => {
@@ -91,7 +91,7 @@ export default class Terra {
   }
 
   // get Token Symbol
-  getTokenSymbol(denom) {
+  getTokenSymbol(denom: string): any {
     try {
       const symbol = TERRA_TOKENS[denom].symbol;
       return symbol;
@@ -105,15 +105,15 @@ export default class Terra {
     }
   }
 
-  getTxAttributes(attributes) {
-    let attrib = {};
+  getTxAttributes(attributes: Record<string, any>): Record<string, any> {
+    const attrib = {};
     attributes.forEach((item) => {
       attrib[item.key] = item.value;
     });
     return attrib;
   }
 
-  async getEstimateFee(tx) {
+  async getEstimateFee(tx: string): Promise<any> {
     try {
       const fee = await this.lcd.tx.estimateFee(tx);
       return fee;
@@ -127,7 +127,7 @@ export default class Terra {
     }
   }
 
-  async getExchangeRate(denom) {
+  async getExchangeRate(denom: string): Promise<any> {
     try {
       const exchangeRates = await this.lcd.oracle.exchangeRates();
       return exchangeRates.get(denom);
@@ -141,10 +141,10 @@ export default class Terra {
     }
   }
 
-  async getTxFee() {
+  async getTxFee(): Promise<any> {
     try {
       const lunaFee = GAS_PRICE.uluna * GAS_ADJUSTMENT;
-      let feeList = { uluna: lunaFee };
+      const feeList = { uluna: lunaFee };
       await this.lcd.oracle.exchangeRates().then((rates) => {
         Object.keys(rates._coins).forEach((key) => {
           feeList[key] = rates._coins[key].amount * lunaFee;
@@ -164,7 +164,12 @@ export default class Terra {
   }
 
   // get Terra Swap Rate
-  async getSwapRate(baseToken, quoteToken, amount, tradeType) {
+  async getSwapRate(
+    baseToken: string,
+    quoteToken: string,
+    amount: number,
+    tradeType: string
+  ): Promise<any> {
     try {
       let exchangeRate,
         offerCoin,
@@ -173,7 +178,7 @@ export default class Terra {
         cost,
         costAmount,
         offer;
-      let swaps = {};
+      const swaps = {};
 
       if (tradeType.toLowerCase() === 'sell') {
         // sell base
@@ -243,14 +248,14 @@ export default class Terra {
 
   // Swap tokens
   async swapTokens(
-    baseToken,
-    quoteToken,
-    amount,
-    tradeType,
-    gasPrice,
-    gasAdjustment,
-    secret
-  ) {
+    baseToken: string,
+    quoteToken: string,
+    amount: number,
+    tradeType: string,
+    gasPrice: number,
+    gasAdjustment: number,
+    secret: string
+  ): Promise<any> {
     let swapResult;
     try {
       // connect to lcd
@@ -275,7 +280,7 @@ export default class Terra {
 
       let offerDenom, swapDenom;
       let swaps, txAttributes;
-      let tokenSwap = {};
+      const tokenSwap = {};
 
       if (tradeType.toLowerCase() === 'sell') {
         offerDenom = baseDenom;

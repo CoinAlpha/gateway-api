@@ -29,7 +29,7 @@ router.get('/status', (req, res) => {
 
   const nodeSync = spawn(celocli, ['node:synced']);
 
-  let err_message = [],
+  const err_message = [],
     out_message = [];
 
   nodeSync.stdout.on('data', (out) => {
@@ -74,7 +74,7 @@ router.get('/price', (req, res) => {
 
   const nodeSync = spawn(celocli, ['exchange:show', '--amount', amount]);
 
-  let err_message = [],
+  const err_message = [],
     out_message = [];
 
   nodeSync.stdout.on('data', (out) => {
@@ -86,17 +86,17 @@ router.get('/price', (req, res) => {
   });
 
   nodeSync.on('close', (code) => {
-    let exchange_rates = {};
+    const exchange_rates = {};
     let price;
 
     if (code === 0) {
       // extract exchange rate from cli output
       out_message.forEach((item, _index) => {
         if (item.includes(separator)) {
-          let exchangeInfo = item.split(separator);
-          let base = exchangeInfo[0].trim().split(' ');
-          let quote = exchangeInfo[1].trim().split(' ');
-          let market = [base[1].toUpperCase(), quote[1].toUpperCase()].join(
+          const exchangeInfo = item.split(separator);
+          const base = exchangeInfo[0].trim().split(' ');
+          const quote = exchangeInfo[1].trim().split(' ');
+          const market = [base[1].toUpperCase(), quote[1].toUpperCase()].join(
             '-'
           );
           exchange_rates[market] = quote[0] / DENOM_UNIT_MULTIPLIER;
@@ -128,9 +128,9 @@ router.get('/balance', (req, res) => {
 
   const balance = spawn(celocli, ['account:balance', address]);
 
-  let err_message = [],
+  const err_message = [],
     out_message = [];
-  let walletBalances = {};
+  const walletBalances = {};
 
   balance.stdout.on('data', (out) => {
     out_message.push(out.toString().trim());
@@ -150,9 +150,9 @@ router.get('/balance', (req, res) => {
           item.toLowerCase().includes('lockedcelo') ||
           item.toLowerCase().includes('lockedgold')
         ) {
-          let balanceArray = item.split('\n');
+          const balanceArray = item.split('\n');
           balanceArray.forEach((x) => {
-            let keyValue = x.split(':');
+            const keyValue = x.split(':');
             walletBalances[keyValue[0].trim()] =
               keyValue[1].trim() / DENOM_UNIT_MULTIPLIER;
           });
@@ -197,7 +197,7 @@ router.post('/unlock', (req, res) => {
     secret
   ]);
 
-  let err_message = [],
+  const err_message = [],
     out_message = [];
 
   lockStatus.stdout.on('data', (out) => {

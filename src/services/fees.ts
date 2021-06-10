@@ -26,11 +26,12 @@ export default class Fees {
     this.getETHGasStationFee(this.ethGasStationGasLevel, 0);
   }
 
+  // : Promise<void>
   // get ETH Gas Station
   async getETHGasStationFee(
     gasLevel = this.ethGasStationGasLevel,
     interval = defaultRefreshInterval
-  ) {
+  ): Promise<void> {
     try {
       if (
         ethGasStationEnabled === true ||
@@ -70,8 +71,9 @@ export default class Fees {
     }
   }
 
+  // : Promise:<number>
   // get gas cost
-  async getGasCost(gasPrice, gasLimit, inGwei = false) {
+  getGasCost(gasPrice: number, gasLimit: number, inGwei = false): number {
     const cost = gasPrice * gasLimit;
     return inGwei ? cost : cost / denom;
   }

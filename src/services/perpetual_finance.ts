@@ -47,14 +47,14 @@ export default class PerpetualFinance {
     this.loadedMetadata = this.load_metadata();
   }
 
-  async load_metadata() {
+  async load_metadata(): Promise<bool> {
     try {
       const metadata = await fetch(this.contractAddressesUrl).then((res) =>
         res.json()
       );
       const layer2 = Object.keys(metadata.layers.layer2.contracts);
 
-      for (var key of layer2) {
+      for (const key of layer2) {
         if (metadata.layers.layer2.contracts[key].name === 'Amm') {
           this.amm[key] = metadata.layers.layer2.contracts[key].address;
         } else {
@@ -72,17 +72,17 @@ export default class PerpetualFinance {
     }
   }
 
-  async update_price_loop() {
+  async update_price_loop(): Promise<void> {
     if (Object.keys(this.cacheExpirary).length > 0) {
-      for (let pair in this.cacheExpirary) {
+      for (const pair in this.cacheExpirary) {
         if (this.cacheExpirary[pair] <= Date.now()) {
           delete this.cacheExpirary[pair];
           delete this.priceCache[pair];
         }
       }
 
-      for (let pair in this.cacheExpirary) {
-        let amm = new Ethers.Contract(
+      for (const pair in this.cacheExpirary) {
+        const amm = new Ethers.Contract(
           this.amm[pair],
           AmmArtifact.abi,
           this.provider
@@ -117,7 +117,7 @@ export default class PerpetualFinance {
   }
 
   // get XDai balance
-  async getXdaiBalance(wallet) {
+  async getXdaiBalance(wallet: string): Promise<any> {
     try {
       const xDaiBalance = await wallet.getBalance();
       return Ethers.utils.formatEther(xDaiBalance);
@@ -132,14 +132,14 @@ export default class PerpetualFinance {
   }
 
   // get XDai USDC balance
-  async getUSDCBalance(wallet) {
+  async getUSDCBalance(wallet: string): Promise<any> {
     try {
       const layer2Usdc = new Ethers.Contract(
         this.xUsdcAddr,
         TetherTokenArtifact.abi,
         wallet
       );
-      let layer2UsdcBalance = await layer2Usdc.balanceOf(wallet.address);
+      const layer2UsdcBalance = await layer2Usdc.balanceOf(wallet.address);
       const layer2UsdcDecimals = await layer2Usdc.decimals();
       return Ethers.utils.formatUnits(layer2UsdcBalance, layer2UsdcDecimals);
     } catch (err) {
@@ -151,7 +151,7 @@ export default class PerpetualFinance {
   }
 
   // get  allowance
-  async getAllowance(wallet) {
+  async getAllowance(wallet: string): Promise<any> {
     // instantiate a contract and pass in provider for read-only access
     const layer2Usdc = new Ethers.Contract(
       this.xUsdcAddr,
@@ -178,7 +178,7 @@ export default class PerpetualFinance {
   }
 
   // approve
-  async approve(wallet, amount) {
+  async approve(wallet: string, amount: number): Promise<any> {
     try {
       // instantiate a contract and pass in wallet
       const layer2Usdc = new Ethers.Contract(
@@ -201,7 +201,14 @@ export default class PerpetualFinance {
   }
 
   //open Position
-  async openPosition(side, margin, levrg, pair, minBaseAmount, wallet) {
+  async openPosition(
+    side: string,
+    margin: number,
+    levrg: amount,
+    pair: string,
+    minBaseAmount: number,
+    wallet: string
+  ): Promise<any> {
     try {
       const quoteAssetAmount = {
         d: Ethers.utils.parseUnits(margin, DEFAULT_DECIMALS)
@@ -233,7 +240,11 @@ export default class PerpetualFinance {
   }
 
   //close Position
-  async closePosition(wallet, pair, minimalQuote) {
+  async closePosition(
+    wallet: string,
+    pair: string,
+    minimalQuote: number
+  ): Promise<any> {
     try {
       const minimalQuoteAsset = {
         d: Ethers.utils.parseUnits(minimalQuote, DEFAULT_DECIMALS)
@@ -258,7 +269,7 @@ export default class PerpetualFinance {
   }
 
   //get active position
-  async getPosition(wallet, pair) {
+  async getPosition(wallet: string, pair: string): Promise<any> {
     try {
       const positionValues = {};
       const clearingHouse = new Ethers.Contract(
@@ -324,7 +335,7 @@ export default class PerpetualFinance {
   }
 
   //get active margin
-  async getActiveMargin(wallet) {
+  async getActiveMargin(wallet: string): Promise<any> {
     try {
       const clearingHouseViewer = new Ethers.Contract(
         this.ClearingHouseViewer,
@@ -348,7 +359,7 @@ export default class PerpetualFinance {
   }
 
   // get Price
-  async getPrice(side, amount, pair) {
+  async getPrice(side: string, amount: number, pair: string): Promise<any> {
     try {
       let price;
       this.cacheExpirary[pair] = Date.now() + UPDATE_PERIOD;
@@ -388,9 +399,9 @@ export default class PerpetualFinance {
   }
 
   // get getFundingRate
-  async getFundingRate(pair) {
+  async getFundingRate(pair: string): Promise<any> {
     try {
-      let funding = {};
+      const funding = {};
       const amm = new Ethers.Contract(
         this.amm[pair],
         AmmArtifact.abi,

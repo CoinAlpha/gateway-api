@@ -63,7 +63,7 @@ export default class UniswapV3 {
     }
   }
 
-  get_contract(contract, wallet) {
+  get_contract(contract: string, wallet: string): ethers.Contract {
     if (contract === 'core') {
       return new ethers.Contract(this.core, coreArtifact.abi, wallet);
     } else if (contract === 'router') {
@@ -73,10 +73,14 @@ export default class UniswapV3 {
     }
   }
 
-  async currentPrice(wallet, tokenIn, tokenOut) {
+  async currentPrice(
+    wallet: string,
+    tokenIn: number,
+    tokenOut: number
+  ): Promise<Record<any, any>> {
     let pool, poolContract;
-    let poolPrices = [];
-    let poolLiquidity = [];
+    const poolPrices = [];
+    const poolLiquidity = [];
     const keys = ['LOW', 'MEDIUM', 'HIGH'];
     const coreContract = this.get_contract('core', wallet);
 
@@ -103,7 +107,7 @@ export default class UniswapV3 {
       for (pool = 0; pool < 3; pool++) {
         poolPrices[pool] = poolLiquidity[pool] = 0;
         if (values[pool].value) {
-          for (let tick of values[pool].value.tickCumulatives) {
+          for (const tick of values[pool].value.tickCumulatives) {
             poolPrices[pool] = tick.toNumber() - poolPrices[pool];
           }
           poolPrices[pool] = math.pow(1.0001, poolPrices[pool]);
@@ -114,14 +118,14 @@ export default class UniswapV3 {
   }
 
   async swapExactIn(
-    wallet,
-    baseTokenContractInfo,
-    quoteTokenContractInfo,
-    baseAmount,
-    limitPrice,
-    tier,
-    _gasPrice
-  ) {
+    wallet: string,
+    baseTokenContractInfo: Record<string, any>,
+    quoteTokenContractInfo: Record<string, any>,
+    baseAmount: number,
+    limitPrice: number,
+    tier: string,
+    _gasPrice: number
+  ): Promise<any> {
     //sell, In => base, Out => quote
     const minPercentOut = 1 - this.slippage / 100;
     const amountOutMinimum =
@@ -148,7 +152,6 @@ export default class UniswapV3 {
           amountOutMinimum.toString(),
           quoteTokenContractInfo.decimals
         ),
-        //sqrtPriceLimitX96: encodePriceSqrt(priceFraction.d, priceFraction.n)
         sqrtPriceLimitX96: 0
       },
       {
@@ -163,14 +166,14 @@ export default class UniswapV3 {
   }
 
   async swapExactOut(
-    wallet,
-    baseTokenContractInfo,
-    quoteTokenContractInfo,
-    baseAmount,
-    limitPrice,
-    tier,
-    _gasPrice
-  ) {
+    wallet: string,
+    baseTokenContractInfo: Record<string, any>,
+    quoteTokenContractInfo: Record<string, any>,
+    baseAmount: number,
+    limitPrice: number,
+    tier: string,
+    _gasPrice: number
+  ): Promise<any> {
     //buy, In => quote, Out => base
     const maxPercentIn = 1 + this.slippage / 100;
     const amountInMaximum =
@@ -194,11 +197,9 @@ export default class UniswapV3 {
           amountInMaximum.toString(),
           quoteTokenContractInfo.decimals
         ),
-        //sqrtPriceLimitX96: encodePriceSqrt(priceFraction.d, priceFraction.n)
         sqrtPriceLimitX96: 0
       },
       {
-        //gasPrice: gasPrice * 1e9,
         gasLimit: GAS_LIMIT
       }
     );
@@ -210,7 +211,10 @@ export default class UniswapV3 {
 
   // LP section
 
-  async getPosition(wallet, tokenId) {
+  async getPosition(
+    wallet: string,
+    tokenId: string
+  ): Promise<Record<string, any>> {
     const contract = this.get_contract('nft', wallet);
     const position = await contract.positions(tokenId);
     return {
@@ -229,7 +233,12 @@ export default class UniswapV3 {
     };
   }
 
-  getRemoveLiquidityData(wallet, contract, tokenId, liquidity) {
+  getRemoveLiquidityData(
+    wallet: string,
+    contract: ethers.Contract,
+    tokenId: string,
+    liquidity: number
+  ): Array<any> {
     const decreaseLiquidityData = contract.interface.encodeFunctionData(
       'decreaseLiquidity',
       [
@@ -256,16 +265,16 @@ export default class UniswapV3 {
   }
 
   getAddLiquidityData(
-    wallet,
-    contract,
-    token0,
-    token1,
-    amount0,
-    amount1,
-    fee,
-    lowerPrice,
-    upperPrice
-  ) {
+    wallet: string,
+    contract: ethers.Contract,
+    token0: string,
+    token1: string,
+    amount0: number,
+    amount1: number,
+    fee: number,
+    lowerPrice: number,
+    upperPrice: number
+  ): Record<string, any> {
     const mintData = contract.interface.encodeFunctionData('mint', [
       {
         token0: token0.address,
@@ -287,15 +296,15 @@ export default class UniswapV3 {
   }
 
   async addPosition(
-    wallet,
-    token0,
-    token1,
-    amount0,
-    amount1,
-    fee,
-    lowerPrice,
-    upperPrice
-  ) {
+    wallet: string,
+    token0: string,
+    token1: string,
+    amount0: number,
+    amount1: number,
+    fee: number,
+    lowerPrice: number,
+    upperPrice: number
+  ): any {
     const nftContract = this.get_contract('nft', wallet);
     const coreContract = this.get_contract('core', wallet);
     const pool = await coreContract.getPool(
@@ -327,7 +336,7 @@ export default class UniswapV3 {
       upperPrice
     );
 
-    let calls = [mintData];
+    const calls = [mintData];
     if (pool === ethers.constants.AddressZero) {
       const tx = await nftContract.multicall([initPoolData, mintData], {
         gasLimit: GAS_LIMIT
@@ -339,7 +348,7 @@ export default class UniswapV3 {
     }
   }
 
-  async removePosition(wallet, tokenId) {
+  async removePosition(wallet: string, tokenId: string): Promise<any> {
     // Reduce position and burn
     const positionData = await this.getPosition(wallet, tokenId);
     const contract = this.get_contract('nft', wallet);
@@ -353,18 +362,18 @@ export default class UniswapV3 {
   }
 
   async replacePosition(
-    wallet,
-    tokenId,
-    token0,
-    token1,
-    amount0,
-    amount1,
-    fee,
-    lowerPrice,
-    upperPrice
-  ) {
+    wallet: string,
+    tokenId: string,
+    token0: string,
+    token1: string,
+    amount0: number,
+    amount1: number,
+    fee: number,
+    lowerPrice: number,
+    upperPrice: number
+  ): Promise<any> {
     const contract = this.get_contract('nft', wallet);
-    let positionData = await this.getPosition(wallet, tokenId);
+    const positionData = await this.getPosition(wallet, tokenId);
     const removeData = this.getRemoveLiquidityData(
       wallet,
       contract,
@@ -388,7 +397,7 @@ export default class UniswapV3 {
     });
   }
 
-  async collectFees(wallet, tokenId) {
+  async collectFees(wallet: string, tokenId: string): Promise<any> {
     const contract = this.get_contract('nft', wallet);
     return await contract.collect(
       {

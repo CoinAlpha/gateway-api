@@ -41,7 +41,7 @@ export default class Balancer {
     }
   }
 
-  async fetchPool(tokenIn, tokenOut) {
+  async fetchPool(tokenIn: string, tokenOut: string): any {
     const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut);
     this.cachedPools[tokenIn + tokenOut] = pools;
 
@@ -56,7 +56,7 @@ export default class Balancer {
     });
   }
 
-  async getCachedPools(tokenIn, tokenOut) {
+  async getCachedPools(tokenIn: string, tokenOut: string): any {
     const cachePools = this.cachedPools[tokenIn + tokenOut].pools;
     debug(`>>> get cached Pools. ${tokenIn + tokenOut}`, {
       message: `total pools: ${cachePools.length}`
@@ -65,11 +65,11 @@ export default class Balancer {
   }
 
   async priceSwapIn(
-    tokenIn,
-    tokenOut,
-    tokenInAmount,
+    tokenIn: string,
+    tokenOut: string,
+    tokenInAmount: number,
     maxSwaps = this.maxSwaps
-  ) {
+  ): Promise<any> {
     // Fetch all the pools that contain the tokens provided
     try {
       // Get current on-chain data about the fetched pools
@@ -108,9 +108,9 @@ export default class Balancer {
       debug(`Expected Out: ${expectedAmount.toString()} (${tokenOut})`);
 
       // Create correct swap format for new proxy
-      let swaps = [];
+      const swaps = [];
       for (let i = 0; i < swapsFormatted.length; i++) {
-        let swap = {
+        const swap = {
           pool: swapsFormatted[i].pool,
           tokenIn: tokenIn,
           tokenOut: tokenOut,
@@ -130,11 +130,11 @@ export default class Balancer {
   }
 
   async priceSwapOut(
-    tokenIn,
-    tokenOut,
-    tokenOutAmount,
+    tokenIn: string,
+    tokenOut: string,
+    tokenOutAmount: number,
     maxSwaps = this.maxSwaps
-  ) {
+  ): Promise<any> {
     // Fetch all the pools that contain the tokens provided
     try {
       // Get current on-chain data about the fetched pools
@@ -172,9 +172,9 @@ export default class Balancer {
       debug(`Expected In: ${expectedAmount.toString()} (${tokenIn})`);
 
       // Create correct swap format for new proxy
-      let swaps = [];
+      const swaps = [];
       for (let i = 0; i < swapsFormatted.length; i++) {
-        let swap = {
+        const swap = {
           pool: swapsFormatted[i].pool,
           tokenIn: tokenIn,
           tokenOut: tokenOut,
@@ -194,14 +194,14 @@ export default class Balancer {
   }
 
   async swapExactIn(
-    wallet,
-    swaps,
-    tokenIn,
-    tokenOut,
-    amountIn,
-    minAmountOut,
-    gasPrice
-  ) {
+    wallet: string,
+    swaps: string,
+    tokenIn: string,
+    tokenOut: string,
+    amountIn: number,
+    minAmountOut: number,
+    gasPrice: number
+  ): Promise<any> {
     debug(`Number of swaps: ${swaps.length}`);
     try {
       const contract = new ethers.Contract(
@@ -230,7 +230,14 @@ export default class Balancer {
     }
   }
 
-  async swapExactOut(wallet, swaps, tokenIn, tokenOut, expectedIn, gasPrice) {
+  async swapExactOut(
+    wallet: string,
+    swaps: string,
+    tokenIn: string,
+    tokenOut: string,
+    expectedIn: number,
+    gasPrice: number
+  ): Promise<any> {
     debug(`Number of swaps: ${swaps.length}`);
     try {
       const contract = new ethers.Contract(
