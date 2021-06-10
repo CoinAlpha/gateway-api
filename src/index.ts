@@ -76,6 +76,9 @@ const onListening = () => {
       typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
     console.log('listening on ' + bind);
     logger.debug('listening on ' + bind);
+  } else {
+    console.log('server.address() failed, not listening');
+    logger.debug('server.address() failed, not listening');
   }
 };
 
