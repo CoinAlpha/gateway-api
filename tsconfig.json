@@ -8,6 +8,9 @@
     "outDir": "dist",
     "rootDir": "src",
     "esModuleInterop": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "lib": [
+      "ES2020.Promise",
+    ]    
   }
 }

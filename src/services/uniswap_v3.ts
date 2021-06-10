@@ -108,7 +108,7 @@ export default class UniswapV3 {
       coreContract.getPool(tokenIn, tokenOut, FeeAmount.MEDIUM),
       coreContract.getPool(tokenIn, tokenOut, FeeAmount.HIGH)
     ];
-    await Promise.allSettled(poolAddressRequests).then((values) => {
+      await Promise.allSettled(poolAddressRequests).then((values: PromiseSettledResult<[Record<string, number>]>) => {
       for (pool = 0; pool < 3; pool++) {
         if (values[pool].value === ethers.constants.AddressZero) {
           poolPrices[pool] = 0;
