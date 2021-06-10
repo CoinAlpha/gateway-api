@@ -3,11 +3,11 @@ import {
   encodePriceSqrt,
   getTickFromPrice
 } from '../static/uniswap-v3/helper_functions';
+import { ethers } from 'ethers';
+import { math } from 'mathjs';
 
 const debug = require('debug')('router');
-const math = require('mathjs');
 const uni = require('@uniswap/sdk');
-const ethers = require('ethers');
 const globalConfig =
   require('../services/configuration_manager').configManagerInstance;
 const coreArtifact = require('@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json');
@@ -18,7 +18,10 @@ const poolArtifact = require('@uniswap/v3-core/artifacts/contracts/UniswapV3Pool
 const abiDecoder = require('abi-decoder');
 
 // constants
-const FeeAmount = { LOW: 500, MEDIUM: 3000, HIGH: 10000 };
+export type FeeType = 'LOW' | 'MEDIUM' | 'HIGH';
+type FeeAmount = Record<FeeType, number>;
+const FeeAmount: FeeAmount = { LOW: 500, MEDIUM: 3000, HIGH: 10000 };
+
 const GAS_LIMIT = globalConfig.getConfig('UNISWAP_GAS_LIMIT') || 5506880;
 const TTL = globalConfig.getConfig('UNISWAP_TTL') || 300;
 const UPDATE_PERIOD = globalConfig.getConfig('UNISWAP_UPDATE_PERIOD') || 300000; // stop updating pair after 5 minutes from last request
@@ -28,6 +31,26 @@ abiDecoder.addABI(nftArtifact.abi);
 abiDecoder.addABI(routerArtifact.abi);
 
 export default class UniswapV3 {
+    providerUrl;
+    network;
+    provider;
+    router;
+    nftManager;
+    core;
+    slippage;
+    pairsCacheTime;
+    gasLimit = GAS_LIMIT;
+    expireTokenPairUpdate = UPDATE_PERIOD;
+    zeroReserveCheckInterval;
+    zeroReservePairs = {}; // No reserve pairs
+    tokenList = {};
+    pairs= [];
+    tokenSwapList = {};
+    cachedRoutes = {};
+    abiDecoder = abiDecoder;
+    chainID = '';
+    
+    
   constructor(network = 'mainnet') {
     this.providerUrl = globalConfig.getConfig('ETHEREUM_RPC_URL');
     this.network = globalConfig.getConfig('ETHEREUM_CHAIN');
@@ -37,17 +60,13 @@ export default class UniswapV3 {
     this.core = globalConfig.getConfig('UNISWAP_V3_CORE');
     this.slippage = globalConfig.getConfig('UNISWAP_ALLOWED_SLIPPAGE');
     this.pairsCacheTime = globalConfig.getConfig('UNISWAP_PAIRS_CACHE_TIME');
-    this.gasLimit = GAS_LIMIT;
-    this.expireTokenPairUpdate = UPDATE_PERIOD;
     this.zeroReserveCheckInterval = globalConfig.getConfig(
       'UNISWAP_NO_RESERVE_CHECK_INTERVAL'
     );
-    this.zeroReservePairs = {}; // No reserve pairs
     this.tokenList = {};
     this.pairs = [];
     this.tokenSwapList = {};
     this.cachedRoutes = {};
-    this.abiDecoder = abiDecoder;
 
     switch (network) {
       case 'mainnet':
@@ -63,7 +82,7 @@ export default class UniswapV3 {
     }
   }
 
-  get_contract(contract: string, wallet: string): ethers.Contract {
+  public get_contract(contract: string, wallet: ethers.Wallet): ethers.Contract {
     if (contract === 'core') {
       return new ethers.Contract(this.core, coreArtifact.abi, wallet);
     } else if (contract === 'router') {
@@ -73,11 +92,11 @@ export default class UniswapV3 {
     }
   }
 
-  async currentPrice(
-    wallet: string,
+  public async currentPrice(
+    wallet: ethers.Wallet,
     tokenIn: number,
     tokenOut: number
-  ): Promise<Record<any, any>> {
+  ): Promise<Record<string, any>> {
     let pool, poolContract;
     const poolPrices = [];
     const poolLiquidity = [];
@@ -117,32 +136,31 @@ export default class UniswapV3 {
     return Object.assign(...keys.map((k, i) => ({ [k]: poolPrices[i] })));
   }
 
-  async swapExactIn(
-    wallet: string,
+  public async swapExactIn(
+    wallet: ethers.Wallet,
     baseTokenContractInfo: Record<string, any>,
     quoteTokenContractInfo: Record<string, any>,
-    baseAmount: number,
+    baseAmount: string,
     limitPrice: number,
-    tier: string,
+    tier: FeeType,
     _gasPrice: number
   ): Promise<any> {
     //sell, In => base, Out => quote
     const minPercentOut = 1 - this.slippage / 100;
     const amountOutMinimum =
       Math.floor(
-        baseAmount *
+          parseFloat(baseAmount) *
           limitPrice *
           minPercentOut *
           quoteTokenContractInfo.decimals
       ) / quoteTokenContractInfo.decimals;
-    //const priceFraction =  math.fraction(limitPrice)
     const contract = this.get_contract('router', wallet);
     const tx = await contract.exactInputSingle(
       {
         tokenIn: baseTokenContractInfo.address,
         tokenOut: quoteTokenContractInfo.address,
         fee: FeeAmount[tier],
-        recipient: wallet.signer.address,
+        recipient: wallet.address,
         deadline: Date.now() + TTL,
         amountIn: ethers.utils.parseUnits(
           baseAmount,
@@ -165,29 +183,28 @@ export default class UniswapV3 {
     return tx;
   }
 
-  async swapExactOut(
-    wallet: string,
+  public async swapExactOut(
+    wallet: ethers.Wallet,
     baseTokenContractInfo: Record<string, any>,
     quoteTokenContractInfo: Record<string, any>,
-    baseAmount: number,
+    baseAmount: string,
     limitPrice: number,
-    tier: string,
+    tier: FeeType,
     _gasPrice: number
   ): Promise<any> {
     //buy, In => quote, Out => base
     const maxPercentIn = 1 + this.slippage / 100;
     const amountInMaximum =
       Math.ceil(
-        baseAmount * limitPrice * maxPercentIn * quoteTokenContractInfo.decimals
+          parseFloat(baseAmount) * limitPrice * maxPercentIn * quoteTokenContractInfo.decimals
       ) / quoteTokenContractInfo.decimals;
-    //const priceFraction = math.fraction(limitPrice)
     const contract = this.get_contract('router', wallet);
     const tx = await contract.exactOutputSingle(
       {
         tokenIn: quoteTokenContractInfo.address,
         tokenOut: baseTokenContractInfo.address,
         fee: FeeAmount[tier],
-        recipient: wallet.signer.address,
+        recipient: wallet.address,
         deadline: Date.now() + TTL,
         amountOut: ethers.utils.parseUnits(
           baseAmount,
@@ -212,7 +229,7 @@ export default class UniswapV3 {
   // LP section
 
   async getPosition(
-    wallet: string,
+    wallet: ethers.Wallet,
     tokenId: string
   ): Promise<Record<string, any>> {
     const contract = this.get_contract('nft', wallet);
@@ -234,7 +251,7 @@ export default class UniswapV3 {
   }
 
   getRemoveLiquidityData(
-    wallet: string,
+    wallet: ethers.Wallet,
     contract: ethers.Contract,
     tokenId: string,
     liquidity: number
@@ -254,7 +271,7 @@ export default class UniswapV3 {
     const collectFeesData = contract.interface.encodeFunctionData('collect', [
       {
         tokenId: tokenId,
-        recipient: wallet.signer.address,
+        recipient: wallet.address,
         amount0Max: MaxUint128,
         amount1Max: MaxUint128
       }
@@ -265,16 +282,16 @@ export default class UniswapV3 {
   }
 
   getAddLiquidityData(
-    wallet: string,
+    wallet: ethers.Wallet,
     contract: ethers.Contract,
-    token0: string,
-    token1: string,
-    amount0: number,
-    amount1: number,
-    fee: number,
+      token0: Record<string, any>,
+    token1: Record<string, any>,
+    amount0: string,
+    amount1: string,
+    fee: FeeType,
     lowerPrice: number,
     upperPrice: number
-  ): Record<string, any> {
+  ): string {
     const mintData = contract.interface.encodeFunctionData('mint', [
       {
         token0: token0.address,
@@ -286,7 +303,7 @@ export default class UniswapV3 {
         // slippage isn't applied for now
         amount0Min: 0,
         amount1Min: 0,
-        recipient: wallet.signer.address,
+        recipient: wallet.address,
         deadline: Date.now() + TTL,
         fee: FeeAmount[fee]
       }
@@ -296,15 +313,15 @@ export default class UniswapV3 {
   }
 
   async addPosition(
-    wallet: string,
-    token0: string,
-    token1: string,
-    amount0: number,
-    amount1: number,
-    fee: number,
+    wallet: ethers.Wallet,
+      token0: Record<string, any>,
+      token1: Record<string,any>,
+    amount0: string,
+    amount1: string,
+    fee: FeeType,
     lowerPrice: number,
     upperPrice: number
-  ): any {
+  ): Promise<any> {
     const nftContract = this.get_contract('nft', wallet);
     const coreContract = this.get_contract('core', wallet);
     const pool = await coreContract.getPool(
@@ -312,8 +329,8 @@ export default class UniswapV3 {
       token1.address,
       FeeAmount[fee]
     );
-    const midPrice = math.fraction((lowerPrice + upperPrice) / 2); // Use mid price to initialize uninitialized pool
-
+      const midPrice = math.fraction((lowerPrice + upperPrice), 2); // Use mid price to initialize uninitialized pool
+    
     const initPoolData = nftContract.interface.encodeFunctionData(
       'createAndInitializePoolIfNecessary',
       [
@@ -348,7 +365,7 @@ export default class UniswapV3 {
     }
   }
 
-  async removePosition(wallet: string, tokenId: string): Promise<any> {
+  async removePosition(wallet: ethers.Wallet, tokenId: string): Promise<any> {
     // Reduce position and burn
     const positionData = await this.getPosition(wallet, tokenId);
     const contract = this.get_contract('nft', wallet);
@@ -362,13 +379,13 @@ export default class UniswapV3 {
   }
 
   async replacePosition(
-    wallet: string,
+    wallet: ethers.Wallet,
     tokenId: string,
-    token0: string,
-    token1: string,
-    amount0: number,
-    amount1: number,
-    fee: number,
+    token0: Record<string, any>,
+    token1: Record<string, any>,
+    amount0: string,
+    amount1: string,
+    fee: FeeType,
     lowerPrice: number,
     upperPrice: number
   ): Promise<any> {
@@ -397,12 +414,12 @@ export default class UniswapV3 {
     });
   }
 
-  async collectFees(wallet: string, tokenId: string): Promise<any> {
+  async collectFees(wallet: ethers.Wallet, tokenId: string): Promise<any> {
     const contract = this.get_contract('nft', wallet);
     return await contract.collect(
       {
         tokenId: tokenId,
-        recipient: wallet.signer.address,
+        recipient: wallet.address,
         amount0Max: MaxUint128,
         amount1Max: MaxUint128
       },
