@@ -2,8 +2,8 @@ import { logger } from './logger';
 import axios from 'axios';
 
 import { ethers } from 'ethers';
-import { ERC20Abi, KovanWETHAbi } from '../static/abi';
 
+const abi = require('../static/abi');
 const fs = require('fs');
 const globalConfig =
   require('../services/configuration_manager').configManagerInstance;
@@ -13,10 +13,13 @@ const APPROVAL_GAS_LIMIT =
   globalConfig.getConfig('ETH_APPROVAL_GAS_LIMIT') || 50000;
 
 export default class Ethereum {
-    network = '';
-    provider = new ethers.providers.JsonRpcProvider(globalConfig.getConfig('ETHEREUM_RPC_URL'));
-    erc20TokenListURL = globalConfig.getConfig('ETHEREUM_TOKEN_LIST_URL');
-    
+  network = '';
+  provider = new ethers.providers.JsonRpcProvider(
+    globalConfig.getConfig('ETHEREUM_RPC_URL')
+  );
+  erc20TokenListURL = globalConfig.getConfig('ETHEREUM_TOKEN_LIST_URL');
+  erc20TokenList: Record<string, any> = {};
+
   constructor(network = 'mainnet') {
     // network defaults to kovan
     const providerUrl = globalConfig.getConfig('ETHEREUM_RPC_URL');
@@ -29,10 +32,12 @@ export default class Ethereum {
   }
 
   // get ETH balance
-    async getETHBalance(wallet: ethers.Wallet) {
+  async getETHBalance(
+    wallet: ethers.Wallet
+  ): Promise<ethers.BigNumber | string> {
     try {
-      const balance = await wallet.getBalance();
-      return balance / (1e18).toString();
+      const balance: ethers.BigNumber = await wallet.getBalance();
+      return balance.div((1e18).toString());
     } catch (err) {
       logger.error(err);
       let reason;
@@ -44,16 +49,20 @@ export default class Ethereum {
   }
 
   // get ERC-20 token balance
-    async getERC20Balance(wallet: ethers.Wallet, tokenAddress, decimals = 18) {
+  async getERC20Balance(
+    wallet: ethers.Wallet,
+    tokenAddress: string,
+    decimals = 18
+  ): Promise<ethers.BigNumber | string> {
     // instantiate a contract and pass in provider for read-only access
     const contract = new ethers.Contract(
       tokenAddress,
-      ERC20Abi,
+      abi.ERC20Abi,
       this.provider
     );
     try {
       const balance = await contract.balanceOf(wallet.address);
-      return balance / Math.pow(10, decimals).toString();
+      return balance.div(Math.pow(10, decimals).toString());
     } catch (err) {
       logger.error(err);
       let reason;
@@ -63,16 +72,21 @@ export default class Ethereum {
   }
 
   // get ERC-20 token allowance
-  async getERC20Allowance(wallet: ethers.Wallet, spender, tokenAddress, decimals = 18) {
+  async getERC20Allowance(
+    wallet: ethers.Wallet,
+    spender: string,
+    tokenAddress: string,
+    decimals = 18
+  ): Promise<ethers.BigNumber | string> {
     // instantiate a contract and pass in provider for read-only access
     const contract = new ethers.Contract(
       tokenAddress,
-      ERC20Abi,
+      abi.ERC20Abi,
       this.provider
     );
     try {
       const allowance = await contract.allowance(wallet.address, spender);
-      return allowance / Math.pow(10, decimals).toString();
+      return allowance.div(Math.pow(10, decimals).toString());
     } catch (err) {
       logger.error(err);
       let reason;
@@ -84,17 +98,16 @@ export default class Ethereum {
   // approve a spender to transfer tokens from a wallet address
   async approveERC20(
     wallet: ethers.Wallet,
-    spender,
-    tokenAddress,
-    amount,
-    gasPrice = this.gasPrice,
-    _gasLimit
+    spender: string,
+    tokenAddress: string,
+    amount: string,
+    gasPrice: number
   ) {
     try {
       // fixate gas limit to prevent overwriting
       const approvalGasLimit = APPROVAL_GAS_LIMIT;
       // instantiate a contract and pass in wallet, which act on behalf of that signer
-      const contract = new ethers.Contract(tokenAddress, ERC20Abi, wallet);
+      const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, wallet);
       return await contract.approve(spender, amount, {
         gasPrice: gasPrice * 1e9,
         gasLimit: approvalGasLimit
@@ -125,16 +138,16 @@ export default class Ethereum {
 
   async deposit(
     wallet: ethers.Wallet,
-    tokenAddress,
-    amount,
-    gasPrice = this.gasPrice,
-    gasLimit = this.approvalGasLimit
+    tokenAddress: string,
+    amount: string,
+    gasPrice: number
   ) {
     // deposit ETH to a contract address
     try {
+      const gasLimit = APPROVAL_GAS_LIMIT;
       const contract = new ethers.Contract(
         tokenAddress,
-        KovanWETHAbi,
+        abi.KovanWETHAbi,
         wallet
       );
       return await contract.deposit({
@@ -193,17 +206,21 @@ export default class Ethereum {
   }
 
   // Refactor name to getERC20TokenByName
-  getERC20TokenAddresses(tokenSymbol) {
-    const tokenContractAddress = this.erc20TokenList.tokens.filter((obj) => {
-      return obj.symbol === tokenSymbol.toUpperCase();
-    });
+  getERC20TokenAddresses(tokenSymbol: string) {
+    const tokenContractAddress = this.erc20TokenList.tokens.filter(
+      (obj: Record<string, any>) => {
+        return obj.symbol === tokenSymbol.toUpperCase();
+      }
+    );
     return tokenContractAddress[0];
   }
 
-  getERC20TokenByAddress(tokenAddress) {
-    const tokenContract = this.erc20TokenList.tokens.filter((obj) => {
-      return obj.address.toUpperCase() === tokenAddress.toUpperCase();
-    });
+  getERC20TokenByAddress(tokenAddress: string) {
+    const tokenContract = this.erc20TokenList.tokens.filter(
+      (obj: Record<string, any>) => {
+        return obj.address.toUpperCase() === tokenAddress.toUpperCase();
+      }
+    );
     return tokenContract[0];
   }
 }

@@ -72,7 +72,8 @@ const onError = (error: Record<string, any>) => {
 const onListening = () => {
   const addr = server.address();
   if (addr) {
-    const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
+    const bind =
+      typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
     console.log('listening on ' + bind);
     logger.debug('listening on ' + bind);
   }

@@ -10,7 +10,7 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "lib": ["ES2020.Promise"],
-    "allowJs": true,
+    "allowJs": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*"]
 }
