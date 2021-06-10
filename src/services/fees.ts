@@ -15,11 +15,11 @@ const defaultRefreshInterval = 120;
 const denom = BigInt('1e+9');
 
 export default class Fees {
-    ethGasStationGasLevel = 0;
-    ethGasStationRefreshTime = 0;
-    ethGasPrice = 0;
+  ethGasStationGasLevel = 0;
+  ethGasStationRefreshTime = 0;
+  ethGasPrice = 0;
 
-    constructor() {
+  constructor() {
     this.ethGasStationGasLevel = globalConfig.getConfig(
       'ETH_GAS_STATION_GAS_LEVEL'
     );
@@ -76,8 +76,8 @@ export default class Fees {
 
   // : Promise:<number>
   // get gas cost
-    getGasCost(gasPrice: number, gasLimit: number, inGwei: boolean = false): bigint {
-        const cost = BigInt(gasPrice * gasLimit);
+  getGasCost(gasPrice: number, gasLimit: number, inGwei = false): bigint {
+    const cost = BigInt(gasPrice * gasLimit);
     return inGwei ? cost : cost / denom;
   }
 }

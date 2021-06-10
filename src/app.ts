@@ -2,19 +2,18 @@ import bodyParser from 'body-parser';
 import express from 'express';
 import helmet from 'helmet';
 import { statusMessages } from './services/utils';
-import { validateAccess } from './services/access';
 import { IpFilter } from 'express-ipfilter';
 import { logger } from './services/logger';
+const access = require('./services/access');
 
 // Routes
-import * as apiRoutes from './routes/index.route';
-import * as balancerRoutes from './routes/balancer.route';
-// import celoRoutes from './routes/celo.route'
-import * as ethRoutes from './routes/eth.route';
-import * as terraRoutes from './routes/terra.route';
-import * as uniswapRoutes from './routes/uniswap.route';
-import * as uniswapV3Routes from './routes/uniswap_v3.route';
-import * as perpFiRoutes from './routes/perpetual_finance.route';
+const apiRoutes = require('./routes/index.route');
+const balancerRoutes = require('./routes/balancer.route');
+const ethRoutes = require('./routes/eth.route');
+const terraRoutes = require('./routes/terra.route');
+const uniswapRoutes = require('./routes/uniswap.route');
+const uniswapV3Routes = require('./routes/uniswap_v3.route');
+const perpFiRoutes = require('./routes/perpetual_finance.route');
 
 //load configs
 const globalConfig =
@@ -35,7 +34,7 @@ if (ipWhitelist) {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(validateAccess);
+app.use(access.validateAccess);
 
 // mount routes to specific path
 app.use('/api', apiRoutes);

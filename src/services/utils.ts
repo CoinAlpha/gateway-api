@@ -50,17 +50,17 @@ export const isValidData = (
 
 export const getParamData = (
   data: Record<string, any>,
-    format: Array<string> | null = null
+  format: Array<string> | null = null
 ): Record<string, any> => {
-    const dataObject: Record<string, any> = {};
+  const dataObject: Record<string, any> = {};
   if (format !== null) {
     if (isValidData(data, format)) {
-        format.forEach((key: string, _index: number) => {
+      format.forEach((key: string, _index: number) => {
         dataObject[key] = data[key];
       });
     }
   } else {
-      Object.keys(data).forEach((key: string, _index: number) => {
+    Object.keys(data).forEach((key: string, _index: number) => {
       dataObject[key] = data[key];
     });
   }
@@ -84,10 +84,7 @@ export const getSymbols = (tradingPair: string): Record<string, string> => {
   return baseQuotePair;
 };
 
-export const reportConnectionError = (
-  res: Response,
-  error: any
-): void => {
+export const reportConnectionError = (res: Response, error: any): void => {
   res.json({
     error: error.errno,
     code: error.code
@@ -130,7 +127,7 @@ export const getLocalDate = (): Date => {
   return newDate;
 };
 
-export const nonceManagerCache: Record<string,ethers.Wallet>  = {};
+export const nonceManagerCache: Record<string, ethers.Wallet> = {};
 
 export const getNonceManager = async (
   signer: ethers.Wallet

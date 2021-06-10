@@ -8,7 +8,7 @@ const globalConfig =
 const logFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.align(),
-    winston.format.printf((info: Record<string, any>) => {
+  winston.format.printf((info: Record<string, any>) => {
     const localDate = getLocalDate();
     return `${localDate} | ${info.level} | ${info.message}`;
   })

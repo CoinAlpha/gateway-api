@@ -9,8 +9,8 @@
     "rootDir": "src",
     "esModuleInterop": true,
     "sourceMap": true,
-    "lib": [
-      "ES2020.Promise",
-    ],
-  }
+    "lib": ["ES2020.Promise"],
+    "allowJs": true,
+  },
+  "include": ["src/**/*"],
 }

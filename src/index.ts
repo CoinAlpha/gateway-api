@@ -46,7 +46,7 @@ const options = {
 const server = https.createServer(options, app);
 
 // event listener for "error" event
-const onError = (error) => {
+const onError = (error: Record<string, any>) => {
   if (error.syscall !== 'listen') {
     throw error;
   }
@@ -71,9 +71,11 @@ const onError = (error) => {
 // event listener for "listening" event.
 const onListening = () => {
   const addr = server.address();
-  const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
-  console.log('listening on ' + bind);
-  logger.debug('listening on ' + bind);
+  if (addr) {
+    const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
+    console.log('listening on ' + bind);
+    logger.debug('listening on ' + bind);
+  }
 };
 
 // listen on provided port, on all network interfaces.
