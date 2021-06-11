@@ -10,12 +10,16 @@
     "build": "tsc --project ./",
     "format": "prettier . --write",
     "lint": "eslint src test --format table --fix",
+    "debug": "DEBUG=*router nodemon --ext 'ts,js,json' --exec 'ts-node' src/index.ts",
     "start": "pm2 start babel-node --no-daemon -- dist/index.js",
     "status": "pm2 monit",
     "stop": "pm2 stop all",
     "logs": "pm2 logs",
-    "debug": "DEBUG=*router nodemon --ext 'ts,js,json' --exec 'ts-node' src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
     "@balancer-labs/sor": "^0.3.3",
@@ -64,6 +68,7 @@
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-promise": "^5.1.0",
     "eslint-plugin-standard": "^4.0.1",
+    "jest": "^27.0.4",
     "nodemon": "^2.0.4",
     "pm2": "^4.5.6",
     "prettier": "^2.3.0",
