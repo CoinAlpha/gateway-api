@@ -8,6 +8,22 @@ We created hummingbot to promote **decentralized market-making**: enabling membe
 
 ## Getting Started
 
+### Run gateway-api
+
+You can either use the hummingbot client to create a config file or you can 
+create or edit one manually. Copy `conf/global_conf.yml.example` to 
+`conf/global_conf.yml` then edit the file with your settings.
+
+gateway-api is a TypeScript project and has a build phase. You can use `npm`
+or `yarn` to download dependencies, build then run it.
+
+
+```bash
+yarn
+yarn build
+yarn start
+```
+
 ### Learn more about Hummingbot
 
 - [Website](https://hummingbot.io)
