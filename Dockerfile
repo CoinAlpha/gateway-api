@@ -28,4 +28,6 @@ COPY . .
 
 EXPOSE 5000
 
+RUN yarn build
+
 CMD ["yarn", "run", "start"]
