@@ -3,28 +3,30 @@ import { EthereumConfigService } from '../services/ethereum_config';
 import { EthereumGasService } from '../services/ethereum_gas';
 import { Request, Response } from 'express';
 import { Wallet } from 'ethers';
+import { EVMBase } from '../core/evm_base';
 
 const latency = (startTime: number, endTime: number): number => {
   return (endTime - startTime) / 1000;
 };
 
-export class EthereumRoutes {
+export class EthereumRoutes extends EVMBase {
   constructor(
     private ethereumService: EthereumService, // private readonly ethereumGasService: EthereumGasService
     private readonly config: EthereumConfigService,
     private readonly ethereumGasService: EthereumGasService
-  ) {}
+  ) {
+    super();
+  }
 
-  getNetworkInformation() {
-    return {
+  getStatus(_req: Request, res: Response) {
+    res.status(200).json({
       network: this.config.networkName,
       rpcUrl: this.config.rpcUrl,
       connection: true,
       timestamp: Date.now(),
-    };
+    });
   }
 
-  //
   async getBalances(req: Request, res: Response) {
     const initTime = Date.now();
 
@@ -187,5 +189,9 @@ export class EthereumRoutes {
       confirmed,
       receipt: confirmed ? receipt : {},
     });
+  }
+
+  getGasPrice(_req: Request, res: Response) {
+    res.status(200).json(this.ethereumGasService.getGasPrice());
   }
 }

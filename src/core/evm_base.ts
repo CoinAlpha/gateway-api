@@ -9,10 +9,10 @@ export abstract class EVMBase {
 
     this._router.post('/', this.getStatus);
     this._router.post('/balances', this.getBalances);
-    this._router.post('/allowances', this.getAllowances);
+    // this._router.post('/allowances', this.getAllowances);
     this._router.post('/approve', this.approve);
     this._router.get('/poll', this.poll);
-    this._router.get('/addresses', this.getAddresses);
+    // this._router.get('/addresses', this.getAddresses);
     this._router.get('/gas/price', this.getGasPrice);
   }
 
@@ -20,13 +20,13 @@ export abstract class EVMBase {
 
   abstract getBalances(req: Request, res: Response): void;
 
-  abstract getAllowances(req: Request, res: Response): void;
+  // abstract getAllowances(req: Request, res: Response): void;
 
   abstract approve(req: Request, res: Response): void;
 
   abstract poll(req: Request, res: Response): void;
 
-  abstract getAddresses(req: Request, res: Response): void;
+  // abstract getAddresses(req: Request, res: Response): void;
 
   abstract getGasPrice(req: Request, res: Response): void;
 
