@@ -1,6 +1,6 @@
 import { EthereumService, TokenERC20Info } from '../services/ethereum';
 import { EthereumConfigService } from '../services/ethereum_config';
-// import { EthereumGasService } from '../services/ethereum_gas';
+import { EthereumGasService } from '../services/ethereum_gas';
 import { Request, Response } from 'express';
 import { Wallet } from 'ethers';
 
@@ -11,7 +11,8 @@ const latency = (startTime: number, endTime: number): number => {
 export class EthereumRoutes {
   constructor(
     private ethereumService: EthereumService, // private readonly ethereumGasService: EthereumGasService
-    private readonly config: EthereumConfigService
+    private readonly config: EthereumConfigService,
+    private readonly ethereumGasService: EthereumGasService
   ) {}
 
   getNetworkInformation() {
@@ -115,6 +116,57 @@ export class EthereumRoutes {
       // this.logger.error(err);
       // throw new InternalServerErrorException('Error getting wallet');
       res.status(500).send(err);
+    }
+  }
+
+  async approve(req: Request, res: Response) {
+    const initTime = Date.now();
+
+    // Getting spender
+    const spender = this.config.spenders[req.body.connector];
+    if (!spender) {
+      res.status(500).send('Wrong connector');
+    }
+
+    // Getting Wallet
+    try {
+      const wallet = this.ethereumService.getWallet(req.body.privateKey);
+
+      // Getting token info
+      const tokenContractInfo = this.ethereumService.getERC20TokenAddress(
+        req.body.token
+      );
+
+      if (!tokenContractInfo) {
+        res.status(500).send(`Token "${req.body.token}" is not supported`);
+      } else {
+        const tokenAddress = tokenContractInfo.address;
+
+        const gasPrice =
+          req.body.gasPrice || this.ethereumGasService.getGasPrice();
+
+        // call approve function
+        const approval = await this.ethereumService.approveERC20(
+          wallet,
+          spender,
+          tokenAddress,
+          req.body.amount,
+          gasPrice
+        );
+
+        res.status(200).json({
+          network: this.config.networkName,
+          timestamp: initTime,
+          latency: latency(initTime, Date.now()),
+          tokenAddress: tokenAddress,
+          spender: spender,
+          amount: req.body.amount / 1e18,
+          approval: approval,
+        });
+      }
+    } catch (err) {
+      // this.logger.error(err);
+      res.status(500).send('Error getting wallet');
     }
   }
 }
