@@ -170,7 +170,7 @@ export class EthereumRoutes {
     }
   }
 
-  async pool(req: Request, res: Response) {
+  async poll(req: Request, res: Response) {
     const initTime = Date.now();
     const receipt = await this.ethereumService.getTransactionReceipt(
       req.body.txHash
