@@ -233,7 +233,7 @@ export default class Uniswap {
     const result = uni.Router.swapCallParameters(trade, {
       ttl: TTL,
       recipient: wallet.address,
-      allowedSlippage: this.allowedSlippage
+      allowedSlippage: this.allowedSlippage,
     });
 
     const contract = new ethers.Contract(
@@ -244,7 +244,7 @@ export default class Uniswap {
     const tx = await contract[result.methodName](...result.args, {
       gasPrice: gasPrice * 1e9,
       gasLimit: GAS_LIMIT,
-      value: result.value
+      value: result.value,
     });
 
     debug(`Tx Hash: ${tx.hash}`);
@@ -255,7 +255,7 @@ export default class Uniswap {
     const result = uni.Router.swapCallParameters(trade, {
       ttl: TTL,
       recipient: wallet.address,
-      allowedSlippage: this.allowedSlippage
+      allowedSlippage: this.allowedSlippage,
     });
 
     const contract = new ethers.Contract(
@@ -266,7 +266,7 @@ export default class Uniswap {
     const tx = await contract[result.methodName](...result.args, {
       gasPrice: gasPrice * 1e9,
       gasLimit: GAS_LIMIT,
-      value: result.value
+      value: result.value,
     });
 
     debug(`Tx Hash: ${tx.hash}`);

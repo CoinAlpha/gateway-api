@@ -28,8 +28,8 @@ const config = {
     filename: `${getLogPath()}/logs_gateway_app.log.%DATE%`,
     datePattern: 'YYYY-MM-DD',
     handleExceptions: true,
-    handleRejections: true
-  }
+    handleRejections: true,
+  },
 };
 
 const allLogsFileTransport = new winston.transports.DailyRotateFile(
@@ -39,7 +39,7 @@ const allLogsFileTransport = new winston.transports.DailyRotateFile(
 const options = {
   format: logFormat,
   transports: [allLogsFileTransport],
-  exitOnError: false
+  exitOnError: false,
 };
 
 export const logger = winston.createLogger(options);

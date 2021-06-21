@@ -59,7 +59,7 @@ app.use((req, res, _next) => {
   logger.error(message);
   res.status(404).send({
     error: 'Page not found',
-    message: message
+    message: message,
   });
 });
 

@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
     provider: uniswap.provider.connection.url,
     uniswap_router: uniswap.router,
     connection: true,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 });
 
@@ -64,7 +64,7 @@ router.post('/gas-limit', async (req, res) => {
     res.status(200).json({
       network: uniswap.network,
       gasLimit: gasLimit,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -74,7 +74,7 @@ router.post('/gas-limit', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -116,15 +116,15 @@ router.get('/start', async (req, res) => {
           : quoteTokenSymbol;
       res.status(500).json({
         error: `Token ${undefinedToken} contract address not found`,
-        message: `Token contract address not found for ${undefinedToken}. Check token list source`
+        message: `Token contract address not found for ${undefinedToken}. Check token list source`,
       });
       return;
     }
     await Promise.allSettled([
       uniswap.extend_update_pairs([
         baseTokenContractInfo.address,
-        quoteTokenContractInfo.address
-      ])
+        quoteTokenContractInfo.address,
+      ]),
     ]);
   }
 
@@ -139,7 +139,7 @@ router.get('/start', async (req, res) => {
     pairs: pairs,
     gasPrice: gasPrice,
     gasLimit: gasLimit,
-    gasCost: gasCost
+    gasCost: gasCost,
   };
   res.status(200).json(result);
 });
@@ -222,12 +222,12 @@ router.post('/trade', async (req, res) => {
           gasPrice: gasPrice,
           gasLimit,
           gasCost,
-          txHash: tx.hash
+          txHash: tx.hash,
         });
       } else {
         res.status(200).json({
           error: swapMoreThanMaxPriceError,
-          message: `Swap price ${price} exceeds limitPrice ${limitPrice}`
+          message: `Swap price ${price} exceeds limitPrice ${limitPrice}`,
         });
         logger.info(
           `uniswap.route - Swap price ${price} exceeds limitPrice ${limitPrice}`
@@ -258,12 +258,12 @@ router.post('/trade', async (req, res) => {
           gasPrice: gasPrice,
           gasLimit,
           gasCost: gasCost,
-          txHash: tx.hash
+          txHash: tx.hash,
         });
       } else {
         res.status(200).json({
           error: swapLessThanMaxPriceError,
-          message: `Swap price ${price} lower than limitPrice ${limitPrice}`
+          message: `Swap price ${price} lower than limitPrice ${limitPrice}`,
         });
         logger.info(
           `uniswap.route - Swap price ${price} lower than limitPrice ${limitPrice}`
@@ -278,7 +278,7 @@ router.post('/trade', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -348,7 +348,7 @@ router.post('/price', async (req, res) => {
         gasPrice: gasPrice,
         gasLimit: gasLimit,
         gasCost: gasCost,
-        trade: trade
+        trade: trade,
       };
       debug(
         `Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`
@@ -358,7 +358,7 @@ router.post('/price', async (req, res) => {
       // no pool available
       res.status(200).json({
         info: statusMessages.no_pool_available,
-        message: ''
+        message: '',
       });
     }
   } catch (err) {
@@ -375,7 +375,7 @@ router.post('/price', async (req, res) => {
         errCode = 200;
         res.status(errCode).json({
           info: reason,
-          message: err
+          message: err,
         });
       }
     } else {
@@ -385,7 +385,7 @@ router.post('/price', async (req, res) => {
     }
     res.status(errCode).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });

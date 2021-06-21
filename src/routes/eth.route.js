@@ -15,7 +15,7 @@ const spenders = {
   balancer: globalConfig.getConfig('EXCHANGE_PROXY'),
   uniswap: globalConfig.getConfig('UNISWAP_ROUTER'),
   uniswapV3Router: globalConfig.getConfig('UNISWAP_V3_ROUTER'),
-  uniswapV3NFTManager: globalConfig.getConfig('UNISWAP_V3_NFT_MANAGER')
+  uniswapV3NFTManager: globalConfig.getConfig('UNISWAP_V3_NFT_MANAGER'),
 };
 const fees = new Fees();
 
@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
     network: eth.network,
     rpcUrl: eth.provider.connection.url,
     connection: true,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 });
 
@@ -51,7 +51,7 @@ router.post('/balances', async (req, res) => {
     err.reason ? (reason = err.reason) : (reason = 'Error getting wallet');
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
     return;
   }
@@ -85,13 +85,13 @@ router.post('/balances', async (req, res) => {
       })
     ).then(() => {
       debug('eth.route - Get Account Balance', {
-        message: JSON.stringify(tokenList)
+        message: JSON.stringify(tokenList),
       });
       res.status(200).json({
         network: eth.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        balances: balances
+        balances: balances,
       });
     });
   } catch (err) {
@@ -102,7 +102,7 @@ router.post('/balances', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -129,7 +129,7 @@ router.post('/allowances', async (req, res) => {
     err.reason ? (reason = err.reason) : (reason = 'Error getting wallet');
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
     return;
   }
@@ -157,14 +157,14 @@ router.post('/allowances', async (req, res) => {
       })
     ).then(() => {
       logger.info('eth.route - Getting allowances', {
-        message: JSON.stringify(tokenList)
+        message: JSON.stringify(tokenList),
       });
       res.status(200).json({
         network: eth.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         spender: spender,
-        approvals: approvals
+        approvals: approvals,
       });
     });
   } catch (err) {
@@ -175,7 +175,7 @@ router.post('/allowances', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -200,7 +200,7 @@ router.post('/balances-2', async (req, res) => {
     err.reason ? (reason = err.reason) : (reason = 'Error getting wallet');
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
     return;
   }
@@ -230,7 +230,7 @@ router.post('/balances-2', async (req, res) => {
         network: eth.network,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        balances: balances
+        balances: balances,
       });
     });
   } catch (err) {
@@ -240,7 +240,7 @@ router.post('/balances-2', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -267,7 +267,7 @@ router.post('/allowances-2', async (req, res) => {
     err.reason ? (reason = err.reason) : (reason = 'Error getting wallet');
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
     return;
   }
@@ -298,7 +298,7 @@ router.post('/allowances-2', async (req, res) => {
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         spender: spender,
-        approvals: approvals
+        approvals: approvals,
       });
     });
   } catch (err) {
@@ -308,7 +308,7 @@ router.post('/allowances-2', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -337,7 +337,7 @@ router.post('/approve', async (req, res) => {
     err.reason ? (reason = err.reason) : (reason = 'Error getting wallet');
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
     return;
   }
@@ -375,7 +375,7 @@ router.post('/approve', async (req, res) => {
       tokenAddress: tokenAddress,
       spender: spender,
       amount: amount / (1e18).toString(),
-      approval: approval
+      approval: approval,
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -385,7 +385,7 @@ router.post('/approve', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -405,7 +405,7 @@ router.post('/poll', async (req, res) => {
     receipt.logs = txReceipt.logs;
   }
   logger.info(`eth.route - Get TX Receipt: ${txHash}`, {
-    message: JSON.stringify(receipt)
+    message: JSON.stringify(receipt),
   });
   res.status(200).json({
     network: eth.network,
@@ -413,7 +413,7 @@ router.post('/poll', async (req, res) => {
     latency: latency(initTime, Date.now()),
     txHash: txHash,
     confirmed: confirmed,
-    receipt: receipt
+    receipt: receipt,
   });
   return txReceipt;
 });

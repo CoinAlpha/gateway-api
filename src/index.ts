@@ -29,10 +29,10 @@ if ((typeof certPath === 'undefined' && certPath == null) || certPath === '') {
 app.set('env', env);
 const options = {
   key: fs.readFileSync(certPath.concat('/server_key.pem'), {
-    encoding: 'utf-8'
+    encoding: 'utf-8',
   }),
   cert: fs.readFileSync(certPath.concat('/server_cert.pem'), {
-    encoding: 'utf-8'
+    encoding: 'utf-8',
   }),
   // request client certificate from user
   requestCert: true,
@@ -40,7 +40,7 @@ const options = {
   rejectUnauthorized: true,
   // use ca cert created with own key for self-signed
   ca: [fs.readFileSync(certPath.concat('/ca_cert.pem'), { encoding: 'utf-8' })],
-  passphrase: certPassphrase
+  passphrase: certPassphrase,
 };
 
 const server = https.createServer(options, app);
@@ -91,7 +91,7 @@ const serverConfig = {
   app: 'gateway-api',
   port: port,
   ethereumChain: ethereumChain,
-  terraChain: terraChain
+  terraChain: terraChain,
 };
 
 logger.info(JSON.stringify(serverConfig));

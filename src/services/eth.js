@@ -98,7 +98,7 @@ export default class Ethereum {
       const contract = new ethers.Contract(tokenAddress, abi.ERC20Abi, wallet);
       return await contract.approve(spender, amount, {
         gasPrice: gasPrice * 1e9,
-        gasLimit: approvalGasLimit
+        gasLimit: approvalGasLimit,
       });
     } catch (err) {
       logger.error(err);
@@ -141,7 +141,7 @@ export default class Ethereum {
       return await contract.deposit({
         value: amount,
         gasPrice: gasPrice * 1e9,
-        gasLimit: gasLimit
+        gasLimit: gasLimit,
       });
     } catch (err) {
       logger.error(err);

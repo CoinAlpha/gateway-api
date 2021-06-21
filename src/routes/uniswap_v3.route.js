@@ -51,7 +51,7 @@ router.post('/', async (req, res) => {
     provider: uniswap.provider.connection.url,
     uniswap_router: uniswap.router,
     connection: true,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 });
 
@@ -65,7 +65,7 @@ router.post('/gas-limit', async (req, res) => {
     res.status(200).json({
       network: uniswap.network,
       gasLimit: gasLimit,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -75,7 +75,7 @@ router.post('/gas-limit', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -95,7 +95,7 @@ router.post('/result', async (req, res) => {
     network: eth.network,
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
-    info: uniswap.abiDecoder.decodeLogs(logs)
+    info: uniswap.abiDecoder.decodeLogs(logs),
   };
   res.status(200).json(result);
 });
@@ -169,7 +169,7 @@ router.post('/trade', async (req, res) => {
         gasPrice: gasPrice,
         gasLimit: gasLimit,
         gasCost: gasCost,
-        txHash: tx.hash
+        txHash: tx.hash,
       });
     } else {
       // sell
@@ -196,7 +196,7 @@ router.post('/trade', async (req, res) => {
         gasPrice: gasPrice,
         gasLimit: gasLimit,
         gasCost: gasCost,
-        txHash: tx.hash
+        txHash: tx.hash,
       });
     }
   } catch (err) {
@@ -207,7 +207,7 @@ router.post('/trade', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -260,7 +260,7 @@ router.post('/price', async (req, res) => {
       prices: prices,
       gasPrice: gasPrice,
       gasLimit: gasLimit,
-      gasCost: gasCost
+      gasCost: gasCost,
     };
     debug(
       `Mid Price ${baseTokenContractInfo.symbol}-${
@@ -283,7 +283,7 @@ router.post('/price', async (req, res) => {
         errCode = 200;
         res.status(errCode).json({
           info: reason,
-          message: err
+          message: err,
         });
       }
     } else {
@@ -293,7 +293,7 @@ router.post('/price', async (req, res) => {
     }
     res.status(errCode).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -323,7 +323,7 @@ router.post('/position', async (req, res) => {
       network: uniswap.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      position: positionData
+      position: positionData,
     };
     debug(`Position data: ${positionData} `);
     res.status(200).json(result);
@@ -331,7 +331,7 @@ router.post('/position', async (req, res) => {
     logger.error(req.originalUrl, { message: err });
     res.status(500).json({
       info: statusMessages.operation_error,
-      position: {}
+      position: {},
     });
   }
 });
@@ -400,7 +400,7 @@ router.post('/add-position', async (req, res) => {
       hash: newPosition.hash,
       gasPrice: gasPrice,
       gasLimit: gasLimit,
-      gasCost: gasCost
+      gasCost: gasCost,
     };
     debug(`New Position: ${newPosition.hash}`);
     res.status(200).json(result);
@@ -408,7 +408,7 @@ router.post('/add-position', async (req, res) => {
     logger.error(req.originalUrl, { message: err });
     res.status(200).json({
       info: statusMessages.operation_error,
-      message: err
+      message: err,
     });
   }
 });
@@ -447,7 +447,7 @@ router.post('/remove-position', async (req, res) => {
       hash: removelp.hash,
       gasPrice: gasPrice,
       gasLimit: gasLimit,
-      gasCost: gasCost
+      gasCost: gasCost,
     };
     debug(`Remove lp: ${removelp.hash}`);
     res.status(200).json(result);
@@ -460,7 +460,7 @@ router.post('/remove-position', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(errCode).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -529,7 +529,7 @@ router.post('/replace-position', async (req, res) => {
       hash: positionChange.hash,
       gasPrice: gasPrice,
       gasLimit: gasLimit,
-      gasCost: gasCost
+      gasCost: gasCost,
     };
     debug(`Position change ${positionChange.hash}`);
     res.status(200).json(result);
@@ -537,7 +537,7 @@ router.post('/replace-position', async (req, res) => {
     logger.error(req.originalUrl, { message: err });
     res.status(200).json({
       info: statusMessages.operation_error,
-      message: err
+      message: err,
     });
   }
 });
@@ -580,7 +580,7 @@ router.post('/collect-fees', async (req, res) => {
       hash: collect.hash,
       gasPrice: gasPrice,
       gasLimit: gasLimit,
-      gasCost: gasCost
+      gasCost: gasCost,
     };
     debug(`Fees: ${collect.hash}`);
     res.status(200).json(result);
@@ -588,7 +588,7 @@ router.post('/collect-fees', async (req, res) => {
     logger.error(req.originalUrl, { message: err });
     res.status(200).json({
       info: statusMessages.operation_error,
-      message: err
+      message: err,
     });
   }
 });
