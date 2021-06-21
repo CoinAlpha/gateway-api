@@ -169,4 +169,23 @@ export class EthereumRoutes {
       res.status(500).send('Error getting wallet');
     }
   }
+
+  async pool(req: Request, res: Response) {
+    const initTime = Date.now();
+    const receipt = await this.ethereumService.getTransactionReceipt(
+      req.body.txHash
+    );
+    const confirmed = receipt && receipt.blockNumber ? true : false;
+
+    // this.logger.log(`eth.route - Get TX Receipt: ${req.body.txHash}`);
+
+    res.status(200).json({
+      network: this.config.networkName,
+      timestamp: initTime,
+      latency: latency(initTime, Date.now()),
+      txHash: req.body.txHash,
+      confirmed,
+      receipt: confirmed ? receipt : {},
+    });
+  }
 }
