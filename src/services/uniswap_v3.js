@@ -1,16 +1,15 @@
 import { logger } from './logger';
-import {
-  encodePriceSqrt,
-  getTickFromPrice
-} from '../static/uniswap-v3/helper_functions';
+import JSBI from 'jsbi';
 
 const debug = require('debug')('router');
 const math = require('mathjs');
-const uni = require('@uniswap/sdk');
+const uni = require('@uniswap/sdk-core');
+const uniV3 = require('@uniswap/v3-sdk');
 const ethers = require('ethers');
 const globalConfig =
   require('../services/configuration_manager').configManagerInstance;
-const coreArtifact = require('@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json');
+const routeTokens = require('../static/uniswap_route_tokens.json');
+
 const nftArtifact = require('@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json');
 const routerArtifact = require('@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json');
 const poolArtifact = require('@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json');
@@ -18,14 +17,54 @@ const poolArtifact = require('@uniswap/v3-core/artifacts/contracts/UniswapV3Pool
 const abiDecoder = require('abi-decoder');
 
 // constants
-const FeeAmount = { LOW: 500, MEDIUM: 3000, HIGH: 10000 };
+const FeeAmount = uniV3.FeeAmount
 const GAS_LIMIT = globalConfig.getConfig('UNISWAP_GAS_LIMIT') || 5506880;
-const TTL = globalConfig.getConfig('UNISWAP_TTL') || 300;
 const UPDATE_PERIOD = globalConfig.getConfig('UNISWAP_UPDATE_PERIOD') || 300000; // stop updating pair after 5 minutes from last request
 const MaxUint128 = ethers.BigNumber.from(2).pow(128).sub(1);
 
 abiDecoder.addABI(nftArtifact.abi);
 abiDecoder.addABI(routerArtifact.abi);
+
+/* ///// This may be useful for the client later on
+export class UPosition extends uniV3.Position {
+  constructor(position) {
+    super({
+      pool: position.pool,
+      liquidity: position[7],
+      tickLower: position[5],
+      tickUpper: position[6] });
+    this.nonce =  position[0];
+    this.operator = position[1];
+    this.token0 = position[2].address;
+    this.token1 = position[3].address;
+    this.fee = Object.keys(FeeAmount).find((key) => FeeAmount[key] === position[4]);
+    this.lowerPrice = uniV3.tickToPrice(this.token0, this.token1, position[5]).toFixed(8);
+    this.upperPrice = uniV3.tickToPrice(this.token0, this.token1, position[6]).toFixed(8);
+    this.liquidity = position[7];
+    this.feeGrowthInside0LastX128 = position[8];
+    this.feeGrowthInside1LastX128 = position[9];
+    this.tokensOwed0 = position[10];
+    this.tokensOwed1 = position[11];
+  }
+
+  positionInfo() { // this basically return useful info the client can use
+    return {
+      nonce: this.nonce,
+      token0: this.token0,
+      token1: this.token1,
+      feeTier: this.fee,
+      lowerPrice: this.lowerPrice,
+      upperPrice: this.upperPrice,
+      amount0: this.amount0().toFixed(8),
+      amount1: this.amount0().toFixed(8),
+      feeGrowthInside0LastX128: this.feeGrowthInside0LastX128.toString(),
+      feeGrowthInside1LastX128: this.feeGrowthInside1LastX128.toString(),
+      tokensOwed0: this.tokensOwed0.toString(),
+      tokensOwed1: this.tokensOwed0.toString()
+    };
+  }
+}
+*/
 
 export default class UniswapV3 {
   constructor(network = 'mainnet') {
@@ -44,17 +83,17 @@ export default class UniswapV3 {
     );
     this.zeroReservePairs = {}; // No reserve pairs
     this.tokenList = {};
-    this.pairs = [];
+    this.pools = {};
     this.tokenSwapList = {};
     this.cachedRoutes = {};
     this.abiDecoder = abiDecoder;
 
     switch (network) {
       case 'mainnet':
-        this.chainID = uni.ChainId.MAINNET;
+        this.chainID = 1;
         break;
       case 'kovan':
-        this.chainID = uni.ChainId.KOVAN;
+          this.chainID = 42;
         break;
       default: {
         const err = `Invalid network ${network}`;
@@ -63,227 +102,358 @@ export default class UniswapV3 {
     }
   }
 
+  get_slippage() {
+    const allowedSlippage = globalConfig.getConfig('UNISWAP_ALLOWED_SLIPPAGE') || 1.5;
+    const slippage = math.fraction(allowedSlippage);
+    return new uni.Percent(
+      slippage.n,
+      slippage.d * 100
+    );
+  }
+
+  get_percent(rawPercent){
+    const slippage = math.fraction(rawPercent);
+    return new uni.Percent(
+      slippage.n,
+      slippage.d * 100
+    );
+  }
+
+  get_ttl() {
+    const ttl = parseInt(globalConfig.getConfig('UNISWAP_TTL')) || 300;
+    return Date.now() + ttl;
+  }
+
+  get_token(tokenInfo) {
+    if (!Object.prototype.hasOwnProperty.call(this.tokenList, tokenInfo.address)) {
+      this.tokenList[tokenInfo.address] = new uni.Token(this.chainID, tokenInfo.address, tokenInfo.decimals, tokenInfo.symbol)
+    }
+    return this.tokenList[tokenInfo.address];
+  }
+
   get_contract(contract, wallet) {
-    if (contract === 'core') {
-      return new ethers.Contract(this.core, coreArtifact.abi, wallet);
-    } else if (contract === 'router') {
+    if (contract === 'router') {
       return new ethers.Contract(this.router, routerArtifact.abi, wallet);
     } else {
       return new ethers.Contract(this.nftManager, nftArtifact.abi, wallet);
     }
   }
 
-  async currentPrice(wallet, tokenIn, tokenOut) {
-    let pool, poolContract;
-    let poolPrices = [];
-    let poolLiquidity = [];
-    const keys = ['LOW', 'MEDIUM', 'HIGH'];
-    const coreContract = this.get_contract('core', wallet);
-
-    const poolAddressRequests = [
-      coreContract.getPool(tokenIn, tokenOut, FeeAmount.LOW),
-      coreContract.getPool(tokenIn, tokenOut, FeeAmount.MEDIUM),
-      coreContract.getPool(tokenIn, tokenOut, FeeAmount.HIGH)
-    ];
-    await Promise.allSettled(poolAddressRequests).then((values) => {
-      for (pool = 0; pool < 3; pool++) {
-        if (values[pool].value === ethers.constants.AddressZero) {
-          poolPrices[pool] = 0;
-        } else {
-          poolContract = new ethers.Contract(
-            values[pool].value,
-            poolArtifact.abi,
-            wallet
-          );
-          poolPrices[pool] = poolContract.observe([1, 0]);
-        }
-      }
-    });
-    await Promise.allSettled(poolPrices).then((values) => {
-      for (pool = 0; pool < 3; pool++) {
-        poolPrices[pool] = poolLiquidity[pool] = 0;
-        if (values[pool].value) {
-          for (let tick of values[pool].value.tickCumulatives) {
-            poolPrices[pool] = tick.toNumber() - poolPrices[pool];
-          }
-          poolPrices[pool] = math.pow(1.0001, poolPrices[pool]);
-        }
-      }
-    });
-    return Object.assign(...keys.map((k, i) => ({ [k]: poolPrices[i] })));
-  }
-
-  async swapExactIn(
-    wallet,
-    baseTokenContractInfo,
-    quoteTokenContractInfo,
-    baseAmount,
-    limitPrice,
-    tier,
-    _gasPrice
-  ) {
-    //sell, In => base, Out => quote
-    const minPercentOut = 1 - this.slippage / 100;
-    const amountOutMinimum =
-      Math.floor(
-        baseAmount *
-          limitPrice *
-          minPercentOut *
-          quoteTokenContractInfo.decimals
-      ) / quoteTokenContractInfo.decimals;
-    //const priceFraction =  math.fraction(limitPrice)
-    const contract = this.get_contract('router', wallet);
-    const tx = await contract.exactInputSingle(
-      {
-        tokenIn: baseTokenContractInfo.address,
-        tokenOut: quoteTokenContractInfo.address,
-        fee: FeeAmount[tier],
-        recipient: wallet.signer.address,
-        deadline: Date.now() + TTL,
-        amountIn: ethers.utils.parseUnits(
-          baseAmount,
-          baseTokenContractInfo.decimals
-        ),
-        amountOutMinimum: ethers.utils.parseUnits(
-          amountOutMinimum.toString(),
-          quoteTokenContractInfo.decimals
-        ),
-        //sqrtPriceLimitX96: encodePriceSqrt(priceFraction.d, priceFraction.n)
-        sqrtPriceLimitX96: 0
-      },
-      {
-        //gasPrice: gasPrice * 1e9,
-        gasLimit: GAS_LIMIT
-      }
+  async  get_pool_state(poolAddress, fee, wallet) {
+    const poolContract = new ethers.Contract(
+      poolAddress,
+      poolArtifact.abi,
+      wallet
     );
+    const minTick = uniV3.nearestUsableTick(uniV3.TickMath.MIN_TICK, uniV3.TICK_SPACINGS[fee])
+    const maxTick = uniV3.nearestUsableTick(uniV3.TickMath.MAX_TICK, uniV3.TICK_SPACINGS[fee])
+    const poolData = await Promise.allSettled([poolContract.liquidity(), poolContract.slot0(), poolContract.ticks(minTick), poolContract.ticks(maxTick)])
 
-    debug(`Tx Hash: ${tx.hash}`);
-    tx.expectedAmount = amountOutMinimum;
-    return tx;
-  }
-
-  async swapExactOut(
-    wallet,
-    baseTokenContractInfo,
-    quoteTokenContractInfo,
-    baseAmount,
-    limitPrice,
-    tier,
-    _gasPrice
-  ) {
-    //buy, In => quote, Out => base
-    const maxPercentIn = 1 + this.slippage / 100;
-    const amountInMaximum =
-      Math.ceil(
-        baseAmount * limitPrice * maxPercentIn * quoteTokenContractInfo.decimals
-      ) / quoteTokenContractInfo.decimals;
-    //const priceFraction = math.fraction(limitPrice)
-    const contract = this.get_contract('router', wallet);
-    const tx = await contract.exactOutputSingle(
-      {
-        tokenIn: quoteTokenContractInfo.address,
-        tokenOut: baseTokenContractInfo.address,
-        fee: FeeAmount[tier],
-        recipient: wallet.signer.address,
-        deadline: Date.now() + TTL,
-        amountOut: ethers.utils.parseUnits(
-          baseAmount,
-          baseTokenContractInfo.decimals
-        ),
-        amountInMaximum: ethers.utils.parseUnits(
-          amountInMaximum.toString(),
-          quoteTokenContractInfo.decimals
-        ),
-        //sqrtPriceLimitX96: encodePriceSqrt(priceFraction.d, priceFraction.n)
-        sqrtPriceLimitX96: 0
-      },
-      {
-        //gasPrice: gasPrice * 1e9,
-        gasLimit: GAS_LIMIT
-      }
-    );
-
-    debug(`Tx Hash: ${tx.hash}`);
-    tx.expectedAmount = amountInMaximum;
-    return tx;
-  }
-
-  // LP section
-
-  async getPosition(wallet, tokenId) {
-    const contract = this.get_contract('nft', wallet);
-    const position = await contract.positions(tokenId);
     return {
-      nonce: position[0].toString(),
-      operator: position[1],
-      token0: position[2],
-      token1: position[3],
-      fee: Object.keys(FeeAmount).find((key) => FeeAmount[key] === position[4]),
-      lowerPrice: math.pow(1.0001, position[5]),
-      upperPrice: math.pow(1.0001, position[6]),
-      liquidity: position[7].toString(),
-      feeGrowthInside0LastX128: position[8].toString(),
-      feeGrowthInside1LastX128: position[9].toString(),
-      tokensOwed0: position[10].toString(),
-      tokensOwed1: position[11].toString()
+      liquidity: poolData[0].value,
+      sqrtPriceX96: poolData[1].value[0],
+      tick: poolData[1].value[1],
+      observationIndex: poolData[1].value[2],
+      observationCardinality: poolData[1].value[3],
+      observationCardinalityNext: poolData[1].value[4],
+      feeProtocol: poolData[1].value[5],
+      unlocked: poolData[1].value[6],
+      fee: parseInt(fee),
+      tickProvider: [{
+                            index: minTick,
+                            liquidityNet: poolData[2].value.[1],
+                            liquidityGross: poolData[2].value.[0]
+                          },
+                          {
+                            index: maxTick,
+                            liquidityNet: poolData[3].value.[1],
+                            liquidityGross: poolData[3].value.[0]
+                          }]
     };
   }
 
-  getRemoveLiquidityData(wallet, contract, tokenId, liquidity) {
-    const decreaseLiquidityData = contract.interface.encodeFunctionData(
-      'decreaseLiquidity',
-      [
-        {
-          tokenId: tokenId,
-          liquidity: liquidity,
-          amount0Min: 0,
-          amount1Min: 0,
-          deadline: Date.now() + TTL
-        }
-      ]
-    );
-    const collectFeesData = contract.interface.encodeFunctionData('collect', [
-      {
-        tokenId: tokenId,
-        recipient: wallet.signer.address,
-        amount0Max: MaxUint128,
-        amount1Max: MaxUint128
-      }
-    ]);
-    const burnData = contract.interface.encodeFunctionData('burn', [tokenId]);
+  async currentPrice(wallet, tokenInAddressInfo, tokenOutAddressInfo, tier, seconds) {
+    let fetchPrice;
+    this.extend_update_pairs([tokenInAddressInfo, tokenOutAddressInfo]);
+    const tokenIn = this.get_token(tokenInAddressInfo)
+    const tokenOut = this.get_token(tokenOutAddressInfo)
+    const poolContract = new ethers.Contract(
+          uniV3.Pool.getAddress(tokenIn, tokenOut, FeeAmount[tier]),
+          poolArtifact.abi,
+          wallet
+        );
 
-    return [decreaseLiquidityData, collectFeesData, burnData];
+
+    fetchPrice = [poolContract.observe([1, 0])];
+    if (seconds > 1) fetchPrice.push(poolContract.observe([seconds, 0]));
+    const prices = await Promise.allSettled(fetchPrice)
+    if (prices[0].status === "fulfilled") {
+      const price = uniV3.tickToPrice(tokenIn, tokenOut, parseInt(prices[0].value.tickCumulatives[1].toNumber()-prices[0].value.tickCumulatives[0].toNumber())).toFixed();
+      const twap = prices[1] ? uniV3.tickToPrice(tokenIn, tokenOut, parseInt((prices[1].value.tickCumulatives[1].toNumber()-prices[1].value.tickCumulatives[0].toNumber())/seconds)).toFixed() : price;
+      return {
+        price: price,
+        twap: twap
+      }
+    } else { throw("Pool doesn't exist")}
   }
 
-  getAddLiquidityData(
-    wallet,
-    contract,
-    token0,
-    token1,
-    amount0,
-    amount1,
-    fee,
-    lowerPrice,
-    upperPrice
-  ) {
-    const mintData = contract.interface.encodeFunctionData('mint', [
-      {
-        token0: token0.address,
-        token1: token1.address,
-        tickLower: getTickFromPrice(lowerPrice, fee, 'UPPER'),
-        tickUpper: getTickFromPrice(upperPrice, fee, 'LOWER'),
-        amount0Desired: ethers.utils.parseUnits(amount0, token0.decimals),
-        amount1Desired: ethers.utils.parseUnits(amount1, token1.decimals),
-        // slippage isn't applied for now
-        amount0Min: 0,
-        amount1Min: 0,
-        recipient: wallet.signer.address,
-        deadline: Date.now() + TTL,
-        fee: FeeAmount[fee]
-      }
-    ]);
+/*
+This swap section of this code is a duplicate of Uniswap v2 with little modification to most helper_functions.
+Note that extending the uniswap v2 code may be possible in the future if uniswap v2 is updated to use the new uniswap/sdk-core library.
+*/
+/////////////////////////////////////////////////////// Swap section
+generate_tokens() {
+  for (let token of routeTokens[this.network]) {
+    this.get_token(token)
+  }
+}
 
-    return mintData;
+extend_update_pairs(tokens = []) {
+  for (let token of tokens) {
+    if (!Object.prototype.hasOwnProperty.call(this.tokenList, token.address)) {
+      this.get_token(token)
+    }
+    this.tokenSwapList[token.address] = Date.now() + this.expireTokenPairUpdate;
+  }
+}
+
+async update_pairs() {
+  // Remove banned pairs after ban period
+  if (Object.keys(this.zeroReservePairs).length > 0) {
+    for (let pair in this.zeroReservePairs) {
+      if (this.zeroReservePairs[pair] <= Date.now()) {
+        delete this.zeroReservePairs[pair];
+        // delete this.tokenList[token];
+      }
+    }
+  }
+  // Generate all possible pair combinations of tokens
+  // This is done by generating an upper triangular matrix or right triangular matrix
+  if (Object.keys(this.tokenSwapList).length > 0) {
+    for (let tokenAddr in this.tokenSwapList) {
+      if (this.tokenSwapList[tokenAddr] <= Date.now()) {
+        delete this.tokenSwapList[tokenAddr];
+        // delete this.tokenList[tokenAddr];
+      }
+    }
+
+    let tokens = Object.keys(this.tokenList);
+    var firstToken, secondToken, position;
+    let length = tokens.length;
+    let pairs = [];
+    let poolDataRequests = [];
+    for (firstToken = 0; firstToken < length; firstToken++) {
+      for (
+        secondToken = firstToken + 1;
+        secondToken < length;
+        secondToken++
+      ) {
+        try {
+          for (let tier of ["LOW", "MEDIUM", "HIGH"]) {
+            let poolAddress = uniV3.Pool.getAddress(
+              this.tokenList[tokens[firstToken]],
+              this.tokenList[tokens[secondToken]],
+              FeeAmount[tier]
+            );
+              if (
+                !Object.prototype.hasOwnProperty.call(
+                  this.zeroReservePairs,
+                  poolAddress
+                )
+              ) {
+                pairs.push([poolAddress, this.tokenList[tokens[firstToken]], this.tokenList[tokens[secondToken]]]);
+                poolDataRequests.push(
+                this.get_pool_state(poolAddress, FeeAmount[tier], this.provider)
+                );
+              }
+          }
+        } catch (err) {
+          logger.error(err);
+        }
+      }
+    }
+
+    await Promise.allSettled(poolDataRequests).then((values) => {
+
+      for (position = 0; position < poolDataRequests.length; position++) {
+        if (values[position].status === 'fulfilled') {
+          try{
+            let poolData = values[position].value
+            this.pools[pairs[position][0]] = new uniV3.Pool(
+              pairs[position][1],
+              pairs[position][2],
+              poolData.fee,
+              poolData.sqrtPriceX96.toString(),
+              poolData.liquidity.toString(),
+              poolData.tick,
+              poolData.tickProvider);
+          }catch(err){debug(err)}
+        } else {
+          this.zeroReservePairs[pairs[position][0]] =
+            Date.now() + this.zeroReserveCheckInterval;
+        }
+      }
+    });
+  }
+  setTimeout(this.update_pairs.bind(this), 4000);
+}
+
+async priceSwapIn(tokenIn, tokenOut, tokenInAmount) {
+  this.extend_update_pairs([tokenIn, tokenOut]);
+  const tIn = this.tokenList[tokenIn.address];
+  const tOut = this.tokenList[tokenOut.address];
+  const tokenAmountIn = new uni.CurrencyAmount.fromRawAmount(
+    tIn,
+    ethers.utils.parseUnits(tokenInAmount, tIn.decimals)
+  );
+  if (Object.values(this.pools).length === 0) {
+    throw("Connector not ready")
+  }
+  const trades = await uniV3.Trade.bestTradeExactIn(
+    Object.values(this.pools),
+    tokenAmountIn,
+    tOut,
+    { maxHops: 3 }
+  );
+  let trade
+  if (trades === undefined) {
+    trade = this.cachedRoutes[tIn.symbol + tOut.Symbol];
+  } else {
+    this.cachedRoutes[tIn.symbol + tOut.Symbol] = trades[0];
+    trade = trades[0];
+  }
+  const expectedAmount = trade.minimumAmountOut(this.get_slippage());
+  return { trade, expectedAmount };
+}
+
+async priceSwapOut(tokenIn, tokenOut, tokenOutAmount) {
+  this.extend_update_pairs([tokenIn, tokenOut]);
+  const tOut = this.tokenList[tokenOut.address];
+  const tIn = this.tokenList[tokenIn.address];
+  const tokenAmountOut = new uni.CurrencyAmount.fromRawAmount(
+    tOut,
+    ethers.utils.parseUnits(tokenOutAmount, tOut.decimals)
+  );
+  if (Object.values(this.pools).length === 0) {
+    throw("Connector not ready")
+  }
+  const trades = await uniV3.Trade.bestTradeExactOut(
+    Object.values(this.pools),
+    tIn,
+    tokenAmountOut,
+    { maxHops: 3 }
+  );
+  let trade
+  if (trades === undefined) {
+    trade = this.cachedRoutes[tIn.symbol + tOut.Symbol];
+  } else {
+    this.cachedRoutes[tIn.symbol + tOut.Symbol] = trades[0]
+    trade = trades[0];
+  }
+  const expectedAmount = trade.maximumAmountIn(this.get_slippage());
+  return { trade, expectedAmount };
+}
+
+async swapExactIn(wallet, trade, tokenAddress, gasPrice) {
+  const result = uniV3.Router.swapCallParameters(trade, {
+    deadline: this.get_ttl(),
+    recipient: wallet.address,
+    slippageTolerance: this.get_slippage()
+  });
+
+  const contract = this.get_contract("router", wallet)
+  const tx = await contract[result.methodName](...result.args, {
+    gasPrice: gasPrice * 1e9,
+    gasLimit: GAS_LIMIT,
+    value: result.value
+  });
+
+  debug(`Tx Hash: ${tx.hash}`);
+  return tx;
+}
+
+async swapExactOut(wallet, trade, tokenAddress, gasPrice) {
+  const result = uniV3.Router.swapCallParameters(trade, {
+    deadline: this.get_ttl(),
+    recipient: wallet.address,
+    slippageTolerance: this.get_slippage()
+  });
+
+  const contract = this.get_contract("router", wallet)
+  const tx = await contract[result.methodName](...result.args, {
+    gasPrice: gasPrice * 1e9,
+    gasLimit: GAS_LIMIT,
+    value: result.value
+  });
+
+  debug(`Tx Hash: ${tx.hash}`);
+  return tx;
+}
+/////////////////////////////////////////////////// End of Swap section
+
+
+//////////////////////////////////////////////////////////// LP section
+
+  async getPosition(wallet, tokenId, eth, isRaw = false) {
+    const contract = this.get_contract('nft', wallet);
+    const position = await contract.positions(tokenId);
+    if (isRaw){
+      return {
+        nonce: position[0],
+        operator: position[1],
+        token0: position[2],
+        token1: position[3],
+        fee: position[4],
+        tickLower: position[5],
+        tickUpper: position[6],
+        liquidity: position[7],
+        feeGrowthInside0LastX128: position[8],
+        feeGrowthInside1LastX128: position[9],
+        tokensOwed0: position[10],
+        tokensOwed1: position[11]
+      };
+    } else {
+      return {
+        nonce: position[0].toString(),
+        operator: position[1],
+        token0: position[2],
+        token1: position[3],
+        fee: Object.keys(FeeAmount).find((key) => FeeAmount[key] === position[4]),
+        lowerPrice: uniV3.tickToPrice(this.get_token(eth.getERC20TokenByAddress(position[2])), this.get_token(eth.getERC20TokenByAddress(position[3])), position[5]).toFixed(8),
+        upperPrice: uniV3.tickToPrice(this.get_token(eth.getERC20TokenByAddress(position[2])), this.get_token(eth.getERC20TokenByAddress(position[3])), position[6]).toFixed(8),
+        liquidity: position[7].toString(),
+        feeGrowthInside0LastX128: position[8].toString(),
+        feeGrowthInside1LastX128: position[9].toString(),
+        tokensOwed0: position[10].toString(),
+        tokensOwed1: position[11].toString()
+      };
+    }
+  }
+
+  getReduceLiquidityData(percent, tokenId, token0, token1, wallet) {
+    return {
+      tokenId: tokenId,
+      liquidityPercentage: this.get_percent(percent),
+      slippageTolerance: this.get_slippage(),
+      deadline: this.get_ttl(),
+      burnToken: percent == 100 ? true : false,
+      collectOptions: {
+              expectedCurrencyOwed0: new uni.CurrencyAmount.fromRawAmount(token0, ethers.utils.parseUnits('0', token0.decimals)),
+              expectedCurrencyOwed1: new uni.CurrencyAmount.fromRawAmount(token1, ethers.utils.parseUnits('0', token1.decimals)),
+              recipient: wallet.signer.address,
+            }
+    };
+  }
+
+  getAddLiquidityData(wallet, tokenId) {
+    let extraData;
+    const commonData = {slippageTolerance: this.get_slippage(), deadline: this.get_ttl()}
+    if (tokenId == 0) {
+      extraData = { recipient: wallet.signer.address, createPool: true }
+    } else {
+      extraData = { tokenId: tokenId }
+    }
+    return { ...commonData, ...extraData }
   }
 
   async addPosition(
@@ -294,98 +464,68 @@ export default class UniswapV3 {
     amount1,
     fee,
     lowerPrice,
-    upperPrice
+    upperPrice,
+    tokenId = 0
   ) {
     const nftContract = this.get_contract('nft', wallet);
-    const coreContract = this.get_contract('core', wallet);
-    const pool = await coreContract.getPool(
-      token0.address,
-      token1.address,
+    const tokenIn = this.get_token(token0)
+    const tokenOut = this.get_token(token1)
+    const lowerPriceInFraction = math.fraction(lowerPrice);
+    const upperPriceInFraction = math.fraction(upperPrice);
+    const poolAddress = uniV3.Pool.getAddress(
+      tokenIn,
+      tokenOut,
       FeeAmount[fee]
     );
-    const midPrice = math.fraction((lowerPrice + upperPrice) / 2); // Use mid price to initialize uninitialized pool
-
-    const initPoolData = nftContract.interface.encodeFunctionData(
-      'createAndInitializePoolIfNecessary',
-      [
-        token0.address,
-        token1.address,
-        FeeAmount[fee],
-        encodePriceSqrt(midPrice.n, midPrice.d)
-      ]
-    );
-
-    const mintData = this.getAddLiquidityData(
-      wallet,
-      nftContract,
-      token0,
-      token1,
-      amount0,
-      amount1,
-      fee,
-      lowerPrice,
-      upperPrice
-    );
-
-    let calls = [mintData];
-    if (pool === ethers.constants.AddressZero) {
-      const tx = await nftContract.multicall([initPoolData, mintData], {
-        gasLimit: GAS_LIMIT
-      });
-      return tx;
-    } else {
-      const tx = await nftContract.multicall(calls, { gasLimit: GAS_LIMIT });
-      return tx;
-    }
+    const poolData = await this.get_pool_state(poolAddress, FeeAmount[fee], wallet)
+    const position = uniV3.Position.fromAmounts({pool: new uniV3.Pool(
+      tokenIn,
+      tokenOut,
+      poolData.fee,
+      poolData.sqrtPriceX96.toString(),
+      poolData.liquidity.toString(),
+      poolData.tick),
+      tickLower: uniV3.nearestUsableTick(uniV3.priceToClosestTick(new uni.Price(tokenIn, tokenOut, lowerPriceInFraction.n, lowerPriceInFraction.d)), uniV3.TICK_SPACINGS[FeeAmount[fee]]),
+      tickUpper: uniV3.nearestUsableTick(uniV3.priceToClosestTick(new uni.Price(tokenIn, tokenOut, upperPriceInFraction.n, upperPriceInFraction.d)), uniV3.TICK_SPACINGS[FeeAmount[fee]]),
+      amount0: ethers.utils.parseUnits(amount0, tokenIn.decimals),
+      amount1: ethers.utils.parseUnits(amount1, tokenOut.decimals),
+      useFullPrecision: true});
+    const callData = uniV3.NonfungiblePositionManager.addCallParameters(position, this.getAddLiquidityData(wallet, tokenId));
+    return await nftContract.multicall([callData.calldata], { value: callData.value, gasLimit: GAS_LIMIT });
   }
 
-  async removePosition(wallet, tokenId) {
+  async reducePosition(wallet, tokenId, eth, decreasePercent = 100) {
     // Reduce position and burn
-    const positionData = await this.getPosition(wallet, tokenId);
     const contract = this.get_contract('nft', wallet);
-    const data = this.getRemoveLiquidityData(
-      wallet,
-      contract,
+    const positionData = await this.getPosition(wallet, tokenId, 0, true);
+    const tokenIn = this.get_token(eth.getERC20TokenByAddress(positionData.token0))
+    const tokenOut = this.get_token(eth.getERC20TokenByAddress(positionData.token1))
+    const fee = positionData.fee
+    const poolAddress = uniV3.Pool.getAddress(
+      tokenIn,
+      tokenOut,
+      fee
+    );
+    const poolData = await this.get_pool_state(poolAddress, fee, wallet)
+    const position = new uniV3.Position({pool: new uniV3.Pool(
+      tokenIn,
+      tokenOut,
+      poolData.fee,
+      poolData.sqrtPriceX96.toString(),
+      poolData.liquidity.toString(),
+      poolData.tick),
+      tickLower: positionData.tickLower,
+      tickUpper: positionData.tickUpper,
+      liquidity: positionData.liquidity
+    })
+    const callData = uniV3.NonfungiblePositionManager.removeCallParameters(position, this.getReduceLiquidityData(
+      decreasePercent,
       tokenId,
-      positionData.liquidity
-    );
-    return await contract.multicall(data, { gasLimit: GAS_LIMIT });
-  }
-
-  async replacePosition(
-    wallet,
-    tokenId,
-    token0,
-    token1,
-    amount0,
-    amount1,
-    fee,
-    lowerPrice,
-    upperPrice
-  ) {
-    const contract = this.get_contract('nft', wallet);
-    let positionData = await this.getPosition(wallet, tokenId);
-    const removeData = this.getRemoveLiquidityData(
-      wallet,
-      contract,
-      tokenId,
-      positionData.liquidity
-    );
-    const mintData = this.getAddLiquidityData(
-      wallet,
-      contract,
-      token0,
-      token1,
-      amount0,
-      amount1,
-      fee,
-      lowerPrice,
-      upperPrice
-    );
-
-    return await contract.multicall(removeData.concat(mintData), {
-      gasLimit: GAS_LIMIT
-    });
+      tokenIn,
+      tokenOut,
+      wallet
+    ))
+    return await contract.multicall([callData.calldata], { value: callData.value, gasLimit: GAS_LIMIT });
   }
 
   async collectFees(wallet, tokenId) {
@@ -401,3 +541,4 @@ export default class UniswapV3 {
     );
   }
 }
+/////////////////////////////////////////////////////////// End of LP section
