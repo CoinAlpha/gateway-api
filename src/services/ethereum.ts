@@ -46,7 +46,7 @@ export interface EthTransactionReceipt {
   status: number;
 }
 
-export class ServicesEthereum {
+export class EthereumService {
   private readonly provider = new providers.JsonRpcProvider(
     globalConfig.getConfig('ETHEREUM_RPC_URL')
   );

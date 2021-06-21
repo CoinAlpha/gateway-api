@@ -4,8 +4,8 @@ const globalConfig =
   require('../services/configuration_manager').configManagerInstance;
 
 export class EthereumGasService {
-  private gasPrice: number = 0;
-  private isTracingStarted: boolean = false;
+  private gasPrice = 0;
+  private isTracingStarted = false;
 
   private async onModuleInit(): Promise<void> {
     if (globalConfig.getConfig('ENABLE_ETH_GAS_STATION')) {
@@ -31,7 +31,7 @@ export class EthereumGasService {
   constructor() {
     this.onModuleInit();
   }
-    
+
   /**
    * Tracing gas price in background
    */
@@ -74,7 +74,7 @@ export class EthereumGasService {
     try {
       const { data } = await axios.get(globalConfig.getConfig(''));
 
-      // divite by 10 to convert it to Gwei)
+      // divite by 10 to convert it to Gwei
       const gasPrice = data[level] / 10;
       // this.logger.log(`Ethereum GasStation gas price (${level}): ${gasPrice}`);
 
