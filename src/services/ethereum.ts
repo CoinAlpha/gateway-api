@@ -47,11 +47,18 @@ export interface EthTransactionReceipt {
 }
 
 export class ServicesEthereum {
-  private readonly provider = new providers.JsonRpcProvider('abc123');
+  private readonly provider = new providers.JsonRpcProvider(
+    globalConfig.getConfig('ETHEREUM_RPC_URL')
+  );
   private erc20TokenList: ERC20TokensList | null = null;
   private approvalGasLimit = 50000;
 
-  async start(network: Network) {
+  /**
+   * Extracted from constructor because it is async, load the ERC20 token list.
+   * @param {Network} network
+   * @return {Promise<void>}
+   */
+  private async start(network: Network): Promise<void> {
     switch (network) {
       case Network.KOVAN:
         this.erc20TokenList = require('../assets/erc20_tokens_kovan.json');
@@ -77,16 +84,28 @@ export class ServicesEthereum {
       globalConfig.getConfig('ETH_APPROVAL_GAS_LIMIT') || this.approvalGasLimit;
   }
 
-  async getETHBalance(wallet: Wallet): Promise<string> {
+  /**
+   * Get the ETH balance for a wallet.
+   * @param {Wallet} wallet
+   * @return {Promise<BigInt>}
+   */
+  async getETHBalance(wallet: Wallet): Promise<BigInt> {
     try {
       const walletBalance = await wallet.getBalance();
       const balance = BigInt(walletBalance.toString());
-      return (balance / BigInt(1e18)).toString();
+      return balance / BigInt(1e18);
     } catch (err) {
       throw new Error(err.reason || 'error ETH balance lookup');
     }
   }
 
+  /**
+   * Get the ERC20 balance for a wallet and token address.
+   * @param {Wallet} wallet
+   * @param {string} tokenAddress
+   * @param {number} decimals
+   * @return {Promise<BigInt>}
+   */
   async getERC20Balance(
     wallet: Wallet,
     tokenAddress: string,
@@ -111,7 +130,7 @@ export class ServicesEthereum {
    * @param {string} spender
    * @param {string} tokenAddress
    * @param {number} decimals
-   * @return {string}
+   * @return {Promise<BigInt>}
    */
   async getERC20Allowance(
     wallet: Wallet,
@@ -131,13 +150,13 @@ export class ServicesEthereum {
   }
 
   /**
-   * Approve a spender to transfer tokens from a wallet address
+   * Approval an amount for a wallet and token
    * @param {Wallet} wallet
    * @param {string} spender
    * @param {string} tokenAddress
    * @param {number} amount
    * @param {number} gasPrice
-   * @return
+   * @return {Promise<void>}
    */
   async approveERC20(
     wallet: Wallet,
@@ -145,7 +164,7 @@ export class ServicesEthereum {
     tokenAddress: string,
     amount: number,
     gasPrice: number
-  ) {
+  ): Promise<void> {
     try {
       // instantiate a contract and pass in wallet, which act on behalf of that signer
       const contract = new Contract(tokenAddress, abi.ERC20Abi, wallet);
@@ -206,7 +225,7 @@ export class ServicesEthereum {
   }
 
   /**
-   * Return Wallet
+   * Return wallet of a private string
    * @param {string} privateKey
    * @return {Wallet}
    */
@@ -217,7 +236,7 @@ export class ServicesEthereum {
   /**
    * Return information about list of tokens
    * @param {string[]} symbols
-   * @return Record<string, ITokenERC20Info>
+   * @return Record<string, TokenERC20Info>
    */
   getERC20TokensAddresses(symbols: string[]): Record<string, TokenERC20Info> {
     const tokenContractList: Record<string, TokenERC20Info> = {};
@@ -235,6 +254,11 @@ export class ServicesEthereum {
     return tokenContractList;
   }
 
+  /**
+   * Get transaction receipt for a transaction hash.
+   * @param {string} txHash
+   * @return {Promise<EthTransactionReceipt>}
+   */
   async getTransactionReceipt(txHash: string): Promise<EthTransactionReceipt> {
     const transaction = await this.provider.getTransactionReceipt(txHash);
 

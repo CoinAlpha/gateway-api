@@ -4,7 +4,7 @@ import express from 'express';
 
 import { getParamData, latency, statusMessages } from '../services/utils';
 
-import Ethereum from '../services/eth';
+import Ethereum from '../services/ethereum';
 import Balancer from '../services/balancer';
 import Fees from '../services/fees';
 import { logger } from '../services/logger';
