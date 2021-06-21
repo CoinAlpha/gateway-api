@@ -3,7 +3,7 @@ import express from 'express';
 
 import { getParamData, latency, statusMessages } from '../services/utils';
 import { logger } from '../services/logger';
-import Ethereum from '../services/eth';
+import Ethereum from '../services/ethereum';
 import Uniswap from '../services/uniswap';
 import Fees from '../services/fees';
 

@@ -4,7 +4,7 @@ import { getNonceManager } from '../services/utils';
 
 import { getParamData, latency, statusMessages } from '../services/utils';
 import { logger } from '../services/logger';
-import Ethereum from '../services/eth';
+import Ethereum from '../services/ethereum';
 import UniswapV3 from '../services/uniswap_v3';
 import Fees from '../services/fees';
 

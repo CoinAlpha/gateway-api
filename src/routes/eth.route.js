@@ -2,7 +2,7 @@ import { ethers, BigNumber } from 'ethers';
 import express from 'express';
 
 import { getParamData, latency, statusMessages } from '../services/utils';
-import Ethereum from '../services/eth';
+import Ethereum from '../services/ethereum';
 import Fees from '../services/fees';
 import { logger } from '../services/logger';
 
