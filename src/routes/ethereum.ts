@@ -1,9 +1,8 @@
 import { EthereumService, TokenERC20Info } from '../services/ethereum';
+import { EthereumConfigService } from '../services/ethereum_config';
 // import { EthereumGasService } from '../services/ethereum_gas';
 import { Request, Response } from 'express';
 import { Wallet } from 'ethers';
-const globalConfig =
-  require('../services/configuration_manager').configManagerInstance;
 
 const latency = (startTime: number, endTime: number): number => {
   return (endTime - startTime) / 1000;
@@ -11,13 +10,14 @@ const latency = (startTime: number, endTime: number): number => {
 
 export class EthereumRoutes {
   constructor(
-    private ethereumService: EthereumService // private readonly ethereumGasService: EthereumGasService
+    private ethereumService: EthereumService, // private readonly ethereumGasService: EthereumGasService
+    private readonly config: EthereumConfigService
   ) {}
 
   getNetworkInformation() {
     return {
-      network: globalConfig.getConfig('ETHEREUM_CHAIN'),
-      rpcUrl: globalConfig.getConfig('ETHEREUM_RPC_URL'),
+      network: this.config.networkName,
+      rpcUrl: this.config.rpcUrl,
       connection: true,
       timestamp: Date.now(),
     };
@@ -59,13 +59,61 @@ export class EthereumRoutes {
       );
 
       res.status(200).json({
-        network: globalConfig.getConfig('ETHEREUM_CHAIN'),
+        network: this.config.networkName,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         balances: balances,
       });
     } catch (err) {
       // this.logger.error(err);
+      res.status(500).send(err);
+    }
+  }
+
+  async allowances(req: Request, res: Response) {
+    const initTime = Date.now();
+
+    // Getting spender
+    const spender = this.config.spenders[req.body.connector];
+    if (!spender) {
+      res.status(500).send('Wrong connector');
+    }
+
+    // Getting Wallet
+    try {
+      const wallet = this.ethereumService.getWallet(req.body.privateKey);
+      // Populate token contract info using token symbol list
+      let tokenContractList: Record<string, TokenERC20Info> = {};
+      tokenContractList = this.ethereumService.getERC20TokensAddresses(
+        req.body.tokenList
+      );
+
+      const approvals: Record<string, BigInt> = {};
+      await Promise.all(
+        Object.keys(tokenContractList).map(async (symbol) => {
+          const address = tokenContractList[symbol].address;
+          const decimals = tokenContractList[symbol].decimals;
+          approvals[symbol] = await this.ethereumService.getERC20Allowance(
+            wallet,
+            spender,
+            address,
+            decimals
+          );
+        })
+      );
+
+      // this.logger.log('eth.route - Getting allowances');
+
+      res.status(500).json({
+        network: this.config.networkName,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        spender: spender,
+        approvals: approvals,
+      });
+    } catch (err) {
+      // this.logger.error(err);
+      // throw new InternalServerErrorException('Error getting wallet');
       res.status(500).send(err);
     }
   }

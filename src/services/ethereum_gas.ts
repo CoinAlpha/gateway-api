@@ -1,16 +1,16 @@
 import axios from 'axios';
 import BigNumber from 'bignumber.js';
-const globalConfig =
-  require('../services/configuration_manager').configManagerInstance;
+import { EthereumConfigService } from './ethereum_config';
 
 export class EthereumGasService {
   private gasPrice = 0;
   private isTracingStarted = false;
+  private config: EthereumConfigService;
 
   private async onModuleInit(): Promise<void> {
-    if (globalConfig.getConfig('ENABLE_ETH_GAS_STATION')) {
+    if (this.config.isGasStationEnabled) {
       // this.logger.log('GasStation enabled');
-      if (globalConfig.getConfig('ETH_GAS_STATION_REFRESH_TIME')) {
+      if (this.config.refreshTimeForGasPrice) {
         // this.logger.log(
         //   `Start tracing gas price in background every ${this.config.refreshTimeForGasPrice} sec`,
         // );
@@ -22,13 +22,14 @@ export class EthereumGasService {
         // );
       }
     } else {
-      this.gasPrice = globalConfig.getConfig('MANUAL_GAS_PRICE');
+      this.gasPrice = this.config.manualGasPrice;
 
       // this.logger.log(`Using fixed gas price: ${this.gasPrice}`);
     }
   }
 
-  constructor() {
+  constructor(config: EthereumConfigService) {
+    this.config = config;
     this.onModuleInit();
   }
 
@@ -41,7 +42,7 @@ export class EthereumGasService {
     if (this.isTracingStarted) {
       setTimeout(() => {
         this.trace();
-      }, globalConfig.getConfig('ETH_GAS_STATION_REFRESH_TIME') * 1000);
+      }, this.config.refreshTimeForGasPrice * 1000);
     }
   }
 
@@ -69,10 +70,10 @@ export class EthereumGasService {
    * @return {Promise<number>}
    */
   async fetchCurrentGasPrice(
-    level: string = globalConfig.getConfig('ETH_GAS_STATION_GAS_LEVEL')
+    level: string = this.config.gasLevel
   ): Promise<number> {
     try {
-      const { data } = await axios.get(globalConfig.getConfig(''));
+      const { data } = await axios.get(this.config.gasServiceUrl);
 
       // divite by 10 to convert it to Gwei
       const gasPrice = data[level] / 10;
