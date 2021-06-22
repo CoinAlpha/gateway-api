@@ -12,12 +12,9 @@ const latency = (startTime: number, endTime: number): number => {
 export class EthereumRoutes extends EVMBase {
   constructor(
     private ethereumService: EthereumService, // private readonly ethereumGasService: EthereumGasService
-    private readonly config: EthereumConfigService,
-    private readonly ethereumGasService: EthereumGasService
+    private config: EthereumConfigService,
+    private ethereumGasService: EthereumGasService
   ) {
-    this.ethereumService = ethereumService;
-    this.config = config;
-    this.ethereumGasService = ethereumGasService;
     super();
   }
 
