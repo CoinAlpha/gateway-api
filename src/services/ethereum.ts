@@ -54,15 +54,14 @@ export class EthereumService {
    * @param {Network} network
    * @return {Promise<void>}
    */
-    private async start(): Promise<void> {
+  private async start(): Promise<void> {
     switch (this.config.networkName) {
       case Network.KOVAN:
         this.erc20TokenList = require('../assets/erc20_tokens_kovan.json');
         break;
 
       case Network.MAINNET: {
-        const { data } = await axios.get(this.config.tokenListUrl
-        );
+        const { data } = await axios.get(this.config.tokenListUrl);
         this.erc20TokenList = data;
         break;
       }
@@ -75,9 +74,9 @@ export class EthereumService {
 
   constructor(private readonly config: EthereumConfigService) {
     this.start();
-    }
+  }
 
-  get  networkName(): string {
+  get networkName(): string {
     return this.config.networkName;
   }
 
