@@ -1,8 +1,7 @@
 import axios from 'axios';
 import abi from '../assets/abi.json';
 import { Contract, providers, Wallet } from 'ethers';
-const globalConfig =
-  require('../services/configuration_manager').configManagerInstance;
+import { EthereumConfigService } from './ethereum_config';
 
 export enum GasStationLevel {
   FAST = 'fast',
@@ -47,41 +46,35 @@ export interface EthTransactionReceipt {
 }
 
 export class EthereumService {
-  private readonly provider = new providers.JsonRpcProvider(
-    globalConfig.getConfig('ETHEREUM_RPC_URL')
-  );
+  private readonly provider = new providers.JsonRpcProvider(this.config.rpcUrl);
   private erc20TokenList: ERC20TokensList | null = null;
-  private approvalGasLimit = 50000;
 
   /**
    * Extracted from constructor because it is async, load the ERC20 token list.
    * @param {Network} network
    * @return {Promise<void>}
    */
-  private async start(network: Network): Promise<void> {
-    switch (network) {
+    private async start(): Promise<void> {
+    switch (this.config.networkName) {
       case Network.KOVAN:
         this.erc20TokenList = require('../assets/erc20_tokens_kovan.json');
         break;
 
       case Network.MAINNET: {
-        const { data } = await axios.get(
-          globalConfig.getConfig('ETHEREUM_TOKEN_LIST_URL')
+        const { data } = await axios.get(this.config.tokenListUrl
         );
         this.erc20TokenList = data;
         break;
       }
 
       default: {
-        throw new Error(`Invalid network ${network}`);
+        throw new Error(`Invalid network ${this.config.networkName}`);
       }
     }
   }
 
-  constructor(network: Network) {
-    this.start(network);
-    this.approvalGasLimit =
-      globalConfig.getConfig('ETH_APPROVAL_GAS_LIMIT') || this.approvalGasLimit;
+  constructor(private readonly config: EthereumConfigService) {
+    this.start();
   }
 
   /**
@@ -171,7 +164,7 @@ export class EthereumService {
       return await contract.approve(spender, amount, {
         gasPrice: gasPrice * 1e9,
         // fixate gas limit to prevent overwriting
-        gasLimit: this.approvalGasLimit,
+        gasLimit: this.config.approvalGasLimit,
       });
     } catch (err) {
       throw new Error(err.reason || 'error approval');
