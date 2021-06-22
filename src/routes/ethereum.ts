@@ -15,6 +15,9 @@ export class EthereumRoutes extends EVMBase {
     private readonly config: EthereumConfigService,
     private readonly ethereumGasService: EthereumGasService
   ) {
+    this.ethereumService = ethereumService;
+    this.config = config;
+    this.ethereumGasService = ethereumGasService;
     super();
   }
 

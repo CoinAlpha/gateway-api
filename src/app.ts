@@ -10,10 +10,10 @@ import { logger } from './services/logger';
 import apiRoutes from './routes/index.route';
 import balancerRoutes from './routes/balancer.route';
 
-// import { EthereumService } from './services/ethereum';
-// import { EthereumConfigService } from './services/ethereum_config';
-// import { EthereumGasService } from './services/ethereum_gas';
-// import { EthereumRoutes } from './routes/ethereum';
+import { EthereumService } from './services/ethereum';
+import { EthereumConfigService } from './services/ethereum_config';
+import { EthereumGasService } from './services/ethereum_gas';
+import { EthereumRoutes } from './routes/ethereum';
 
 import terraRoutes from './routes/terra.route';
 import uniswapRoutes from './routes/uniswap.route';
@@ -44,11 +44,11 @@ app.use(validateAccess);
 // mount routes to specific path
 app.use('/api', apiRoutes);
 
-// const ethConfig = new EthereumConfigService();
-// const ethService = new EthereumService(ethConfig);
-// const ethGasService = new EthereumGasService(ethConfig);
-// const ethRoutes = new EthereumRoutes(ethService, ethConfig, ethGasService);
-// app.use('/eth', ethRoutes.router);
+const ethConfig = new EthereumConfigService();
+const ethService = new EthereumService(ethConfig);
+const ethGasService = new EthereumGasService(ethConfig);
+const ethRoutes = new EthereumRoutes(ethService, ethConfig, ethGasService);
+app.use('/eth', ethRoutes.router);
 
 app.use('/eth/uniswap', uniswapRoutes);
 app.use('/eth/uniswap/v3', uniswapV3Routes);

@@ -1,9 +1,7 @@
 export class EthereumConfigService {
   private config;
-    constructor() {
-        console.log('EthereumConfigService')
-        this.config = require('./configuration_manager').configManagerInstance;
-        console.log('got it')
+  constructor() {
+    this.config = require('./configuration_manager').configManagerInstance;
   }
 
   get spenders(): Record<string, string> {
