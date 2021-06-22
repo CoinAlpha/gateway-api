@@ -75,6 +75,10 @@ export class EthereumService {
 
   constructor(private readonly config: EthereumConfigService) {
     this.start();
+    }
+
+  get  networkName(): string {
+    return this.config.networkName;
   }
 
   /**
@@ -231,7 +235,7 @@ export class EthereumService {
    * @param {string[]} symbols
    * @return Record<string, TokenERC20Info>
    */
-  getERC20TokensAddresses(symbols: string[]): Record<string, TokenERC20Info> {
+  getERC20TokenAddresses(symbols: string[]): Record<string, TokenERC20Info> {
     const tokenContractList: Record<string, TokenERC20Info> = {};
 
     for (const symbol of symbols) {

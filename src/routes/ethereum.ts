@@ -38,7 +38,7 @@ export class EthereumRoutes extends EVMBase {
 
       // Populate token contract info using token symbol list
       let tokenContractList: Record<string, TokenERC20Info> = {};
-      tokenContractList = this.ethereumService.getERC20TokensAddresses(
+      tokenContractList = this.ethereumService.getERC20TokenAddresses(
         req.body.tokenList
       );
 
@@ -87,7 +87,7 @@ export class EthereumRoutes extends EVMBase {
       const wallet = this.ethereumService.getWallet(req.body.privateKey);
       // Populate token contract info using token symbol list
       let tokenContractList: Record<string, TokenERC20Info> = {};
-      tokenContractList = this.ethereumService.getERC20TokensAddresses(
+      tokenContractList = this.ethereumService.getERC20TokenAddresses(
         req.body.tokenList
       );
 
