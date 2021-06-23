@@ -1,14 +1,35 @@
-import { EthereumService, TokenERC20Info } from '../services/ethereum';
+// import { EthereumService, TokenERC20Info } from '../services/ethereum';
 import { EthereumConfigService } from '../services/ethereum_config';
-import { EthereumGasService } from '../services/ethereum_gas';
-import { Request, Response } from 'express';
-import { Wallet } from 'ethers';
-import { EVMBase } from '../core/evm_base';
+// import { EthereumGasService } from '../services/ethereum_gas';
+import { Router, Request, Response } from 'express';
+// import { Wallet } from 'ethers';
+// import { EVMBase } from '../core/evm_base';
 
-const latency = (startTime: number, endTime: number): number => {
-  return (endTime - startTime) / 1000;
-};
+const router = Router();
 
+// const latency = (startTime: number, endTime: number): number => {
+//   return (endTime - startTime) / 1000;
+// };
+
+
+const config = new EthereumConfigService();
+
+router.post('/', async (req: Request, res: Response) => {
+  /*
+    POST /
+  */
+    res.status(200).json({
+      network: config.networkName,
+      rpcUrl: config.rpcUrl,
+      connection: true,
+      timestamp: Date.now(),
+    });
+
+});
+
+export default router;
+
+/*
 export class EthereumRoutes extends EVMBase {
   constructor(
     private ethereumService: EthereumService, // private readonly ethereumGasService: EthereumGasService
@@ -18,13 +39,17 @@ export class EthereumRoutes extends EVMBase {
     super();
   }
 
-  getStatus(_req: Request, res: Response) {
+    async getStatus(_req: Request, res: Response) {
+        console.log('getstatus is called');
+        console.log(this.config);
     res.status(200).json({
       network: this.config.networkName,
       rpcUrl: this.config.rpcUrl,
       connection: true,
       timestamp: Date.now(),
     });
+
+        return;
   }
 
   async getBalances(req: Request, res: Response) {
@@ -195,3 +220,4 @@ export class EthereumRoutes extends EVMBase {
     res.status(200).json(this.ethereumGasService.getGasPrice());
   }
 }
+*/

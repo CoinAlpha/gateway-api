@@ -16,7 +16,7 @@ export abstract class EVMBase {
     this._router.get('/gas/price', this.getGasPrice);
   }
 
-  abstract getStatus(req: Request, res: Response): void;
+  abstract getStatus(req: Request, res: Response): Promise<void>;
 
   abstract getBalances(req: Request, res: Response): void;
 
