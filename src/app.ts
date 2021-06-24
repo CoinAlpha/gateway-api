@@ -6,6 +6,9 @@ import { validateAccess } from './services/access';
 import { IpFilter } from 'express-ipfilter';
 import { logger } from './services/logger';
 
+const winston = require('winston');
+const expressWinston = require('express-winston');
+
 // Routes
 import apiRoutes from './routes/index.route';
 import balancerRoutes from './routes/balancer.route';
@@ -40,6 +43,23 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(validateAccess);
+
+app.use(
+  expressWinston.logger({
+    transports: [new winston.transports.Console()],
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.json()
+    ),
+    meta: true,
+    msg: 'HTTP {{req.method}} {{req.url}}',
+    expressFormat: true, 
+    colorize: false,
+      ignoreRoute: function (_req: any, _res: any) {
+      return false;
+    },
+  })
+);
 
 // mount routes to specific path
 app.use('/api', apiRoutes);
