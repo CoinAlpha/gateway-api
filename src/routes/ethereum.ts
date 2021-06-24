@@ -2,7 +2,7 @@ import { EthereumService, TokenERC20Info } from '../services/ethereum';
 import { EthereumConfigService } from '../services/ethereum_config';
 import { EthereumGasService } from '../services/ethereum_gas';
 import { Router, Request, Response } from 'express';
-import { ethers, BigNumber } from 'ethers';
+import { ethers } from 'ethers';
 // import { EVMBase } from '../core/evm_base';
 
 const router = Router();
@@ -145,7 +145,7 @@ router.post('/approve', async (req: Request, res: Response) => {
 
       const gasPrice = req.body.gasPrice || ethereumGasService.getGasPrice();
 
-      let amount: BigNumber = ethers.constants.MaxUint256;
+      let amount = ethers.constants.MaxUint256;
       if (req.body.amount) {
         amount = ethers.utils.parseUnits(
           req.body.amount,
@@ -173,7 +173,7 @@ router.post('/approve', async (req: Request, res: Response) => {
         latency: latency(initTime, Date.now()),
         tokenAddress: tokenAddress,
         spender: spender,
-        amount: amount.div(1e18).toString(),
+        amount: amount.div(ethers.BigNumber.from(BigInt(1e18))).toString(),
         approval: approval,
       });
     }
