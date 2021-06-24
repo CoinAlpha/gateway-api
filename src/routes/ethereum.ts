@@ -15,7 +15,7 @@ const config = new EthereumConfigService();
 const ethereumService = new EthereumService(config);
 const ethereumGasService = new EthereumGasService(config);
 
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (_req: Request, res: Response) => {
   /*
     POST /
   */

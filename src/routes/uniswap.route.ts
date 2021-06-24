@@ -48,7 +48,7 @@ const getErrorMessage = (err: string) => {
   return message;
 };
 
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (_req: Request, res: Response) => {
   /*
     POST /
   */

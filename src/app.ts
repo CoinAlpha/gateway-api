@@ -77,7 +77,7 @@ app.use('/terra', terraRoutes);
 app.use('/perpfi', perpFiRoutes);
 // app.use('/celo', celoRoutes);
 
-app.get('/', (req, res, _next) => {
+app.get('/', (_req, res) => {
   res.send('ok');
 });
 
