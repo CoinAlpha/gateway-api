@@ -50,7 +50,7 @@ const getErrorMessage = (err: string) => {
   return message;
 };
 
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (_req: Request, res: Response) => {
   /*
     POST /
   */
@@ -456,7 +456,7 @@ router.post('/remove-position', async (req: Request, res: Response) => {
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
     let reason;
-    let errCode = 500;
+    const errCode = 500;
     err.reason
       ? (reason = err.reason)
       : (reason = statusMessages.operation_error);

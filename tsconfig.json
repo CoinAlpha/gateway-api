@@ -2,17 +2,27 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
-    "strict": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "dist",
-    "rootDir": "src",
-    "esModuleInterop": true,
-    "sourceMap": true,
-    "lib": ["ES2020.Promise"],
     "allowJs": true,
+    "lib": ["es6", "es2020", "esnext.asynciterable"],
+    "sourceMap": true,
+    "outDir": "./dist",
+    "moduleResolution": "node",
+    "removeComments": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
     "resolveJsonModule": true,
-    "noUnusedLocals": true
+    "typeRoots": ["./node_modules/@types", "src/@types"]
   },
-  "include": ["src/**/*"]
+  "exclude": ["node_modules"],
+  "include": ["src/**/*.ts", "src/**/*.js"]
 }
