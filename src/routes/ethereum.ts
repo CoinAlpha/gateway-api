@@ -185,35 +185,21 @@ router.post('/approve', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/poll', async (req: Request, res: Response) => {
+  const initTime = Date.now();
+  const receipt = await ethereumService.getTransactionReceipt(req.body.txHash);
+  const confirmed = receipt && receipt.blockNumber ? true : false;
+
+  // this.logger.log(`eth.route - Get TX Receipt: ${req.body.txHash}`);
+
+  res.status(200).json({
+    network: config.networkName,
+    timestamp: initTime,
+    latency: latency(initTime, Date.now()),
+    txHash: req.body.txHash,
+    confirmed,
+    receipt: confirmed ? receipt : {},
+  });
+});
+
 export default router;
-
-/*
-export class EthereumRoutes extends EVMBase {
-
-
-  
-
-  async poll(req: Request, res: Response) {
-    const initTime = Date.now();
-    const receipt = await this.ethereumService.getTransactionReceipt(
-      req.body.txHash
-    );
-    const confirmed = receipt && receipt.blockNumber ? true : false;
-
-    // this.logger.log(`eth.route - Get TX Receipt: ${req.body.txHash}`);
-
-    res.status(200).json({
-      network: this.config.networkName,
-      timestamp: initTime,
-      latency: latency(initTime, Date.now()),
-      txHash: req.body.txHash,
-      confirmed,
-      receipt: confirmed ? receipt : {},
-    });
-  }
-
-  getGasPrice(_req: Request, res: Response) {
-    res.status(200).json(this.ethereumGasService.getGasPrice());
-  }
-}
-*/
