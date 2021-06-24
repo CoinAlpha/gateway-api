@@ -129,7 +129,6 @@ router.post('/approve', async (req: Request, res: Response) => {
   if (!spender) {
     res.status(500).send('Wrong connector');
   }
-  console.log(req.body);
   // Getting Wallet
   try {
     const wallet = ethereumService.getWallet(req.body.privateKey);

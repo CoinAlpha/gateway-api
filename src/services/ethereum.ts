@@ -63,10 +63,6 @@ export class EthereumService {
         })();
         break;
       }
-
-      default: {
-        throw new Error(`Invalid network ${this.config.networkName}`);
-      }
     }
   }
 
