@@ -144,7 +144,7 @@ router.get('/start', async (req: Request, res: Response) => {
       gasLimit: gasLimit,
       gasCost: gasCost,
     };
-    console.log('Initializing balancer');
+    logger.info('Initializing balancer');
     res.status(200).json(result);
   } else {
     res.status(500).json({ err: 'unexpected pairs type' });
