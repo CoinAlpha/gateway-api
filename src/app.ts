@@ -9,21 +9,16 @@ import { logger } from './services/logger';
 const winston = require('winston');
 const expressWinston = require('express-winston');
 
-// Routes
+// routes
 import apiRoutes from './routes/index.route';
 import balancerRoutes from './routes/balancer.route';
-
-// import { EthereumService } from './services/ethereum';
-// import { EthereumConfigService } from './services/ethereum_config';
-// import { EthereumGasService } from './services/ethereum_gas';
 import ethRoutes from './routes/ethereum';
-
+import perpFiRoutes from './routes/perpetual_finance.route';
 import terraRoutes from './routes/terra.route';
 import uniswapRoutes from './routes/uniswap.route';
 import uniswapV3Routes from './routes/uniswap_v3.route';
-import perpFiRoutes from './routes/perpetual_finance.route';
 
-//load configs
+// load configs
 const globalConfig =
   require('./services/configuration_manager').configManagerInstance;
 
@@ -39,11 +34,12 @@ const ipWhitelist = globalConfig.getCoreConfig('IP_WHITELIST');
 if (ipWhitelist) {
   app.use(IpFilter(JSON.parse(ipWhitelist), { mode: 'allow' }));
 }
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(validateAccess);
 
+// set up logging for all API queries
 app.use(
   expressWinston.logger({
     transports: [new winston.transports.Console()],
@@ -53,9 +49,9 @@ app.use(
     ),
     meta: true,
     msg: 'HTTP {{req.method}} {{req.url}}',
-    expressFormat: true, 
+    expressFormat: true,
     colorize: false,
-      ignoreRoute: function (_req: any, _res: any) {
+    ignoreRoute: function (_req: any, _res: any) {
       return false;
     },
   })
@@ -63,27 +59,19 @@ app.use(
 
 // mount routes to specific path
 app.use('/api', apiRoutes);
-
-// const ethConfig = new EthereumConfigService();
-// const ethService = new EthereumService(ethConfig);
-// const ethGasService = new EthereumGasService(ethConfig);
-// const ethRoutes = new EthereumRoutes(ethService, ethConfig, ethGasService);
 app.use('/eth', ethRoutes);
-
 app.use('/eth/uniswap', uniswapRoutes);
 app.use('/eth/uniswap/v3', uniswapV3Routes);
 app.use('/eth/balancer', balancerRoutes);
 app.use('/terra', terraRoutes);
 app.use('/perpfi', perpFiRoutes);
-// app.use('/celo', celoRoutes);
 
+// a simple, pingable route
 app.get('/', (req, res, _next) => {
   res.send('ok');
 });
 
-/**
- * Catch all 404 response when routes are not found
- */
+// Catch all 404 response when routes are not found
 app.use((req, res, _next) => {
   const message = `${statusMessages.page_not_found} at ${req.originalUrl}`;
   logger.error(message);
