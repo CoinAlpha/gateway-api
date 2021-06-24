@@ -1,18 +1,19 @@
-// import { EthereumService, TokenERC20Info } from '../services/ethereum';
+import { EthereumService, TokenERC20Info } from '../services/ethereum';
 import { EthereumConfigService } from '../services/ethereum_config';
 // import { EthereumGasService } from '../services/ethereum_gas';
 import { Router, Request, Response } from 'express';
-// import { Wallet } from 'ethers';
+import { Wallet } from 'ethers';
 // import { EVMBase } from '../core/evm_base';
 
 const router = Router();
 
-// const latency = (startTime: number, endTime: number): number => {
-//   return (endTime - startTime) / 1000;
-// };
+const latency = (startTime: number, endTime: number): number => {
+  return (endTime - startTime) / 1000;
+};
 
 
 const config = new EthereumConfigService();
+const ethereumService = new EthereumService(config);
 
 router.post('/', async (req: Request, res: Response) => {
   /*
@@ -26,6 +27,55 @@ router.post('/', async (req: Request, res: Response) => {
     });
 
 });
+
+
+router.post('/balances',  async (req: Request, res: Response) => {
+    const initTime = Date.now();
+
+    // Trying connect to Wallet
+    try {
+      const wallet: Wallet = ethereumService.getWallet(
+        req.body.privateKey || ''
+      );
+
+      // Populate token contract info using token symbol list
+      let tokenContractList: Record<string, TokenERC20Info> = {};
+      tokenContractList = ethereumService.getERC20TokenAddresses(
+        req.body.tokenList
+      );
+
+      // Getting user balancers
+      const balances: Record<string, string> = {};
+      balances.ETH = await ethereumService
+        .getETHBalance(wallet)
+        .toString();
+      await Promise.all(
+        Object.keys(tokenContractList).map(async (symbol) => {
+          if (tokenContractList[symbol] !== undefined) {
+            const address = tokenContractList[symbol].address;
+            const decimals = tokenContractList[symbol].decimals;
+            balances[symbol] = await ethereumService
+              .getERC20Balance(wallet, address, decimals)
+              .toString();
+          } else {
+            // logger.error(`Token contract info for ${symbol} not found`);
+          }
+        })
+      );
+
+      res.status(200).json({
+        network: config.networkName,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        balances: balances,
+      });
+    } catch (err) {
+      // logger.error(err);
+      res.status(500).send(err);
+    }
+});
+           
+
 
 export default router;
 
