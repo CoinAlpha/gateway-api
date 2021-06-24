@@ -7,7 +7,8 @@ export class EthereumGasService {
   private isTracingStarted = false;
   private config: EthereumConfigService;
 
-  private async onModuleInit(): Promise<void> {
+  constructor(config: EthereumConfigService) {
+    this.config = config;
     if (this.config.isGasStationEnabled) {
       // this.logger.log('GasStation enabled');
       if (this.config.refreshTimeForGasPrice) {
@@ -16,7 +17,10 @@ export class EthereumGasService {
         // );
         this.startTracing();
       } else {
-        this.gasPrice = await this.fetchCurrentGasPrice();
+        (async () => {
+          this.gasPrice = await this.fetchCurrentGasPrice();
+        })();          
+        
         // this.logger.log(
         //   `Fetched gas price (${this.config.gasLevel}): ${this.gasPrice}`,
         // );
@@ -26,11 +30,6 @@ export class EthereumGasService {
 
       // this.logger.log(`Using fixed gas price: ${this.gasPrice}`);
     }
-  }
-
-  constructor(config: EthereumConfigService) {
-    this.config = config;
-    this.onModuleInit();
   }
 
   /**

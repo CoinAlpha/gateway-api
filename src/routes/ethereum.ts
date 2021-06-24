@@ -1,6 +1,6 @@
 import { EthereumService, TokenERC20Info } from '../services/ethereum';
 import { EthereumConfigService } from '../services/ethereum_config';
-// import { EthereumGasService } from '../services/ethereum_gas';
+import { EthereumGasService } from '../services/ethereum_gas';
 import { Router, Request, Response } from 'express';
 import { Wallet } from 'ethers';
 // import { EVMBase } from '../core/evm_base';
@@ -13,6 +13,7 @@ const latency = (startTime: number, endTime: number): number => {
 
 const config = new EthereumConfigService();
 const ethereumService = new EthereumService(config);
+const ethereumGasService = new EthereumGasService(config);
 
 router.post('/', async (req: Request, res: Response) => {
   /*
@@ -97,6 +98,7 @@ router.post('/allowances', async (req: Request, res: Response) => {
             decimals
           );
         } catch (_err) {
+          // this helps preserve the expected behavior
           approvals[symbol] = 'invalid ENS name';
         }
       })
@@ -117,62 +119,63 @@ router.post('/allowances', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/approve', async (req: Request, res: Response) => {
+  const initTime = Date.now();
+
+  // Getting spender
+  const spender = config.spenders[req.body.connector];
+  if (!spender) {
+    res.status(500).send('Wrong connector');
+  }
+
+  // Getting Wallet
+  try {
+    const wallet = ethereumService.getWallet(req.body.privateKey);
+
+    // Getting token info
+    const tokenContractInfo = ethereumService.getERC20TokenAddress(
+      JSON.parse(req.body.token)
+    );
+
+    if (!tokenContractInfo) {
+      res.status(500).send(`Token "${req.body.token}" is not supported`);
+    } else {
+      const tokenAddress = tokenContractInfo.address;
+
+      const gasPrice = req.body.gasPrice || ethereumGasService.getGasPrice();
+
+      // call approve function
+      const approval = await ethereumService.approveERC20(
+        wallet,
+        spender,
+        tokenAddress,
+        req.body.amount,
+        gasPrice
+      );
+
+      res.status(200).json({
+        network: config.networkName,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        tokenAddress: tokenAddress,
+        spender: spender,
+        amount: req.body.amount / 1e18,
+        approval: approval,
+      });
+    }
+  } catch (err) {
+    // this.logger.error(err);
+    res.status(500).send('Error getting wallet');
+  }
+});
+
 export default router;
 
 /*
 export class EthereumRoutes extends EVMBase {
 
 
-  async approve(req: Request, res: Response) {
-    const initTime = Date.now();
-
-    // Getting spender
-    const spender = this.config.spenders[req.body.connector];
-    if (!spender) {
-      res.status(500).send('Wrong connector');
-    }
-
-    // Getting Wallet
-    try {
-      const wallet = this.ethereumService.getWallet(req.body.privateKey);
-
-      // Getting token info
-      const tokenContractInfo = this.ethereumService.getERC20TokenAddress(
-        req.body.token
-      );
-
-      if (!tokenContractInfo) {
-        res.status(500).send(`Token "${req.body.token}" is not supported`);
-      } else {
-        const tokenAddress = tokenContractInfo.address;
-
-        const gasPrice =
-          req.body.gasPrice || this.ethereumGasService.getGasPrice();
-
-        // call approve function
-        const approval = await this.ethereumService.approveERC20(
-          wallet,
-          spender,
-          tokenAddress,
-          req.body.amount,
-          gasPrice
-        );
-
-        res.status(200).json({
-          network: this.config.networkName,
-          timestamp: initTime,
-          latency: latency(initTime, Date.now()),
-          tokenAddress: tokenAddress,
-          spender: spender,
-          amount: req.body.amount / 1e18,
-          approval: approval,
-        });
-      }
-    } catch (err) {
-      // this.logger.error(err);
-      res.status(500).send('Error getting wallet');
-    }
-  }
+  
 
   async poll(req: Request, res: Response) {
     const initTime = Date.now();
