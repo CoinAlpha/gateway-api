@@ -1,6 +1,6 @@
 import axios from 'axios';
 import abi from '../assets/abi.json';
-import { Contract, providers, Wallet } from 'ethers';
+import { BigNumber, Contract, providers, Wallet } from 'ethers';
 import { EthereumConfigService } from './ethereum_config';
 import { default as kovanErc20TokenList } from '../assets/erc20_tokens_kovan.json';
 
@@ -115,7 +115,7 @@ export class EthereumService {
   }
 
   /**
-   * Approve a spender to transfer tokens from a wallet address
+   * Check how much a spender is allowed to spend for a wallet
    * @param {Wallet} wallet
    * @param {string} spender
    * @param {string} tokenAddress
@@ -140,7 +140,7 @@ export class EthereumService {
   }
 
   /**
-   * Approval an amount for a wallet and token
+   * Approve a spender to transfer tokens from a wallet address
    * @param {Wallet} wallet
    * @param {string} spender
    * @param {string} tokenAddress
@@ -152,9 +152,9 @@ export class EthereumService {
     wallet: Wallet,
     spender: string,
     tokenAddress: string,
-    amount: number,
+    amount: BigNumber,
     gasPrice: number
-  ): Promise<void> {
+  ): Promise<string> {
     try {
       // instantiate a contract and pass in wallet, which act on behalf of that signer
       const contract = new Contract(tokenAddress, abi.ERC20Abi, wallet);

@@ -2,7 +2,7 @@ import { EthereumService, TokenERC20Info } from '../services/ethereum';
 import { EthereumConfigService } from '../services/ethereum_config';
 import { EthereumGasService } from '../services/ethereum_gas';
 import { Router, Request, Response } from 'express';
-import { Wallet } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 // import { EVMBase } from '../core/evm_base';
 
 const router = Router();
@@ -32,7 +32,9 @@ router.post('/balances', async (req: Request, res: Response) => {
 
   // Trying connect to Wallet
   try {
-    const wallet: Wallet = ethereumService.getWallet(req.body.privateKey || '');
+    const wallet: ethers.Wallet = ethereumService.getWallet(
+      req.body.privateKey || ''
+    );
 
     // Populate token contract info using token symbol list
     let tokenContractList: Record<string, TokenERC20Info> = {};
@@ -127,14 +129,14 @@ router.post('/approve', async (req: Request, res: Response) => {
   if (!spender) {
     res.status(500).send('Wrong connector');
   }
-
+  console.log(req.body);
   // Getting Wallet
   try {
     const wallet = ethereumService.getWallet(req.body.privateKey);
 
     // Getting token info
     const tokenContractInfo = ethereumService.getERC20TokenAddress(
-      JSON.parse(req.body.token)
+      req.body.token
     );
 
     if (!tokenContractInfo) {
@@ -144,14 +146,27 @@ router.post('/approve', async (req: Request, res: Response) => {
 
       const gasPrice = req.body.gasPrice || ethereumGasService.getGasPrice();
 
+      let amount: BigNumber = ethers.constants.MaxUint256;
+      if (req.body.amount) {
+        amount = ethers.utils.parseUnits(
+          req.body.amount,
+          tokenContractInfo.decimals
+        );
+      }
+
       // call approve function
-      const approval = await ethereumService.approveERC20(
-        wallet,
-        spender,
-        tokenAddress,
-        req.body.amount,
-        gasPrice
-      );
+      let approval;
+      try {
+        approval = await ethereumService.approveERC20(
+          wallet,
+          spender,
+          tokenAddress,
+          amount,
+          gasPrice
+        );
+      } catch (err) {
+        approval = err;
+      }
 
       res.status(200).json({
         network: config.networkName,
@@ -159,11 +174,12 @@ router.post('/approve', async (req: Request, res: Response) => {
         latency: latency(initTime, Date.now()),
         tokenAddress: tokenAddress,
         spender: spender,
-        amount: req.body.amount / 1e18,
+        amount: amount.div(1e18).toString(),
         approval: approval,
       });
     }
   } catch (err) {
+    console.log(err);
     // this.logger.error(err);
     res.status(500).send('Error getting wallet');
   }

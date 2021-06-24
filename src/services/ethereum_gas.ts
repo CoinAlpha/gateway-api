@@ -19,8 +19,8 @@ export class EthereumGasService {
       } else {
         (async () => {
           this.gasPrice = await this.fetchCurrentGasPrice();
-        })();          
-        
+        })();
+
         // this.logger.log(
         //   `Fetched gas price (${this.config.gasLevel}): ${this.gasPrice}`,
         // );
