@@ -68,93 +68,24 @@ router.post('/balances', async (req: Request, res: Response) => {
   }
 });
 
-export default router;
 
-/*
-export class EthereumRoutes extends EVMBase {
-  constructor(
-    private ethereumService: EthereumService, // private readonly ethereumGasService: EthereumGasService
-    private config: EthereumConfigService,
-    private ethereumGasService: EthereumGasService
-  ) {
-    super();
-  }
-
-    async getStatus(_req: Request, res: Response) {
-        console.log('getstatus is called');
-        console.log(this.config);
-    res.status(200).json({
-      network: this.config.networkName,
-      rpcUrl: this.config.rpcUrl,
-      connection: true,
-      timestamp: Date.now(),
-    });
-
-        return;
-  }
-
-  async getBalances(req: Request, res: Response) {
-    const initTime = Date.now();
-
-    // Trying connect to Wallet
-    try {
-      const wallet: Wallet = this.ethereumService.getWallet(
-        req.body.privateKey || ''
-      );
-
-      // Populate token contract info using token symbol list
-      let tokenContractList: Record<string, TokenERC20Info> = {};
-      tokenContractList = this.ethereumService.getERC20TokenAddresses(
-        req.body.tokenList
-      );
-
-      // Getting user balancers
-      const balances: Record<string, string> = {};
-      balances.ETH = await this.ethereumService
-        .getETHBalance(wallet)
-        .toString();
-      await Promise.all(
-        Object.keys(tokenContractList).map(async (symbol) => {
-          if (tokenContractList[symbol] !== undefined) {
-            const address = tokenContractList[symbol].address;
-            const decimals = tokenContractList[symbol].decimals;
-            balances[symbol] = await this.ethereumService
-              .getERC20Balance(wallet, address, decimals)
-              .toString();
-          } else {
-            // this.logger.error(`Token contract info for ${symbol} not found`);
-          }
-        })
-      );
-
-      res.status(200).json({
-        network: this.config.networkName,
-        timestamp: initTime,
-        latency: latency(initTime, Date.now()),
-        balances: balances,
-      });
-    } catch (err) {
-      // this.logger.error(err);
-      res.status(500).send(err);
-    }
-  }
-
-  async allowances(req: Request, res: Response) {
+router.post('/allowances',   async (req: Request, res: Response) => {
+    console.log(req.body);
     const initTime = Date.now();
 
     // Getting spender
-    const spender = this.config.spenders[req.body.connector];
+    const spender = config.spenders[req.body.connector];
     if (!spender) {
       res.status(500).send('Wrong connector');
     }
 
     // Getting Wallet
     try {
-      const wallet = this.ethereumService.getWallet(req.body.privateKey);
+      const wallet = ethereumService.getWallet(req.body.privateKey);
       // Populate token contract info using token symbol list
       let tokenContractList: Record<string, TokenERC20Info> = {};
-      tokenContractList = this.ethereumService.getERC20TokenAddresses(
-        req.body.tokenList
+      tokenContractList = ethereumService.getERC20TokenAddresses(
+          JSON.parse(req.body.tokenList)
       );
 
       const approvals: Record<string, BigInt> = {};
@@ -162,7 +93,7 @@ export class EthereumRoutes extends EVMBase {
         Object.keys(tokenContractList).map(async (symbol) => {
           const address = tokenContractList[symbol].address;
           const decimals = tokenContractList[symbol].decimals;
-          approvals[symbol] = await this.ethereumService.getERC20Allowance(
+          approvals[symbol] = await ethereumService.getERC20Allowance(
             wallet,
             spender,
             address,
@@ -173,8 +104,8 @@ export class EthereumRoutes extends EVMBase {
 
       // this.logger.log('eth.route - Getting allowances');
 
-      res.status(500).json({
-        network: this.config.networkName,
+      res.status(200).json({
+        network: config.networkName,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         spender: spender,
@@ -186,6 +117,13 @@ export class EthereumRoutes extends EVMBase {
       res.status(500).send(err);
     }
   }
+)
+
+export default router;
+
+/*
+export class EthereumRoutes extends EVMBase {
+
 
   async approve(req: Request, res: Response) {
     const initTime = Date.now();
