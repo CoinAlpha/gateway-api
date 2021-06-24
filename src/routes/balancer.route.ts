@@ -31,7 +31,7 @@ const estimateGasLimit = (maxswaps: number) => {
   return gasLimit;
 };
 
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (_req: Request, res: Response) => {
   /*
     POST /
   */

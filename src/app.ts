@@ -67,7 +67,7 @@ app.use('/terra', terraRoutes);
 app.use('/perpfi', perpFiRoutes);
 
 // a simple, pingable route
-app.get('/', (req, res, _next) => {
+app.get('/', (_req, res) => {
   res.send('ok');
 });
 
