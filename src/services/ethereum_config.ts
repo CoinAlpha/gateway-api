@@ -6,8 +6,9 @@ export class EthereumConfigService {
 
   get spenders(): Record<string, string> {
     return {
-      balancer: this.config.getConfig('BALANCER_EXCHANGE_PROXY'),
+      balancer: this.config.getConfig('EXCHANGE_PROXY'),
       uniswap: this.config.getConfig('UNISWAP_ROUTER'),
+      uniswapV3: this.config.getConfig('UNISWAP_V3_ROUTER'),
     };
   }
 

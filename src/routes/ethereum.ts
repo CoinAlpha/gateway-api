@@ -68,56 +68,54 @@ router.post('/balances', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/allowances', async (req: Request, res: Response) => {
+  const initTime = Date.now();
+  // Getting spender
+  const spender = config.spenders[req.body.connector];
+  if (!spender) {
+    res.status(500).send('Wrong connector');
+  }
 
-router.post('/allowances',   async (req: Request, res: Response) => {
-    console.log(req.body);
-    const initTime = Date.now();
-
-    // Getting spender
-    const spender = config.spenders[req.body.connector];
-    if (!spender) {
-      res.status(500).send('Wrong connector');
-    }
-
-    // Getting Wallet
-    try {
-      const wallet = ethereumService.getWallet(req.body.privateKey);
-      // Populate token contract info using token symbol list
-      let tokenContractList: Record<string, TokenERC20Info> = {};
-      tokenContractList = ethereumService.getERC20TokenAddresses(
-          JSON.parse(req.body.tokenList)
-      );
-
-      const approvals: Record<string, BigInt> = {};
-      await Promise.all(
-        Object.keys(tokenContractList).map(async (symbol) => {
-          const address = tokenContractList[symbol].address;
-          const decimals = tokenContractList[symbol].decimals;
+  // Getting Wallet
+  try {
+    const wallet = ethereumService.getWallet(req.body.privateKey);
+    // Populate token contract info using token symbol list
+    let tokenContractList: Record<string, TokenERC20Info> = {};
+    tokenContractList = ethereumService.getERC20TokenAddresses(
+      JSON.parse(req.body.tokenList)
+    );
+    const approvals: Record<string, BigInt | string> = {};
+    await Promise.all(
+      Object.keys(tokenContractList).map(async (symbol) => {
+        const address = tokenContractList[symbol].address;
+        const decimals = tokenContractList[symbol].decimals;
+        try {
           approvals[symbol] = await ethereumService.getERC20Allowance(
             wallet,
             spender,
             address,
             decimals
           );
-        })
-      );
+        } catch (_err) {
+          approvals[symbol] = 'invalid ENS name';
+        }
+      })
+    );
 
-      // this.logger.log('eth.route - Getting allowances');
+    // this.logger.log('eth.route - Getting allowances');
 
-      res.status(200).json({
-        network: config.networkName,
-        timestamp: initTime,
-        latency: latency(initTime, Date.now()),
-        spender: spender,
-        approvals: approvals,
-      });
-    } catch (err) {
-      // this.logger.error(err);
-      // throw new InternalServerErrorException('Error getting wallet');
-      res.status(500).send(err);
-    }
+    res.status(200).json({
+      network: config.networkName,
+      timestamp: initTime,
+      latency: latency(initTime, Date.now()),
+      spender: spender,
+      approvals: approvals,
+    });
+  } catch (err) {
+    // this.logger.error(err);
+    res.status(500).send('Error getting wallet');
   }
-)
+});
 
 export default router;
 

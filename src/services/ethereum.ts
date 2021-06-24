@@ -2,6 +2,7 @@ import axios from 'axios';
 import abi from '../assets/abi.json';
 import { Contract, providers, Wallet } from 'ethers';
 import { EthereumConfigService } from './ethereum_config';
+import { default as kovanErc20TokenList } from '../assets/erc20_tokens_kovan.json';
 
 export enum GasStationLevel {
   FAST = 'fast',
@@ -49,20 +50,17 @@ export class EthereumService {
   private readonly provider = new providers.JsonRpcProvider(this.config.rpcUrl);
   private erc20TokenList: ERC20TokensList | null = null;
 
-  /**
-   * Extracted from constructor because it is async, load the ERC20 token list.
-   * @param {Network} network
-   * @return {Promise<void>}
-   */
-  private async start(): Promise<void> {
+  constructor(private readonly config: EthereumConfigService) {
     switch (this.config.networkName) {
       case Network.KOVAN:
-        this.erc20TokenList = require('../assets/erc20_tokens_kovan.json');
+        this.erc20TokenList = kovanErc20TokenList;
         break;
 
       case Network.MAINNET: {
-        const { data } = await axios.get(this.config.tokenListUrl);
-        this.erc20TokenList = data;
+        (async () => {
+          const { data } = await axios.get(this.config.tokenListUrl);
+          this.erc20TokenList = data;
+        })();
         break;
       }
 
@@ -70,10 +68,6 @@ export class EthereumService {
         throw new Error(`Invalid network ${this.config.networkName}`);
       }
     }
-  }
-
-  constructor(private readonly config: EthereumConfigService) {
-    this.start();
   }
 
   get networkName(): string {
