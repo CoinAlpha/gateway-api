@@ -1,6 +1,7 @@
 import axios from 'axios';
-import BigNumber from 'bignumber.js';
+import { ethers } from 'ethers';
 import { EthereumConfigService } from './ethereum_config';
+import { logger } from '../services/logger';
 
 export class EthereumGasService {
   private gasPrice = 0;
@@ -10,25 +11,24 @@ export class EthereumGasService {
   constructor(config: EthereumConfigService) {
     this.config = config;
     if (this.config.isGasStationEnabled) {
-      // this.logger.log('GasStation enabled');
+      logger.info('GasStation enabled');
       if (this.config.refreshTimeForGasPrice) {
-        // this.logger.log(
-        //   `Start tracing gas price in background every ${this.config.refreshTimeForGasPrice} sec`,
-        // );
+        logger.info(
+          `Start tracing gas price in background every ${this.config.refreshTimeForGasPrice} sec`
+        );
         this.startTracing();
       } else {
         (async () => {
           this.gasPrice = await this.fetchCurrentGasPrice();
         })();
 
-        // this.logger.log(
-        //   `Fetched gas price (${this.config.gasLevel}): ${this.gasPrice}`,
-        // );
+        logger.info(
+          `Fetched gas price (${this.config.gasLevel}): ${this.gasPrice}`
+        );
       }
     } else {
       this.gasPrice = this.config.manualGasPrice;
-
-      // this.logger.log(`Using fixed gas price: ${this.gasPrice}`);
+      logger.info(`Using fixed gas price: ${this.gasPrice}`);
     }
   }
 
@@ -74,13 +74,13 @@ export class EthereumGasService {
     try {
       const { data } = await axios.get(this.config.gasServiceUrl);
 
-      // divite by 10 to convert it to Gwei
+      // divide by 10 to convert it to Gwei
       const gasPrice = data[level] / 10;
-      // this.logger.log(`Ethereum GasStation gas price (${level}): ${gasPrice}`);
+      logger.info(`Ethereum GasStation gas price (${level}): ${gasPrice}`);
 
       return gasPrice;
     } catch (err) {
-      // this.logger.error(err);
+      logger.error(err);
       throw new Error(err.reason || 'error ETH gas fee lookup');
     }
   }
@@ -89,9 +89,9 @@ export class EthereumGasService {
     return this.gasPrice;
   }
 
-  getGasCost(gasLimit: number, inGwei = false): BigNumber {
-    const cost = new BigNumber(this.gasPrice * gasLimit);
-    const denom = new BigNumber('1e+9');
+  getGasCost(gasLimit: number, inGwei = false): ethers.BigNumber {
+    const cost = ethers.BigNumber.from(this.gasPrice * gasLimit);
+    const denom = ethers.BigNumber.from(BigInt('1e+9'));
 
     return inGwei ? cost : cost.div(denom);
   }

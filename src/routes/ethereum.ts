@@ -1,9 +1,9 @@
 import { EthereumService, TokenERC20Info } from '../services/ethereum';
 import { EthereumConfigService } from '../services/ethereum_config';
 import { EthereumGasService } from '../services/ethereum_gas';
+import { logger } from '../services/logger';
 import { Router, Request, Response } from 'express';
 import { ethers } from 'ethers';
-// import { EVMBase } from '../core/evm_base';
 
 const router = Router();
 
@@ -54,7 +54,7 @@ router.post('/balances', async (req: Request, res: Response) => {
             await ethereumService.getERC20Balance(wallet, address, decimals)
           ).toString();
         } else {
-          // logger.error(`Token contract info for ${symbol} not found`);
+          logger.error(`Token contract info for ${symbol} not found`);
         }
       })
     );
@@ -66,7 +66,7 @@ router.post('/balances', async (req: Request, res: Response) => {
       balances: balances,
     });
   } catch (err) {
-    // logger.error(err);
+    logger.error(err);
     res.status(500).send(err);
   }
 });
@@ -106,7 +106,7 @@ router.post('/allowances', async (req: Request, res: Response) => {
       })
     );
 
-    // this.logger.log('eth.route - Getting allowances');
+    logger.info('eth.route - Getting allowances');
 
     res.status(200).json({
       network: config.networkName,
@@ -116,7 +116,7 @@ router.post('/allowances', async (req: Request, res: Response) => {
       approvals: approvals,
     });
   } catch (err) {
-    // this.logger.error(err);
+    logger.error(err);
     res.status(500).send('Error getting wallet');
   }
 });
@@ -164,6 +164,9 @@ router.post('/approve', async (req: Request, res: Response) => {
           gasPrice
         );
       } catch (err) {
+        logger.warning(
+          `Unable to approve: ${wallet} ${spender} ${tokenAddress}: ${err}`
+        );
         approval = err;
       }
 
@@ -178,8 +181,7 @@ router.post('/approve', async (req: Request, res: Response) => {
       });
     }
   } catch (err) {
-    console.log(err);
-    // this.logger.error(err);
+    logger.error(err);
     res.status(500).send('Error getting wallet');
   }
 });
@@ -189,7 +191,7 @@ router.post('/poll', async (req: Request, res: Response) => {
   const receipt = await ethereumService.getTransactionReceipt(req.body.txHash);
   const confirmed = receipt && receipt.blockNumber ? true : false;
 
-  // this.logger.log(`eth.route - Get TX Receipt: ${req.body.txHash}`);
+  logger.info(`eth.route - Get TX Receipt: ${req.body.txHash}`);
 
   res.status(200).json({
     network: config.networkName,
