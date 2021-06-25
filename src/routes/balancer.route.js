@@ -76,11 +76,7 @@ router.post('/gas-limit', async (req, res) => {
 
 router.get('/start', async (req, res) => {
   /*
-    POST: /eth/balancer/start
-      x-www-form-urlencoded: {
-        "pairs":'["ETH-USDT", ...]'
-        "gasPrice":30
-      }
+    GET: /eth/balancer/start?pairs=["BAT-DAI"]&gasPrice=30
   */
   const initTime = Date.now();
   const paramData = getParamData(req.query);
