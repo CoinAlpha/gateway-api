@@ -19,8 +19,8 @@ uniswap.generate_tokens();
 setTimeout(uniswap.update_pairs.bind(uniswap), 2000);
 const fees = new Fees();
 
-const swapMoreThanMaxPriceError = 'Price too high'
-const swapLessThanMaxPriceError = 'Price too low'
+const swapMoreThanMaxPriceError = 'Price too high';
+const swapLessThanMaxPriceError = 'Price too low';
 
 const estimateGasLimit = () => {
   return uniswap.gasLimit;
@@ -114,7 +114,7 @@ router.get('/start', async (req, res) => {
         "gasPrice":30
       }
   */
-  let orderedPairs = []
+  let orderedPairs = [];
   const initTime = Date.now();
   const paramData = getParamData(req.query);
   const pairs = JSON.parse(paramData.pairs);
@@ -133,7 +133,6 @@ router.get('/start', async (req, res) => {
     const baseTokenContractInfo = eth.getERC20TokenAddresses(baseTokenSymbol);
     const quoteTokenContractInfo = eth.getERC20TokenAddresses(quoteTokenSymbol);
 
-
     // check for valid token symbols
     if (
       baseTokenContractInfo === undefined ||
@@ -151,13 +150,14 @@ router.get('/start', async (req, res) => {
     }
 
     //order trading pairs
-    if (baseTokenContractInfo.address < quoteTokenContractInfo.address) orderedPairs.push(pair.join('-'))
-    else orderedPairs.push(pair.reverse().join('-'))
+    if (baseTokenContractInfo.address < quoteTokenContractInfo.address)
+      orderedPairs.push(pair.join('-'));
+    else orderedPairs.push(pair.reverse().join('-'));
 
     uniswap.extend_update_pairs([
       baseTokenContractInfo,
       quoteTokenContractInfo
-    ])
+    ]);
   }
 
   const gasLimit = estimateGasLimit();
@@ -351,7 +351,8 @@ router.post('/price', async (req, res) => {
 
   let priceResult, price;
   try {
-    if (paramData.amount) { // get price at tihs depth
+    if (paramData.amount) {
+      // get price at this depth
       const amount = paramData.amount;
       const side = paramData.side.toUpperCase();
       const { trade, expectedAmount } =
@@ -368,15 +369,19 @@ router.post('/price', async (req, res) => {
             );
 
       if (trade !== null && expectedAmount !== null) {
-        price = side === 'BUY'
-          ? trade.executionPrice.invert().toFixed()
-          : trade.executionPrice.toFixed();
+        price =
+          side === 'BUY'
+            ? trade.executionPrice.invert().toFixed()
+            : trade.executionPrice.toFixed();
 
-        priceResult = { price: parseFloat(price),
+        priceResult = {
+          price: parseFloat(price),
           amount: parseFloat(amount),
-          expectedAmount: parseFloat(expectedAmount.toFixed())}
+          expectedAmount: parseFloat(expectedAmount.toFixed())
+        };
       }
-    } else { // get mid price for all tiers
+    } else {
+      // get mid price for all tiers
       priceResult = await uniswap.currentPrice(
         wallet,
         baseTokenContractInfo,
@@ -403,7 +408,7 @@ router.post('/price', async (req, res) => {
         priceResult
       )}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`
     );
-    res.status(200).json({...result, ...priceResult});
+    res.status(200).json({ ...result, ...priceResult });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
     let reason;
@@ -585,7 +590,12 @@ router.post('/remove-position', async (req, res) => {
   const gasCost = await fees.getGasCost(gasPrice, gasLimit);
 
   try {
-    const removelp = await uniswap.reducePosition(wallet, tokenId, eth, reducePercent)
+    const removelp = await uniswap.reducePosition(
+      wallet,
+      tokenId,
+      eth,
+      reducePercent
+    );
 
     const result = {
       network: uniswap.network,
