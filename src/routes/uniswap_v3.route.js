@@ -91,12 +91,17 @@ router.post('/result', async (req, res) => {
   const initTime = Date.now();
   const paramData = getParamData(req.body);
   const logs = JSON.parse(paramData.logs);
+  const pair = paramData.pair;
+  const baseTokenContractInfo = eth.getERC20TokenAddresses(pair.split('-')[0]);
+  const quoteTokenContractInfo = eth.getERC20TokenAddresses(pair.split('-')[1]);
 
   const result = {
     network: eth.network,
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
-    info: uniswap.abiDecoder.decodeLogs(logs)
+    info: uniswap.abiDecoder.decodeLogs(logs),
+    baseDecimal: baseTokenContractInfo.decimals,
+    quoteDecimal: quoteTokenContractInfo.decimals
   };
   res.status(200).json(result);
 });
@@ -109,6 +114,7 @@ router.get('/start', async (req, res) => {
         "gasPrice":30
       }
   */
+  let orderedPairs = []
   const initTime = Date.now();
   const paramData = getParamData(req.query);
   const pairs = JSON.parse(paramData.pairs);
@@ -127,6 +133,7 @@ router.get('/start', async (req, res) => {
     const baseTokenContractInfo = eth.getERC20TokenAddresses(baseTokenSymbol);
     const quoteTokenContractInfo = eth.getERC20TokenAddresses(quoteTokenSymbol);
 
+
     // check for valid token symbols
     if (
       baseTokenContractInfo === undefined ||
@@ -142,6 +149,11 @@ router.get('/start', async (req, res) => {
       });
       return;
     }
+
+    //order trading pairs
+    if (baseTokenContractInfo.address < quoteTokenContractInfo.address) orderedPairs.push(pair.join('-'))
+    else orderedPairs.push(pair.reverse().join('-'))
+
     uniswap.extend_update_pairs([
       baseTokenContractInfo,
       quoteTokenContractInfo
@@ -156,7 +168,7 @@ router.get('/start', async (req, res) => {
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
     success: true,
-    pairs: pairs,
+    pairs: orderedPairs,
     gasPrice: gasPrice,
     gasLimit: gasLimit,
     gasCost: gasCost
