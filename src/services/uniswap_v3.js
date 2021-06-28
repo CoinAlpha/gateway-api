@@ -1,5 +1,4 @@
 import { logger } from './logger';
-import JSBI from 'jsbi';
 
 const debug = require('debug')('router');
 const math = require('mathjs');
