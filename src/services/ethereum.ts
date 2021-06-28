@@ -142,7 +142,7 @@ export class EthereumService {
    * @param {string} tokenAddress
    * @param {number} amount
    * @param {number} gasPrice
-   * @return {Promise<void>}
+   * @return {Promise<string>}
    */
   async approveERC20(
     wallet: Wallet,

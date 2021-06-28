@@ -152,7 +152,7 @@ router.post('/approve', async (req: Request, res: Response) => {
           tokenContractInfo.decimals
         );
       }
-
+        console.log('approve');
       // call approve function
       let approval;
       try {
@@ -164,10 +164,7 @@ router.post('/approve', async (req: Request, res: Response) => {
           gasPrice
         );
       } catch (err) {
-        logger.warning(
-          `Unable to approve: ${wallet} ${spender} ${tokenAddress}: ${err}`
-        );
-        approval = err;
+          approval = err;
       }
 
       res.status(200).json({
