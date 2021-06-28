@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "e39af94e-6095-479e-8ba0-66930b12e364",
+    "_postman_id": "c7985e75-fb04-4b2e-96b9-d62561f160d0",
     "name": "Gateway",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -161,46 +161,6 @@
               "response": []
             },
             {
-              "name": "eth/get-weth",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "urlencoded",
-                  "urlencoded": [
-                    {
-                      "key": "gasPrice",
-                      "value": "31",
-                      "type": "text"
-                    },
-                    {
-                      "key": "amount",
-                      "value": "0.03",
-                      "type": "text"
-                    },
-                    {
-                      "key": "privateKey",
-                      "value": "{{privateKey}}",
-                      "type": "text"
-                    },
-                    {
-                      "key": "tokenAddress",
-                      "value": "{{WETH}}",
-                      "type": "text"
-                    }
-                  ]
-                },
-                "url": {
-                  "raw": "https://localhost:{{port}}/eth/get-weth",
-                  "protocol": "https",
-                  "host": ["localhost"],
-                  "port": "{{port}}",
-                  "path": ["eth", "get-weth"]
-                }
-              },
-              "response": []
-            },
-            {
               "name": "eth/poll",
               "request": {
                 "method": "POST",
@@ -285,46 +245,38 @@
             },
             {
               "name": "eth/balancer/start",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
               "request": {
-                "method": "POST",
+                "method": "GET",
                 "header": [],
                 "body": {
                   "mode": "urlencoded",
-                  "urlencoded": [
-                    {
-                      "key": "base",
-                      "value": "BAT",
-                      "type": "text"
-                    },
-                    {
-                      "key": "quote",
-                      "value": "dai",
-                      "type": "text"
-                    },
-                    {
-                      "key": "privateKey",
-                      "value": "{{privateKey}}",
-                      "type": "text"
-                    },
-                    {
-                      "key": "approvalAmount",
-                      "value": "1",
-                      "type": "text",
-                      "disabled": true
-                    },
-                    {
-                      "key": "gasPrice",
-                      "value": "50",
-                      "type": "text"
+                  "urlencoded": [],
+                  "options": {
+                    "raw": {
+                      "language": "json"
                     }
-                  ]
+                  }
                 },
                 "url": {
-                  "raw": "https://localhost:{{port}}/eth/balancer/start",
+                  "raw": "https://localhost:{{port}}/eth/balancer/start?pairs=[\"BAT-DAI\"]&gasPrice=30",
                   "protocol": "https",
                   "host": ["localhost"],
                   "port": "{{port}}",
-                  "path": ["eth", "balancer", "start"]
+                  "path": ["eth", "balancer", "start"],
+                  "query": [
+                    {
+                      "key": "pairs",
+                      "value": "[\"BAT-DAI\"]",
+                      "description": ";"
+                    },
+                    {
+                      "key": "gasPrice",
+                      "value": "30"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -495,46 +447,37 @@
             },
             {
               "name": "eth/uniswap/start",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
               "request": {
-                "method": "POST",
+                "method": "GET",
                 "header": [],
                 "body": {
                   "mode": "urlencoded",
-                  "urlencoded": [
-                    {
-                      "key": "base",
-                      "value": "WETH",
-                      "type": "text"
-                    },
-                    {
-                      "key": "quote",
-                      "value": "USDC",
-                      "type": "text"
-                    },
-                    {
-                      "key": "privateKey",
-                      "value": "{{privateKey}}",
-                      "type": "text"
-                    },
-                    {
-                      "key": "approvalAmount",
-                      "value": "1",
-                      "type": "text",
-                      "disabled": true
-                    },
-                    {
-                      "key": "gasPrice",
-                      "value": "50",
-                      "type": "text"
+                  "urlencoded": [],
+                  "options": {
+                    "raw": {
+                      "language": "json"
                     }
-                  ]
+                  }
                 },
                 "url": {
-                  "raw": "https://localhost:{{port}}/eth/uniswap/start",
+                  "raw": "https://localhost:{{port}}/eth/uniswap/start?pairs=[\"WETH-USDC\"]&gasPrice=30",
                   "protocol": "https",
                   "host": ["localhost"],
                   "port": "{{port}}",
-                  "path": ["eth", "uniswap", "start"]
+                  "path": ["eth", "uniswap", "start"],
+                  "query": [
+                    {
+                      "key": "pairs",
+                      "value": "[\"WETH-USDC\"]"
+                    },
+                    {
+                      "key": "gasPrice",
+                      "value": "30"
+                    }
+                  ]
                 }
               },
               "response": []

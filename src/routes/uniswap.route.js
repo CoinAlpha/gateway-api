@@ -81,11 +81,7 @@ router.post('/gas-limit', async (req, res) => {
 
 router.get('/start', async (req, res) => {
   /*
-    POST: /eth/uniswap/start
-      x-www-form-urlencoded: {
-        "pairs":"[ETH-USDT, ...]"
-        "gasPrice":30
-      }
+    GET: /eth/uniswap/start?pairs=["WETH-USDC"]&gasPrice=30
   */
   const initTime = Date.now();
   const paramData = getParamData(req.query);
