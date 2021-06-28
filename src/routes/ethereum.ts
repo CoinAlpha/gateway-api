@@ -176,7 +176,7 @@ router.post('/approve', async (req: Request, res: Response) => {
         latency: latency(initTime, Date.now()),
         tokenAddress: tokenAddress,
         spender: spender,
-        amount: amount.div(ethers.BigNumber.from(BigInt(1e18))).toString(),
+        amount: amount.div(ethers.BigNumber.from(BigInt(tokenContractInfo.decimals))).toString(),
         approval: approval,
       });
     }
