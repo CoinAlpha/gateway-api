@@ -1,11 +1,11 @@
 /*
   Hummingbot Utils
 */
-const config = require('./configuration_manager');
+const config = require('./services/configuration_manager');
 const lodash = require('lodash');
 const moment = require('moment');
 const globalConfig =
-  require('../services/configuration_manager').configManagerInstance;
+  require('./services/configuration_manager').configManagerInstance;
 const { NonceManager } = require('@ethersproject/experimental');
 
 export const statusMessages = {

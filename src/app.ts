@@ -1,8 +1,8 @@
 import bodyParser from 'body-parser';
 import express from 'express';
 import helmet from 'helmet';
-import { statusMessages } from './services/utils';
-import { validateAccess } from './services/access';
+import { statusMessages } from './helpers';
+import { validateAccess } from './middlewares/validate_access';
 import { IpFilter } from 'express-ipfilter';
 import { logger } from './services/logger';
 

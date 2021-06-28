@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import express from 'express';
 import { Request, Response } from 'express';
 
-import { latency, statusMessages } from '../services/utils';
+import { latency, statusMessages } from '../helpers';
 
 import { EthereumService } from '../services/ethereum';
 import { EthereumConfigService } from '../services/ethereum_config';
@@ -67,12 +67,8 @@ router.post('/gas-limit', async (req: Request, res: Response) => {
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
-    let reason;
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error);
     res.status(500).json({
-      error: reason,
+      error: statusMessages.operation_error,
       message: err,
     });
   }
@@ -238,12 +234,8 @@ router.post('/price', async (req: Request, res: Response) => {
       }
     } catch (err) {
       logger.error(req.originalUrl, { message: err });
-      let reason;
-      err.reason
-        ? (reason = err.reason)
-        : (reason = statusMessages.operation_error);
       res.status(500).json({
-        error: reason,
+        error: statusMessages.operation_error,
         message: err,
       });
     }
@@ -399,12 +391,8 @@ router.post('/trade', async (req: Request, res: Response) => {
       }
     } catch (err) {
       logger.error(req.originalUrl, { message: err });
-      let reason;
-      err.reason
-        ? (reason = err.reason)
-        : (reason = statusMessages.operation_error);
       res.status(500).json({
-        error: reason,
+        error: statusMessages.operation_error,
         message: err,
       });
     }

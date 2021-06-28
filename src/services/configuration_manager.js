@@ -5,15 +5,15 @@ a global configuraion file.
 import YAML from 'yaml';
 import fs from 'fs';
 
-const GlobalConfigFilePath = './conf/global_conf.yml';
+const globalConfigFilePath = './conf/global_conf.yml';
 
 export default class ConfigurationManager {
   constructor() {
     try {
-      this.globalConfFile = fs.readFileSync(GlobalConfigFilePath, 'utf8');
+      this.globalConfFile = fs.readFileSync(globalConfigFilePath, 'utf8');
     } catch (err) {
-      fs.copyFileSync(GlobalConfigFilePath + '.example', GlobalConfigFilePath);
-      this.globalConfFile = fs.readFileSync(GlobalConfigFilePath, 'utf8');
+      fs.copyFileSync(globalConfigFilePath + '.example', globalConfigFilePath);
+      this.globalConfFile = fs.readFileSync(globalConfigFilePath, 'utf8');
     }
     this.configs = YAML.parseDocument(this.globalConfFile);
     this.fileWatcher();
@@ -35,7 +35,7 @@ export default class ConfigurationManager {
         this.configs.set(key, data[key]);
       }
     });
-    fs.writeFileSync(GlobalConfigFilePath, this.configs.toString());
+    fs.writeFileSync(globalConfigFilePath, this.configs.toString());
 
     if (toExit) {
       process.exit(1);
@@ -56,12 +56,12 @@ export default class ConfigurationManager {
 
   fileWatcher() {
     fs.watchFile(
-      GlobalConfigFilePath,
+      globalConfigFilePath,
       { persistent: true, interval: 1000 },
       (curr, prev) => {
         if (prev.mtime !== curr.mtime) {
           const newConfigs = YAML.parseDocument(
-            fs.readFileSync(GlobalConfigFilePath, 'utf8')
+            fs.readFileSync(globalConfigFilePath, 'utf8')
           );
           if (
             JSON.stringify(this.readAllConfigs().CORE) ===

@@ -10,7 +10,7 @@ const network = 'celo';
 const celocli = 'celocli';
 const DENOM_UNIT_MULTIPLIER = BigNumber('1e+18');
 
-const hbUtils = require('../services/utils');
+const hbUtils = require('../helpers');
 const separator = '=>';
 
 router.use((req, res, next) => {

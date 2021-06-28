@@ -7,7 +7,7 @@ import {
   isTxError,
 } from '@terra-money/terra.js';
 import BigNumber from 'bignumber.js';
-import { getHummingbotMemo } from './utils';
+import { getHummingbotMemo } from '../helpers';
 
 const debug = require('debug')('router');
 const globalConfig =

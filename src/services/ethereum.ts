@@ -3,6 +3,7 @@ import abi from '../assets/abi.json';
 import { BigNumber, Contract, providers, Wallet } from 'ethers';
 import { EthereumConfigService } from './ethereum_config';
 import { default as kovanErc20TokenList } from '../assets/erc20_tokens_kovan.json';
+import { logger } from './logger';
 
 export enum GasStationLevel {
   FAST = 'fast',
@@ -57,10 +58,10 @@ export class EthereumService {
         break;
 
       case Network.MAINNET: {
-        (async () => {
-          const { data } = await axios.get(this.config.tokenListUrl);
-          this.erc20TokenList = data;
-        })();
+        axios
+          .get(this.config.tokenListUrl)
+          .then(({ data }) => (this.erc20TokenList = data))
+          .catch((error) => logger.error(error));
         break;
       }
     }
@@ -76,13 +77,9 @@ export class EthereumService {
    * @return {Promise<BigInt>}
    */
   async getETHBalance(wallet: Wallet): Promise<BigInt> {
-    try {
-      const walletBalance = await wallet.getBalance();
-      const balance = BigInt(walletBalance.toString());
-      return balance / BigInt(1e18);
-    } catch (err) {
-      throw new Error(err.reason || 'error ETH balance lookup');
-    }
+    const walletBalance = await wallet.getBalance();
+    const balance = BigInt(walletBalance.toString());
+    return balance / BigInt(1e18);
   }
 
   /**
@@ -99,15 +96,9 @@ export class EthereumService {
   ): Promise<BigInt> {
     // instantiate a contract and pass in provider for read-only access
     const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
-    try {
-      const balance = await contract.balanceOf(wallet.address);
-      //  return (BigInt(balance) / BigInt(Math.pow(10, decimals))).toString();
-      return BigInt(balance) / BigInt(Math.pow(10, decimals));
-    } catch (err) {
-      throw new Error(
-        err.reason || `Error balance lookup for token address ${tokenAddress}`
-      );
-    }
+    const balance = await contract.balanceOf(wallet.address);
+
+    return BigInt(balance) / BigInt(Math.pow(10, decimals));
   }
 
   /**
@@ -122,17 +113,13 @@ export class EthereumService {
     wallet: Wallet,
     spender: string,
     tokenAddress: string,
-    decimals = 18
+    decimals: number = 18
   ): Promise<BigInt> {
     // instantiate a contract and pass in provider for read-only access
     const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
-    try {
-      const allowance = await contract.allowance(wallet.address, spender);
-      // return allowance / Math.pow(10, decimals);
-      return BigInt(allowance) / BigInt(Math.pow(10, decimals));
-    } catch (err) {
-      throw new Error(err.reason || 'error allowance lookup');
-    }
+    const allowance = await contract.allowance(wallet.address, spender);
+
+    return BigInt(allowance) / BigInt(Math.pow(10, decimals));
   }
 
   /**
@@ -151,17 +138,13 @@ export class EthereumService {
     amount: BigNumber,
     gasPrice: number
   ): Promise<string> {
-    try {
-      // instantiate a contract and pass in wallet, which act on behalf of that signer
-      const contract = new Contract(tokenAddress, abi.ERC20Abi, wallet);
-      return await contract.approve(spender, amount, {
-        gasPrice: gasPrice * 1e9,
-        // fixate gas limit to prevent overwriting
-        gasLimit: this.config.approvalGasLimit,
-      });
-    } catch (err) {
-      throw new Error(err.reason || 'error approval');
-    }
+    // instantiate a contract and pass in wallet, which act on behalf of that signer
+    const contract = new Contract(tokenAddress, abi.ERC20Abi, wallet);
+    return await contract.approve(spender, amount, {
+      gasPrice: gasPrice * 1e9,
+      // fixate gas limit to prevent overwriting
+      gasLimit: this.config.approvalGasLimit,
+    });
   }
 
   /**
@@ -180,16 +163,12 @@ export class EthereumService {
     gasPrice: number,
     gasLimit: number
   ): Promise<any> {
-    try {
-      const contract = new Contract(tokenAddress, abi.KovanWETHAbi, wallet);
-      return await contract.deposit({
-        value: amount,
-        gasPrice: gasPrice * 1e9,
-        gasLimit: gasLimit,
-      });
-    } catch (err) {
-      throw new Error(err.reason || 'error deposit');
-    }
+    const contract = new Contract(tokenAddress, abi.KovanWETHAbi, wallet);
+    return await contract.deposit({
+      value: amount,
+      gasPrice: gasPrice * 1e9,
+      gasLimit: gasLimit,
+    });
   }
 
   /**

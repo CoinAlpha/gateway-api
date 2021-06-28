@@ -2,8 +2,8 @@
   middleware for validating mutual authentication access
 */
 
-import { logger } from './logger';
-import { statusMessages } from './utils';
+import { logger } from '../services/logger';
+import { statusMessages } from '../helpers';
 
 export const validateAccess = (req, res, next) => {
   const cert = req.connection.getPeerCertificate();
