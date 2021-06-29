@@ -152,7 +152,7 @@ router.post('/approve', async (req: Request, res: Response) => {
           tokenContractInfo.decimals
         );
       }
-        console.log('approve');
+      console.log('approve');
       // call approve function
       let approval;
       try {
@@ -164,7 +164,7 @@ router.post('/approve', async (req: Request, res: Response) => {
           gasPrice
         );
       } catch (err) {
-          approval = err;
+        approval = err;
       }
 
       res.status(200).json({
@@ -173,7 +173,9 @@ router.post('/approve', async (req: Request, res: Response) => {
         latency: latency(initTime, Date.now()),
         tokenAddress: tokenAddress,
         spender: spender,
-        amount: amount.div(ethers.BigNumber.from(BigInt(tokenContractInfo.decimals))).toString(),
+        amount: amount
+          .div(ethers.BigNumber.from(BigInt(tokenContractInfo.decimals)))
+          .toString(),
         approval: approval,
       });
     }

@@ -5,47 +5,54 @@ import {
   MsgSwap,
   MnemonicKey,
   isTxError,
+  StdTx,
+  StdSignMsg,
+  StdFee,
 } from '@terra-money/terra.js';
-import BigNumber from 'bignumber.js';
 import { getHummingbotMemo } from './utils';
+import { ethers } from 'ethers';
 
 const debug = require('debug')('router');
 const globalConfig =
   require('../services/configuration_manager').configManagerInstance;
 
 // constants
-const TERRA_TOKENS = {
-  uluna: { symbol: 'LUNA' },
-  uusd: { symbol: 'UST' },
-  ukrw: { symbol: 'KRT' },
-  usdr: { symbol: 'SDT' },
-  umnt: { symbol: 'MNT' },
+const TERRA_TOKENS: Record<string, string> = {
+  uluna: 'LUNA',
+  uusd: 'UST',
+  ukrw: 'KRT',
+  usdr: 'SDT',
+  umnt: 'MNT',
 };
-const DENOM_UNIT = BigNumber('1e+6');
-const TOBIN_TAX = 0.0025; // a Tobin Tax (set at 0.25%) for spot-converting Terra<>Terra swaps
-const MIN_SPREAD = 0.02; // a minimum spread (set at 2%) for Terra<>Luna swaps
+
+const DENOM_UNIT = ethers.BigNumber.from(BigInt('1e+6'));
+
 const GAS_PRICE = { uluna: 0.16 };
+
 const GAS_ADJUSTMENT = 1.4;
 
 export default class Terra {
+  private lcdUrl;
+  private network;
+  private memo;
+  private lcd: LCDClient | null = null;
+
   constructor() {
     this.lcdUrl = globalConfig.getConfig('TERRA_LCD_URL');
     this.network = globalConfig.getConfig('TERRA_CHAIN');
-    this.tokens = TERRA_TOKENS;
-    this.denomUnitMultiplier = DENOM_UNIT;
-    this.tobinTax = TOBIN_TAX;
-    this.minSpread = MIN_SPREAD;
     this.memo = getHummingbotMemo();
 
     try {
       this.lcd = this.connect();
 
-      this.lcd.market.parameters().catch(() => {
-        throw new Error('Connection error');
-      });
-      // set gas & fee
-      this.lcd.config.gasAdjustment = GAS_ADJUSTMENT;
-      this.lcd.config.gasPrices = GAS_PRICE;
+      if (this.lcd) {
+        this.lcd.market.parameters().catch(() => {
+          throw new Error('Connection error');
+        });
+        // set gas & fee
+        this.lcd.config.gasAdjustment = GAS_ADJUSTMENT;
+        this.lcd.config.gasPrices = GAS_PRICE;
+      }
     } catch (err) {
       logger.error(err);
       throw Error(`Connection failed: ${this.network}`);
@@ -71,11 +78,11 @@ export default class Terra {
   }
 
   // get Token Denom
-  getTokenDenom(symbol) {
+  getTokenDenom(symbol: string): string | undefined {
     try {
       let denom;
       Object.keys(TERRA_TOKENS).forEach((item) => {
-        if (TERRA_TOKENS[item].symbol === symbol) {
+        if (TERRA_TOKENS[item] === symbol) {
           denom = item;
         }
       });
@@ -91,10 +98,9 @@ export default class Terra {
   }
 
   // get Token Symbol
-  getTokenSymbol(denom) {
+  getTokenSymbol(denom: string): string | undefined {
     try {
-      const symbol = TERRA_TOKENS[denom].symbol;
-      return symbol;
+      return TERRA_TOKENS[denom];
     } catch (err) {
       logger.error(err);
       let reason;
@@ -105,18 +111,15 @@ export default class Terra {
     }
   }
 
-  getTxAttributes(attributes) {
-    let attrib = {};
-    attributes.forEach((item) => {
-      attrib[item.key] = item.value;
-    });
-    return attrib;
-  }
-
-  async getEstimateFee(tx) {
+  async getEstimateFee(
+    tx: StdTx | StdSignMsg
+  ): Promise<StdFee | string | undefined> {
     try {
-      const fee = await this.lcd.tx.estimateFee(tx);
-      return fee;
+      if (this.lcd) {
+        const fee = await this.lcd.tx.estimateFee(tx);
+        return fee;
+      }
+      return;
     } catch (err) {
       logger.error(err);
       let reason;
@@ -127,10 +130,13 @@ export default class Terra {
     }
   }
 
-  async getExchangeRate(denom) {
+  async getExchangeRate(denom: string): Promise<Coin | string | undefined> {
     try {
-      const exchangeRates = await this.lcd.oracle.exchangeRates();
-      return exchangeRates.get(denom);
+      if (this.lcd) {
+        const exchangeRates = await this.lcd.oracle.exchangeRates();
+        return exchangeRates.get(denom);
+      }
+      return;
     } catch (err) {
       logger.error(err);
       let reason;
@@ -141,18 +147,21 @@ export default class Terra {
     }
   }
 
-  async getTxFee() {
+  async getTxFee(): Promise<string | undefined> {
     try {
       const lunaFee = GAS_PRICE.uluna * GAS_ADJUSTMENT;
       let feeList = { uluna: lunaFee };
-      await this.lcd.oracle.exchangeRates().then((rates) => {
-        Object.keys(rates._coins).forEach((key) => {
-          feeList[key] = rates._coins[key].amount * lunaFee;
+      if (this.lcd) {
+        await this.lcd.oracle.exchangeRates().then((rates) => {
+          Object.keys(rates.coins).forEach((key) => {
+            feeList[key] = rates._coins[key].amount * lunaFee;
+          });
         });
-      });
-      debug('lunaFee', lunaFee, feeList);
+        debug('lunaFee', lunaFee, feeList);
 
-      return feeList;
+        return feeList;
+      }
+      return;
     } catch (err) {
       logger.error(err);
       let reason;
@@ -164,58 +173,66 @@ export default class Terra {
   }
 
   // get Terra Swap Rate
-  async getSwapRate(baseToken, quoteToken, amount, tradeType) {
+  async getSwapRate(
+    baseToken: string,
+    quoteToken: string,
+    amount: number,
+    tradeType: string
+  ) {
     try {
-      let exchangeRate,
-        offerCoin,
-        offerDenom,
-        swapDenom,
-        cost,
-        costAmount,
-        offer;
+      let exchangeRate: string;
+      let offerCoin: number;
+      let offerDenom: number;
+      let swapDenom: number;
+      let cost: number;
+      let costAmount: number;
+      let offer: number;
       let swaps = {};
 
       if (tradeType.toLowerCase() === 'sell') {
         // sell base
         offerDenom = this.getTokenDenom(baseToken);
         swapDenom = this.getTokenDenom(quoteToken);
-
-        offerCoin = new Coin(offerDenom, amount * DENOM_UNIT);
-        await this.lcd.market
-          .swapRate(offerCoin, swapDenom)
-          .then((swapCoin) => {
-            offer = { amount: amount };
-            exchangeRate = {
-              amount: swapCoin.amount / DENOM_UNIT / amount,
-              token: quoteToken,
-            };
-            costAmount = amount * exchangeRate.amount;
-            cost = {
-              amount: costAmount,
-              token: quoteToken,
-            };
-          });
+        if (offerDenom && swapDenom) {
+          offerCoin = new Coin(offerDenom, amount * DENOM_UNIT);
+          await this.lcd.market
+            .swapRate(offerCoin, swapDenom)
+            .then((swapCoin) => {
+              offer = { amount: amount };
+              exchangeRate = {
+                amount: swapCoin.amount / DENOM_UNIT / amount,
+                token: quoteToken,
+              };
+              costAmount = amount * exchangeRate.amount;
+              cost = {
+                amount: costAmount,
+                token: quoteToken,
+              };
+            });
+        }
       } else {
         // buy base
         offerDenom = this.getTokenDenom(quoteToken);
         swapDenom = this.getTokenDenom(baseToken);
 
-        offerCoin = new Coin(offerDenom, 1 * DENOM_UNIT);
-        await this.lcd.market
-          .swapRate(offerCoin, swapDenom)
-          .then((swapCoin) => {
-            exchangeRate = {
-              amount:
-                ((amount / parseInt(swapCoin.amount)) * DENOM_UNIT) / amount, // adjusted amount
-              token: quoteToken,
-            };
-            costAmount = amount * exchangeRate.amount;
-            cost = {
-              amount: costAmount,
-              token: quoteToken,
-            };
-            offer = { amount: cost.amount };
-          });
+        if (offerDenom && swapDenom) {
+          offerCoin = new Coin(offerDenom, 1 * DENOM_UNIT);
+          await this.lcd.market
+            .swapRate(offerCoin, swapDenom)
+            .then((swapCoin) => {
+              exchangeRate = {
+                amount:
+                  ((amount / parseInt(swapCoin.amount)) * DENOM_UNIT) / amount, // adjusted amount
+                token: quoteToken,
+              };
+              costAmount = amount * exchangeRate.amount;
+              cost = {
+                amount: costAmount,
+                token: quoteToken,
+              };
+              offer = { amount: cost.amount };
+            });
+        }
       }
 
       let txFee;
@@ -337,22 +354,21 @@ export default class Terra {
           const swap = events.find((obj) => {
             return obj.type === 'swap';
           });
-          txAttributes = this.getTxAttributes(swap.attributes);
-          const offer = Coin.fromString(txAttributes.offer);
-          const ask = Coin.fromString(txAttributes.swap_coin);
-          const fee = Coin.fromString(txAttributes.swap_fee);
+          const offer = Coin.fromString(swap.attributes.offer);
+          const ask = Coin.fromString(swap.attributes.swap_coin);
+          const fee = Coin.fromString(swap.attributes.swap_fee);
 
           tokenSwap.expectedIn = {
             amount: parseFloat(offer.amount) / DENOM_UNIT,
-            token: TERRA_TOKENS[offer.denom].symbol,
+            token: TERRA_TOKENS[offer.denom],
           };
           tokenSwap.expectedOut = {
             amount: parseFloat(ask.amount) / DENOM_UNIT,
-            token: TERRA_TOKENS[ask.denom].symbol,
+            token: TERRA_TOKENS[ask.denom],
           };
           tokenSwap.fee = {
             amount: parseFloat(fee.amount) / DENOM_UNIT,
-            token: TERRA_TOKENS[fee.denom].symbol,
+            token: TERRA_TOKENS[fee.denom],
           };
           tokenSwap.txHash = txHash;
         });
