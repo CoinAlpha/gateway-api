@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "lib": ["ES2020.Promise"],
+    "allowJs": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"]
+}
