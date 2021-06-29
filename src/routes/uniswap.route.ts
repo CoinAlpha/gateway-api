@@ -63,7 +63,7 @@ router.post('/', async (_req: Request, res: Response) => {
 
 router.post('/gas-limit', async (req: Request, res: Response) => {
   /*
-    POST: /buy-price
+    POST: /gas-limit
   */
   const gasLimit = estimateGasLimit();
 
@@ -171,8 +171,10 @@ router.post('/trade', async (req: Request, res: Response) => {
   const wallet = new ethers.Wallet(privateKey, uniswap.provider);
   const amount = req.body.amount;
 
-  const baseTokenContractInfo = eth.getERC20TokenAddresses(req.body.base);
-  const quoteTokenContractInfo = eth.getERC20TokenAddresses(req.body.quote);
+  const baseTokenContractInfo = eth.getERC20TokenAddress(req.body.base);
+  const quoteTokenContractInfo = eth.getERC20TokenAddress(req.body.quote);
+
+    if (baseTokenContractInfo && quoteTokenContractInfo ) {    
   const baseTokenAddress = baseTokenContractInfo.address;
   const quoteTokenAddress = quoteTokenContractInfo.address;
   const side = req.body.side.toUpperCase();
@@ -294,6 +296,11 @@ router.post('/trade', async (req: Request, res: Response) => {
       message: err,
     });
   }
+    } else {
+            res.status(500).json({
+      error: 'unknown token addresses',
+            });
+    }
 });
 
 router.post('/price', async (req: Request, res: Response) => {
@@ -311,102 +318,111 @@ router.post('/price', async (req: Request, res: Response) => {
 
   const baseTokenContractInfo = eth.getERC20TokenAddresses(req.body.base);
   const quoteTokenContractInfo = eth.getERC20TokenAddresses(req.body.quote);
-  const baseTokenAddress = baseTokenContractInfo.address;
-  const quoteTokenAddress = quoteTokenContractInfo.address;
-  const side = req.body.side.toUpperCase();
-  let gasPrice;
-  if (req.body.gasPrice) {
-    gasPrice = parseFloat(req.body.gasPrice);
-  } else {
-    gasPrice = fees.ethGasPrice;
-  }
-  const gasLimit = estimateGasLimit();
-  const gasCost = await fees.getGasCost(gasPrice, gasLimit);
+    if (baseTokenContractInfo && quoteTokenContractInfo ) {
+        
+    const baseTokenAddress = baseTokenContractInfo.address;
+    const quoteTokenAddress = quoteTokenContractInfo.address;
+    const side = req.body.side.toUpperCase();
+    let gasPrice;
+    if (req.body.gasPrice) {
+      gasPrice = parseFloat(req.body.gasPrice);
+    } else {
+      gasPrice = fees.ethGasPrice;
+    }
+    const gasLimit = estimateGasLimit();
+    const gasCost = await fees.getGasCost(gasPrice, gasLimit);
 
-  try {
-    // fetch the optimal pool mix from uniswap
-    const result: any =
-      side === 'BUY'
-        ? await uniswap.priceSwapOut(
-            quoteTokenAddress, // tokenIn is quote asset
-            baseTokenAddress, // tokenOut is base asset
-            amount
-          )
-        : await uniswap.priceSwapIn(
-            baseTokenAddress, // tokenIn is base asset
-            quoteTokenAddress, // tokenOut is quote asset
-            amount
+    try {
+      // fetch the optimal pool mix from uniswap
+      const result: any =
+        side === 'BUY'
+          ? await uniswap.priceSwapOut(
+              quoteTokenAddress, // tokenIn is quote asset
+              baseTokenAddress, // tokenOut is base asset
+              amount
+            )
+          : await uniswap.priceSwapIn(
+              baseTokenAddress, // tokenIn is base asset
+              quoteTokenAddress, // tokenOut is quote asset
+              amount
+            );
+      if (result && result.trade && result.expectedAmount) {
+        const trade = result.trade;
+        const expectedAmount = result.expectedAmount;
+
+        if (trade !== null && expectedAmount !== null) {
+          const price =
+            side === 'BUY'
+              ? trade.executionPrice.invert().toSignificant(8)
+              : trade.executionPrice.toSignificant(8);
+
+          const tradeAmount = parseFloat(amount);
+          const expectedTradeAmount = parseFloat(
+            expectedAmount.toSignificant(8)
           );
-    if (result && result.trade && result.expectedAmount) {
-      const trade = result.trade;
-      const expectedAmount = result.expectedAmount;
+          const tradePrice = parseFloat(price);
 
-      if (trade !== null && expectedAmount !== null) {
-        const price =
-          side === 'BUY'
-            ? trade.executionPrice.invert().toSignificant(8)
-            : trade.executionPrice.toSignificant(8);
-
-        const tradeAmount = parseFloat(amount);
-        const expectedTradeAmount = parseFloat(expectedAmount.toSignificant(8));
-        const tradePrice = parseFloat(price);
-
-        const result = {
-          network: uniswap.network,
-          timestamp: initTime,
-          latency: latency(initTime, Date.now()),
-          base: baseTokenAddress,
-          quote: quoteTokenAddress,
-          amount: tradeAmount,
-          expectedAmount: expectedTradeAmount,
-          price: tradePrice,
-          gasPrice: gasPrice,
-          gasLimit: gasLimit,
-          gasCost: gasCost,
-          trade: trade,
-        };
-        debug(
-          `Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`
-        );
-        res.status(200).json(result);
+          const result = {
+            network: uniswap.network,
+            timestamp: initTime,
+            latency: latency(initTime, Date.now()),
+            base: baseTokenAddress,
+            quote: quoteTokenAddress,
+            amount: tradeAmount,
+            expectedAmount: expectedTradeAmount,
+            price: tradePrice,
+            gasPrice: gasPrice,
+            gasLimit: gasLimit,
+            gasCost: gasCost,
+            trade: trade,
+          };
+          debug(
+            `Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`
+          );
+          res.status(200).json(result);
+        } else {
+          // no pool available
+          res.status(200).json({
+            info: statusMessages.no_pool_available,
+            message: '',
+          });
+        }
       } else {
-        // no pool available
-        res.status(200).json({
-          info: statusMessages.no_pool_available,
+        res.status(500).json({
+          err: 'parse error',
           message: '',
         });
       }
-    } else {
-      res.status(500).json({
-        err: 'parse error',
-        message: '',
+    } catch (err) {
+      logger.error(req.originalUrl, { message: err });
+      let reason;
+      let errCode = 500;
+      if (Object.keys(err).includes('isInsufficientReservesError')) {
+        errCode = 200;
+        reason =
+          statusMessages.insufficient_reserves + ' in ' + side + ' at Uniswap';
+      } else if (Object.getOwnPropertyNames(err).includes('message')) {
+        reason = getErrorMessage(err.message);
+        if (reason === statusMessages.no_pool_available) {
+          errCode = 200;
+          res.status(errCode).json({
+            info: reason,
+            message: err,
+          });
+        }
+      } else {
+        err.reason
+          ? (reason = err.reason)
+          : (reason = statusMessages.operation_error);
+      }
+      res.status(errCode).json({
+        error: reason,
+        message: err,
       });
     }
-  } catch (err) {
-    logger.error(req.originalUrl, { message: err });
-    let reason;
-    let errCode = 500;
-    if (Object.keys(err).includes('isInsufficientReservesError')) {
-      errCode = 200;
-      reason =
-        statusMessages.insufficient_reserves + ' in ' + side + ' at Uniswap';
-    } else if (Object.getOwnPropertyNames(err).includes('message')) {
-      reason = getErrorMessage(err.message);
-      if (reason === statusMessages.no_pool_available) {
-        errCode = 200;
-        res.status(errCode).json({
-          info: reason,
-          message: err,
-        });
-      }
-    } else {
-      err.reason
-        ? (reason = err.reason)
-        : (reason = statusMessages.operation_error);
-    }
-    res.status(errCode).json({
-      error: reason,
-      message: err,
+  } else {
+    res.status(500).json({
+      error: 'unknown token addresses',
     });
   }
 });

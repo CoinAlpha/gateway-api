@@ -197,7 +197,7 @@ export class EthereumService {
    * @param {string} tokenSymbol
    * @return string | null
    */
-  getERC20TokenAddress(tokenSymbol: string): TokenERC20Info | undefined | null {
+  getERC20TokenAddress(tokenSymbol: string): TokenERC20Info | undefined {
     if (this.erc20TokenList) {
       const symbol = tokenSymbol.toUpperCase();
       const tokenContractAddress = this.erc20TokenList.tokens.find((obj) => {
@@ -205,9 +205,8 @@ export class EthereumService {
       });
 
       return tokenContractAddress;
-    } else {
-      return null;
     }
+      return;
   }
 
   /**
