@@ -74,7 +74,7 @@ router.post('/balances', async (req: Request, res: Response) => {
 router.post('/allowances', async (req: Request, res: Response) => {
   const initTime = Date.now();
   // Getting spender
-  const spender = config.spenders[req.body.connector];
+  const spender: string | null = config.spenders[req.body.connector];
   if (!spender) {
     res.status(500).send('Wrong connector');
   }
@@ -87,19 +87,22 @@ router.post('/allowances', async (req: Request, res: Response) => {
     tokenContractList = ethereumService.getERC20TokenAddresses(
       JSON.parse(req.body.tokenList)
     );
-    const approvals: Record<string, BigInt | string> = {};
+    const approvals: Record<string, string> = {};
     await Promise.all(
       Object.keys(tokenContractList).map(async (symbol) => {
         const address = tokenContractList[symbol].address;
         const decimals = tokenContractList[symbol].decimals;
         try {
-          approvals[symbol] = await ethereumService.getERC20Allowance(
-            wallet,
-            spender,
-            address,
-            decimals
-          );
-        } catch (_err) {
+          approvals[symbol] = (
+            await ethereumService.getERC20Allowance(
+              wallet,
+              spender,
+              address,
+              decimals
+            )
+          ).toString();
+        } catch (err) {
+          logger.error(err);
           // this helps preserve the expected behavior
           approvals[symbol] = 'invalid ENS name';
         }
@@ -150,7 +153,7 @@ router.post('/approve', async (req: Request, res: Response) => {
           tokenContractInfo.decimals
         );
       }
-        console.log('approve');
+      console.log('approve');
       // call approve function
       let approval;
       try {
@@ -162,7 +165,7 @@ router.post('/approve', async (req: Request, res: Response) => {
           gasPrice
         );
       } catch (err) {
-          approval = err;
+        approval = err;
       }
 
       res.status(200).json({
@@ -171,7 +174,9 @@ router.post('/approve', async (req: Request, res: Response) => {
         latency: latency(initTime, Date.now()),
         tokenAddress: tokenAddress,
         spender: spender,
-        amount: amount.div(ethers.BigNumber.from(BigInt(tokenContractInfo.decimals))).toString(),
+        amount: amount
+          .div(ethers.BigNumber.from(BigInt(tokenContractInfo.decimals)))
+          .toString(),
         approval: approval,
       });
     }
