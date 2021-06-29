@@ -209,7 +209,6 @@ router.post('/trade', async (req: Request, res: Response) => {
       const expectedAmount = result.expectedAmount;
       if (side === 'BUY') {
         const price = trade.executionPrice.invert().toSignificant(8);
-        logger.info(`uniswap.route - Price: ${price.toString()}`);
         if (!limitPrice || price <= limitPrice) {
           // pass swaps to exchange-proxy to complete trade
           const tx = await uniswap.swapExactOut(
@@ -234,7 +233,7 @@ router.post('/trade', async (req: Request, res: Response) => {
             txHash: tx.hash,
           });
         } else {
-          res.status(200).json({
+          res.status(500).json({
             error: swapMoreThanMaxPriceError,
             message: `Swap price ${price} exceeds limitPrice ${limitPrice}`,
           });
@@ -270,7 +269,7 @@ router.post('/trade', async (req: Request, res: Response) => {
             txHash: tx.hash,
           });
         } else {
-          res.status(200).json({
+          res.status(500).json({
             error: swapLessThanMaxPriceError,
             message: `Swap price ${price} lower than limitPrice ${limitPrice}`,
           });

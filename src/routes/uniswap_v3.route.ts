@@ -26,9 +26,6 @@ const uniswap = new UniswapV3(globalConfig.getConfig('ETHEREUM_CHAIN'));
 
 const fees = new Fees();
 
-//const swapMoreThanMaxPriceError = 'Price too high'
-//const swapLessThanMaxPriceError = 'Price too low'
-
 const estimateGasLimit = () => {
   return uniswap.gasLimit;
 };

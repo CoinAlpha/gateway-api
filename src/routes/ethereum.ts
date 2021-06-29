@@ -106,8 +106,6 @@ router.post('/allowances', async (req: Request, res: Response) => {
       })
     );
 
-    logger.info('eth.route - Getting allowances');
-
     res.status(200).json({
       network: config.networkName,
       timestamp: initTime,
@@ -187,8 +185,6 @@ router.post('/poll', async (req: Request, res: Response) => {
   const initTime = Date.now();
   const receipt = await ethereumService.getTransactionReceipt(req.body.txHash);
   const confirmed = receipt && receipt.blockNumber ? true : false;
-
-  logger.info(`eth.route - Get TX Receipt: ${req.body.txHash}`);
 
   res.status(200).json({
     network: config.networkName,
