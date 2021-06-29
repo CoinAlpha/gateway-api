@@ -206,7 +206,7 @@ export class EthereumService {
 
       return tokenContractAddress;
     }
-      return;
+    return;
   }
 
   /**
@@ -216,27 +216,6 @@ export class EthereumService {
    */
   getWallet(privateKey: string): Wallet {
     return new Wallet(privateKey, this.provider);
-  }
-
-  /**
-   * Return information about list of tokens
-   * @param {string[]} symbols
-   * @return Record<string, TokenERC20Info>
-   */
-  getERC20TokenAddresses(symbols: string[]): Record<string, TokenERC20Info> {
-    const tokenContractList: Record<string, TokenERC20Info> = {};
-
-    for (const symbol of symbols) {
-      const tokenContractInfo = this.getERC20TokenAddress(symbol);
-      // Skip token if no info
-      if (!tokenContractInfo) {
-        continue;
-      }
-
-      tokenContractList[symbol] = tokenContractInfo;
-    }
-
-    return tokenContractList;
   }
 
   /**

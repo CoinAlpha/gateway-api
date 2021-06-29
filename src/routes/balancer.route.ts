@@ -193,8 +193,6 @@ router.post('/price', async (req: Request, res: Response) => {
               maxSwaps
             );
 
-      console.log(swaps);
-      console.log(expectedAmount);
       if (swaps != null && expectedAmount != null) {
         const gasLimit = estimateGasLimit(swaps.length);
         const gasCost = await fees.getGasCost(gasPrice, gasLimit);
