@@ -10,6 +10,7 @@ export class EthereumGasService {
 
   constructor(config: EthereumConfigService) {
     this.config = config;
+
     if (this.config.isGasStationEnabled) {
       logger.info('GasStation enabled');
       if (this.config.refreshTimeForGasPrice) {
@@ -18,13 +19,12 @@ export class EthereumGasService {
         );
         this.startTracing();
       } else {
-        (async () => {
-          this.gasPrice = await this.fetchCurrentGasPrice();
-        })();
-
-        logger.info(
-          `Fetched gas price (${this.config.gasLevel}): ${this.gasPrice}`
-        );
+        this.fetchCurrentGasPrice().then((gasPrice) => {
+          this.gasPrice = gasPrice;
+          logger.info(
+            `Fetched gas price (${this.config.gasLevel}): ${this.gasPrice}`
+          );
+        });
       }
     } else {
       this.gasPrice = this.config.manualGasPrice;
@@ -71,18 +71,13 @@ export class EthereumGasService {
   async fetchCurrentGasPrice(
     level: string = this.config.gasLevel
   ): Promise<number> {
-    try {
-      const { data } = await axios.get(this.config.gasServiceUrl);
+    const { data } = await axios.get(this.config.gasServiceUrl);
 
-      // divide by 10 to convert it to Gwei
-      const gasPrice = data[level] / 10;
-      logger.info(`Ethereum GasStation gas price (${level}): ${gasPrice}`);
+    // divide by 10 to convert it to Gwei
+    const gasPrice = data[level] / 10;
+    logger.info(`Ethereum GasStation gas price (${level}): ${gasPrice}`);
 
-      return gasPrice;
-    } catch (err) {
-      logger.error(err);
-      throw new Error(err.reason || 'error ETH gas fee lookup');
-    }
+    return gasPrice;
   }
 
   getGasPrice(): number {

@@ -1,4 +1,4 @@
-import { getLocalDate } from './utils';
+import { getLocalDate } from '../helpers';
 const appRoot = require('app-root-path');
 const winston = require('winston');
 require('winston-daily-rotate-file');

@@ -6,7 +6,7 @@ import {
   latency,
   reportConnectionError,
   statusMessages,
-} from '../services/utils';
+} from '../helpers';
 import { logger } from '../services/logger';
 
 import Terra from '../services/terra';

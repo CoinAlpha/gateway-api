@@ -30,3 +30,5 @@ package-lock.json
 *.crt
 *.log
 *.lock
+
+.env

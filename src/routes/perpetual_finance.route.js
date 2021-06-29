@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import express from 'express';
-import { getParamData, latency, statusMessages } from '../services/utils';
+import { getParamData, latency, statusMessages } from '../helpers';
 import { logger } from '../services/logger';
 import PerpetualFinance from '../services/perpetual_finance';
 

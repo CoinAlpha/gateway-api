@@ -1,6 +1,7 @@
 CORE:
   APPNAME: Hummingbot Gateway API
   NODE_ENV: dev
+  HTTPS: false
   PORT: 5000
 
   # use only if ip whitelist is required for local or docker instance

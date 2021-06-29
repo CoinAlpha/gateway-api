@@ -3,7 +3,7 @@ import {
   statusMessages,
   loadConfig,
   updateConfig,
-} from '../services/utils';
+} from '../helpers';
 
 const express = require('express');
 

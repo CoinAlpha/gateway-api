@@ -2,9 +2,7 @@ import { ethers } from 'ethers';
 import express from 'express';
 import { Request, Response } from 'express';
 
-import { getNonceManager } from '../services/utils';
-
-import { latency, statusMessages } from '../services/utils';
+import { getNonceManager, latency, statusMessages } from '../helpers';
 import { logger } from '../services/logger';
 
 import { EthereumService } from '../services/ethereum';
