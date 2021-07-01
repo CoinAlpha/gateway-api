@@ -1,4 +1,4 @@
-import { EthereumService, TokenERC20Info } from '../services/ethereum';
+import { bigNumberWithDecimalToStr, EthereumService, TokenERC20Info } from '../services/ethereum';
 import { EthereumConfigService } from '../services/ethereum_config';
 import { EthereumGasService } from '../services/ethereum_gas';
 import { logger } from '../services/logger';
@@ -49,16 +49,16 @@ router.post('/balances', async (req: Request, res: Response) => {
     }
 
     // Getting user balancers
-    const balances: Record<string, string> = {};
-    balances.ETH = (await ethereumService.getETHBalance(wallet)).toString();
+      const balances: Record<string, string> = {};
+      console.log('balances');
+    balances.ETH = await ethereumService.getETHBalance(wallet);
     await Promise.all(
       Object.keys(tokenContractList).map(async (symbol) => {
         if (tokenContractList[symbol] !== undefined) {
           const address = tokenContractList[symbol].address;
           const decimals = tokenContractList[symbol].decimals;
-          balances[symbol] = (
-            await ethereumService.getERC20Balance(wallet, address, decimals)
-          ).toString();
+          balances[symbol] = 
+            await ethereumService.getERC20Balance(wallet, address, decimals);
         } else {
           logger.error(`Token contract info for ${symbol} not found`);
         }
@@ -104,14 +104,14 @@ router.post('/allowances', async (req: Request, res: Response) => {
         const address = tokenContractList[symbol].address;
         const decimals = tokenContractList[symbol].decimals;
         try {
-          approvals[symbol] = (
+          approvals[symbol] = 
             await ethereumService.getERC20Allowance(
               wallet,
               spender,
               address,
               decimals
             )
-          ).toString();
+          ;
         } catch (err) {
           logger.error(err);
           // this helps preserve the expected behavior
@@ -185,9 +185,7 @@ router.post('/approve', async (req: Request, res: Response) => {
         latency: latency(initTime, Date.now()),
         tokenAddress: tokenAddress,
         spender: spender,
-        amount: amount
-          .div(ethers.BigNumber.from(BigInt(tokenContractInfo.decimals)))
-          .toString(),
+          amount: bigNumberWithDecimalToStr(amount, tokenContractInfo.decimals),
         approval: approval,
       });
     }

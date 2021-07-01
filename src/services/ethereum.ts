@@ -46,6 +46,26 @@ export interface EthTransactionReceipt {
   status: number;
 }
 
+const stringInsert = (str: string, val: string, index: number) => {
+  if (index > 0) {
+    return str.substring(0, index) + val + str.substr(index);
+  }
+
+  return val + str;
+};
+
+export const bigNumberWithDecimalToStr = (n: BigNumber, d: number): string => {
+    const n_ = n.toString();
+    
+    var zeros = "";
+    
+    if (n_.length <= d) {
+        zeros = "0".repeat(d - n_.length + 1);
+    }
+    
+    return stringInsert(zeros + n_.split('').reverse().join(''), ".", d).split('').reverse().join('');
+};
+
 export class EthereumService {
   private readonly provider = new providers.JsonRpcProvider(this.config.rpcUrl);
   private erc20TokenList: ERC20TokensList | null = null;
@@ -73,13 +93,12 @@ export class EthereumService {
   /**
    * Get the ETH balance for a wallet.
    * @param {Wallet} wallet
-   * @return {Promise<BigInt>}
+   * @return {Promise<string>}
    */
-  async getETHBalance(wallet: Wallet): Promise<BigInt> {
+  async getETHBalance(wallet: Wallet): Promise<string> {
     try {
       const walletBalance = await wallet.getBalance();
-      const balance = BigInt(walletBalance.toString());
-      return balance / BigInt(1e18);
+      return bigNumberWithDecimalToStr(walletBalance, 18);
     } catch (err) {
       throw new Error(err.reason || 'error ETH balance lookup');
     }
@@ -90,19 +109,18 @@ export class EthereumService {
    * @param {Wallet} wallet
    * @param {string} tokenAddress
    * @param {number} decimals
-   * @return {Promise<BigInt>}
+   * @return {Promise<string>}
    */
   async getERC20Balance(
     wallet: Wallet,
     tokenAddress: string,
     decimals = 18
-  ): Promise<BigInt> {
+  ): Promise<string> {
     // instantiate a contract and pass in provider for read-only access
     const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
     try {
-      const balance = await contract.balanceOf(wallet.address);
-      //  return (BigInt(balance) / BigInt(Math.pow(10, decimals))).toString();
-      return BigInt(balance) / BigInt(Math.pow(10, decimals));
+        const balance = await contract.balanceOf(wallet.address);
+        return bigNumberWithDecimalToStr(balance, decimals);
     } catch (err) {
       throw new Error(
         err.reason || `Error balance lookup for token address ${tokenAddress}`
@@ -123,13 +141,12 @@ export class EthereumService {
     spender: string,
     tokenAddress: string,
     decimals = 18
-  ): Promise<BigInt> {
+  ): Promise<string> {
     // instantiate a contract and pass in provider for read-only access
     const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
     try {
       const allowance = await contract.allowance(wallet.address, spender);
-      // return allowance / Math.pow(10, decimals);
-      return BigInt(allowance) / BigInt(Math.pow(10, decimals));
+        return bigNumberWithDecimalToStr(allowance, decimals);
     } catch (err) {
       throw new Error(err.reason || 'error allowance lookup');
     }
