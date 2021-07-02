@@ -1,4 +1,8 @@
-import { EthereumService, TokenERC20Info } from '../services/ethereum';
+import {
+  bigNumberWithDecimalToStr,
+  EthereumService,
+  TokenERC20Info,
+} from '../services/ethereum';
 import { EthereumConfigService } from '../services/ethereum_config';
 import { EthereumGasService } from '../services/ethereum_gas';
 import { logger } from '../services/logger';
@@ -38,21 +42,30 @@ router.post('/balances', async (req: Request, res: Response) => {
 
     // Populate token contract info using token symbol list
     let tokenContractList: Record<string, TokenERC20Info> = {};
-    tokenContractList = ethereumService.getERC20TokenAddresses(
-      JSON.parse(req.body.tokenList)
-    );
+
+    for (const symbol of JSON.parse(req.body.tokenList)) {
+      const tokenContractInfo = ethereumService.getERC20TokenAddress(symbol);
+      if (!tokenContractInfo) {
+        continue;
+      }
+
+      tokenContractList[symbol] = tokenContractInfo;
+    }
 
     // Getting user balancers
     const balances: Record<string, string> = {};
-    balances.ETH = (await ethereumService.getETHBalance(wallet)).toString();
+    console.log('balances');
+    balances.ETH = await ethereumService.getETHBalance(wallet);
     await Promise.all(
       Object.keys(tokenContractList).map(async (symbol) => {
         if (tokenContractList[symbol] !== undefined) {
           const address = tokenContractList[symbol].address;
           const decimals = tokenContractList[symbol].decimals;
-          balances[symbol] = (
-            await ethereumService.getERC20Balance(wallet, address, decimals)
-          ).toString();
+          balances[symbol] = await ethereumService.getERC20Balance(
+            wallet,
+            address,
+            decimals
+          );
         } else {
           logger.error(`Token contract info for ${symbol} not found`);
         }
@@ -74,7 +87,7 @@ router.post('/balances', async (req: Request, res: Response) => {
 router.post('/allowances', async (req: Request, res: Response) => {
   const initTime = Date.now();
   // Getting spender
-  const spender = config.spenders[req.body.connector];
+  const spender: string | null = config.spenders[req.body.connector];
   if (!spender) {
     res.status(500).send('Wrong connector');
   }
@@ -84,10 +97,15 @@ router.post('/allowances', async (req: Request, res: Response) => {
     const wallet = ethereumService.getWallet(req.body.privateKey);
     // Populate token contract info using token symbol list
     let tokenContractList: Record<string, TokenERC20Info> = {};
-    tokenContractList = ethereumService.getERC20TokenAddresses(
-      JSON.parse(req.body.tokenList)
-    );
-    const approvals: Record<string, BigInt | string> = {};
+    for (const symbol of JSON.parse(req.body.tokenList)) {
+      const tokenContractInfo = ethereumService.getERC20TokenAddress(symbol);
+      if (!tokenContractInfo) {
+        continue;
+      }
+
+      tokenContractList[symbol] = tokenContractInfo;
+    }
+    const approvals: Record<string, string> = {};
     await Promise.all(
       Object.keys(tokenContractList).map(async (symbol) => {
         const address = tokenContractList[symbol].address;
@@ -99,14 +117,13 @@ router.post('/allowances', async (req: Request, res: Response) => {
             address,
             decimals
           );
-        } catch (_err) {
+        } catch (err) {
+          logger.error(err);
           // this helps preserve the expected behavior
           approvals[symbol] = 'invalid ENS name';
         }
       })
     );
-
-    logger.info('eth.route - Getting allowances');
 
     res.status(200).json({
       network: config.networkName,
@@ -173,9 +190,7 @@ router.post('/approve', async (req: Request, res: Response) => {
         latency: latency(initTime, Date.now()),
         tokenAddress: tokenAddress,
         spender: spender,
-        amount: amount
-          .div(ethers.BigNumber.from(BigInt(tokenContractInfo.decimals)))
-          .toString(),
+        amount: bigNumberWithDecimalToStr(amount, tokenContractInfo.decimals),
         approval: approval,
       });
     }
@@ -189,8 +204,6 @@ router.post('/poll', async (req: Request, res: Response) => {
   const initTime = Date.now();
   const receipt = await ethereumService.getTransactionReceipt(req.body.txHash);
   const confirmed = receipt && receipt.blockNumber ? true : false;
-
-  logger.info(`eth.route - Get TX Receipt: ${req.body.txHash}`);
 
   res.status(200).json({
     network: config.networkName,

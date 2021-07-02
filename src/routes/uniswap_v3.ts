@@ -26,9 +26,6 @@ const uniswap = new UniswapV3(globalConfig.getConfig('ETHEREUM_CHAIN'));
 
 const fees = new Fees();
 
-//const swapMoreThanMaxPriceError = 'Price too high'
-//const swapLessThanMaxPriceError = 'Price too low'
-
 const estimateGasLimit = () => {
   return uniswap.gasLimit;
 };
@@ -129,91 +126,97 @@ router.post('/trade', async (req: Request, res: Response) => {
   );
   const amount = req.body.amount;
 
-  const baseTokenContractInfo = eth.getERC20TokenAddresses(req.body.base);
-  const quoteTokenContractInfo = eth.getERC20TokenAddresses(req.body.quote);
-  const baseTokenAddress = baseTokenContractInfo.address;
-  const quoteTokenAddress = quoteTokenContractInfo.address;
-  const side = req.body.side.toUpperCase();
-  const tier = req.body.tier.toUpperCase();
+  const baseTokenContractInfo = eth.getERC20TokenAddress(req.body.base);
+  const quoteTokenContractInfo = eth.getERC20TokenAddress(req.body.quote);
+  if (baseTokenContractInfo && quoteTokenContractInfo) {
+    const baseTokenAddress = baseTokenContractInfo.address;
+    const quoteTokenAddress = quoteTokenContractInfo.address;
+    const side = req.body.side.toUpperCase();
+    const tier = req.body.tier.toUpperCase();
 
-  let limitPrice;
-  if (req.body.limitPrice) {
-    limitPrice = parseFloat(req.body.limitPrice);
-  } else {
-    limitPrice = 0;
-  }
-  let gasPrice;
-  if (req.body.gasPrice) {
-    gasPrice = parseFloat(req.body.gasPrice);
-  } else {
-    gasPrice = fees.ethGasPrice;
-  }
-  const gasLimit = estimateGasLimit();
-  const gasCost = await fees.getGasCost(gasPrice, gasLimit);
-
-  try {
-    if (side === 'BUY') {
-      const tx = await uniswap.swapExactOut(
-        wallet,
-        baseTokenContractInfo, // tokenIn is quote asset
-        quoteTokenContractInfo, // tokenOut is base asset
-        amount,
-        limitPrice,
-        tier,
-        gasPrice
-      );
-      // submit response
-      res.status(200).json({
-        network: uniswap.network,
-        timestamp: initTime,
-        latency: latency(initTime, Date.now()),
-        base: baseTokenAddress,
-        quote: quoteTokenAddress,
-        amount: amount,
-        expectedIn: tx.expectedAmount,
-        price: limitPrice,
-        gasPrice: gasPrice,
-        gasLimit: gasLimit,
-        gasCost: gasCost,
-        txHash: tx.hash,
-      });
+    let limitPrice;
+    if (req.body.limitPrice) {
+      limitPrice = parseFloat(req.body.limitPrice);
     } else {
-      // sell
-      const tx = await uniswap.swapExactIn(
-        wallet,
-        baseTokenContractInfo, // tokenIn is quote asset
-        quoteTokenContractInfo, // tokenOut is base asset
-        amount,
-        limitPrice,
-        tier,
-        gasPrice
-      );
+      limitPrice = 0;
+    }
+    let gasPrice;
+    if (req.body.gasPrice) {
+      gasPrice = parseFloat(req.body.gasPrice);
+    } else {
+      gasPrice = fees.ethGasPrice;
+    }
+    const gasLimit = estimateGasLimit();
+    const gasCost = await fees.getGasCost(gasPrice, gasLimit);
 
-      // submit response
-      res.status(200).json({
-        network: uniswap.network,
-        timestamp: initTime,
-        latency: latency(initTime, Date.now()),
-        base: baseTokenAddress,
-        quote: quoteTokenAddress,
-        amount: parseFloat(req.body.amount),
-        expectedOut: tx.expectedAmount,
-        price: limitPrice,
-        gasPrice: gasPrice,
-        gasLimit: gasLimit,
-        gasCost: gasCost,
-        txHash: tx.hash,
+    try {
+      if (side === 'BUY') {
+        const tx = await uniswap.swapExactOut(
+          wallet,
+          baseTokenContractInfo, // tokenIn is quote asset
+          quoteTokenContractInfo, // tokenOut is base asset
+          amount,
+          limitPrice,
+          tier,
+          gasPrice
+        );
+        // submit response
+        res.status(200).json({
+          network: uniswap.network,
+          timestamp: initTime,
+          latency: latency(initTime, Date.now()),
+          base: baseTokenAddress,
+          quote: quoteTokenAddress,
+          amount: amount,
+          expectedIn: tx.expectedAmount,
+          price: limitPrice,
+          gasPrice: gasPrice,
+          gasLimit: gasLimit,
+          gasCost: gasCost,
+          txHash: tx.hash,
+        });
+      } else {
+        // sell
+        const tx = await uniswap.swapExactIn(
+          wallet,
+          baseTokenContractInfo, // tokenIn is quote asset
+          quoteTokenContractInfo, // tokenOut is base asset
+          amount,
+          limitPrice,
+          tier,
+          gasPrice
+        );
+
+        // submit response
+        res.status(200).json({
+          network: uniswap.network,
+          timestamp: initTime,
+          latency: latency(initTime, Date.now()),
+          base: baseTokenAddress,
+          quote: quoteTokenAddress,
+          amount: parseFloat(req.body.amount),
+          expectedOut: tx.expectedAmount,
+          price: limitPrice,
+          gasPrice: gasPrice,
+          gasLimit: gasLimit,
+          gasCost: gasCost,
+          txHash: tx.hash,
+        });
+      }
+    } catch (err) {
+      logger.error(req.originalUrl, { message: err });
+      let reason;
+      err.reason
+        ? (reason = err.reason)
+        : (reason = statusMessages.operation_error);
+      res.status(500).json({
+        error: reason,
+        message: err,
       });
     }
-  } catch (err) {
-    logger.error(req.originalUrl, { message: err });
-    let reason;
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error);
+  } else {
     res.status(500).json({
-      error: reason,
-      message: err,
+      error: 'unknown token addresses',
     });
   }
 });
@@ -233,72 +236,79 @@ router.post('/price', async (req: Request, res: Response) => {
     new ethers.Wallet(privateKey, uniswap.provider)
   );
 
-  const baseTokenContractInfo = eth.getERC20TokenAddresses(req.body.base);
-  const quoteTokenContractInfo = eth.getERC20TokenAddresses(req.body.quote);
-  const baseTokenAddress = baseTokenContractInfo.address;
-  const quoteTokenAddress = quoteTokenContractInfo.address;
+  const baseTokenContractInfo = eth.getERC20TokenAddress(req.body.base);
+  const quoteTokenContractInfo = eth.getERC20TokenAddress(req.body.quote);
 
-  //const side = req.body.side.toUpperCase() // not used for now
-  let gasPrice;
-  if (req.body.gasPrice) {
-    gasPrice = parseFloat(req.body.gasPrice);
-  } else {
-    gasPrice = fees.ethGasPrice;
-  }
-  const gasLimit = estimateGasLimit();
-  const gasCost = await fees.getGasCost(gasPrice, gasLimit);
+  if (baseTokenContractInfo && quoteTokenContractInfo) {
+    const baseTokenAddress = baseTokenContractInfo.address;
+    const quoteTokenAddress = quoteTokenContractInfo.address;
 
-  try {
-    // fetch pools for all tiers
-    const prices = await uniswap.currentPrice(
-      wallet,
-      baseTokenAddress,
-      quoteTokenAddress
-    );
-
-    const result = {
-      network: uniswap.network,
-      timestamp: initTime,
-      latency: latency(initTime, Date.now()),
-      base: baseTokenAddress,
-      quote: quoteTokenAddress,
-      prices: prices,
-      gasPrice: gasPrice,
-      gasLimit: gasLimit,
-      gasCost: gasCost,
-    };
-    debug(
-      `Mid Price ${baseTokenContractInfo.symbol}-${
-        quoteTokenContractInfo.symbol
-      } | (rate:${JSON.stringify(
-        prices
-      )}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`
-    );
-    res.status(200).json(result);
-  } catch (err) {
-    logger.error(req.originalUrl, { message: err });
-    let reason;
-    let errCode = 500;
-    if (Object.keys(err).includes('isInsufficientReservesError')) {
-      errCode = 200;
-      reason = statusMessages.insufficient_reserves + ' in ' + ' at Uniswap';
-    } else if (Object.getOwnPropertyNames(err).includes('message')) {
-      reason = getErrorMessage(err.message);
-      if (reason === statusMessages.no_pool_available) {
-        errCode = 200;
-        res.status(errCode).json({
-          info: reason,
-          message: err,
-        });
-      }
+    //const side = req.body.side.toUpperCase() // not used for now
+    let gasPrice;
+    if (req.body.gasPrice) {
+      gasPrice = parseFloat(req.body.gasPrice);
     } else {
-      err.reason
-        ? (reason = err.reason)
-        : (reason = statusMessages.operation_error);
+      gasPrice = fees.ethGasPrice;
     }
-    res.status(errCode).json({
-      error: reason,
-      message: err,
+    const gasLimit = estimateGasLimit();
+    const gasCost = await fees.getGasCost(gasPrice, gasLimit);
+
+    try {
+      // fetch pools for all tiers
+      const prices = await uniswap.currentPrice(
+        wallet,
+        baseTokenAddress,
+        quoteTokenAddress
+      );
+
+      const result = {
+        network: uniswap.network,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        base: baseTokenAddress,
+        quote: quoteTokenAddress,
+        prices: prices,
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+        gasCost: gasCost,
+      };
+      debug(
+        `Mid Price ${baseTokenContractInfo.symbol}-${
+          quoteTokenContractInfo.symbol
+        } | (rate:${JSON.stringify(
+          prices
+        )}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`
+      );
+      res.status(200).json(result);
+    } catch (err) {
+      logger.error(req.originalUrl, { message: err });
+      let reason;
+      let errCode = 500;
+      if (Object.keys(err).includes('isInsufficientReservesError')) {
+        errCode = 200;
+        reason = statusMessages.insufficient_reserves + ' in ' + ' at Uniswap';
+      } else if (Object.getOwnPropertyNames(err).includes('message')) {
+        reason = getErrorMessage(err.message);
+        if (reason === statusMessages.no_pool_available) {
+          errCode = 200;
+          res.status(errCode).json({
+            info: reason,
+            message: err,
+          });
+        }
+      } else {
+        err.reason
+          ? (reason = err.reason)
+          : (reason = statusMessages.operation_error);
+      }
+      res.status(errCode).json({
+        error: reason,
+        message: err,
+      });
+    }
+  } else {
+    res.status(500).json({
+      error: 'unknown token addresses',
     });
   }
 });
@@ -359,8 +369,8 @@ router.post('/add-position', async (req: Request, res: Response) => {
     new ethers.Wallet(privateKey, uniswap.provider)
   );
 
-  const baseTokenContractInfo = eth.getERC20TokenAddresses(req.body.token0);
-  const quoteTokenContractInfo = eth.getERC20TokenAddresses(req.body.token1);
+  const baseTokenContractInfo = eth.getERC20TokenAddress(req.body.token0);
+  const quoteTokenContractInfo = eth.getERC20TokenAddress(req.body.token1);
   const fee = req.body.fee;
   const lowerPrice = parseFloat(req.body.lowerPrice);
   const upperPrice = parseFloat(req.body.upperPrice);
@@ -487,8 +497,8 @@ router.post('/replace-position', async (req: Request, res: Response) => {
     new ethers.Wallet(privateKey, uniswap.provider)
   );
   const tokenId = req.body.tokenId;
-  const baseTokenContractInfo = eth.getERC20TokenAddresses(req.body.token0);
-  const quoteTokenContractInfo = eth.getERC20TokenAddresses(req.body.token1);
+  const baseTokenContractInfo = eth.getERC20TokenAddress(req.body.token0);
+  const quoteTokenContractInfo = eth.getERC20TokenAddress(req.body.token1);
   const fee = req.body.fee;
   const lowerPrice = parseFloat(req.body.lowerPrice);
   const upperPrice = parseFloat(req.body.upperPrice);

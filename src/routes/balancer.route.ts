@@ -47,10 +47,7 @@ router.post('/', async (_req: Request, res: Response) => {
 
 router.post('/gas-limit', async (req: Request, res: Response) => {
   /*
-    POST: /buy-price
-      x-www-form-urlencoded: {
-        "maxSwaps":4
-      }
+    POST: /gas-limit
   */
   try {
     const swaps = req.body.maxSwaps;
