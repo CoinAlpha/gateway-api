@@ -270,14 +270,14 @@ export default class Terra {
 
   // Swap tokens
   async swapTokens(
-    baseToken,
-    quoteToken,
-    amount,
-    tradeType,
-    gasPrice,
-    gasAdjustment,
-    secret
-  ) {
+    baseToken: string,
+    quoteToken: string,
+    amount: number,
+    tradeType: string,
+    gasPrice: string | null,
+    gasAdjustment: number,
+    secret: string
+  ): Promise<any> {
     let swapResult;
     try {
       // connect to lcd
@@ -301,8 +301,8 @@ export default class Terra {
       const quoteDenom = this.getTokenDenom(quoteToken);
 
       let offerDenom, swapDenom;
-      let swaps, txAttributes;
-      const tokenSwap = {};
+      let swaps;
+      const tokenSwap: Record<any, any> = {};
 
       if (tradeType.toLowerCase() === 'sell') {
         offerDenom = baseDenom;
@@ -312,77 +312,77 @@ export default class Terra {
         swapDenom = baseDenom;
       }
 
-      await this.getSwapRate(
-        baseToken,
-        quoteToken,
-        amount,
-        tradeType,
-        secret
-      ).then((rate) => {
-        swaps = rate;
-      });
+      await this.getSwapRate(baseToken, quoteToken, amount, tradeType).then(
+        (rate) => {
+          swaps = rate;
+        }
+      );
 
-      const offerAmount = parseInt(swaps.offer.amount * DENOM_UNIT);
-      const offerCoin = new Coin(offerDenom, offerAmount);
+      if (swaps && offerDenom && swapDenom) {
+        const offerAmount = (swaps.offer.amount || 0) * DENOM_UNIT;
+        const offerCoin = new Coin(offerDenom, offerAmount);
 
-      // Create and Sign Transaction
-      const msgSwap = new MsgSwap(address, offerCoin, swapDenom);
+        // Create and Sign Transaction
+        const msgSwap = new MsgSwap(address, offerCoin, swapDenom);
 
-      let txOptions;
-      if (gasPrice !== null && gasPrice !== null) {
-        // ignore gasAdjustment when gasPrice is not set
-        txOptions = {
-          msgs: [msgSwap],
-          gasPrices: { uluna: parseFloat(gasPrice) },
-          gasAdjustment: gasAdjustment,
-          memo: this.memo,
-        };
-      } else {
-        txOptions = {
-          msgs: [msgSwap],
-          memo: this.memo,
-        };
+        let txOptions;
+        if (gasPrice !== null) {
+          // ignore gasAdjustment when gasPrice is not set
+          txOptions = {
+            msgs: [msgSwap],
+            gasPrices: { uluna: parseFloat(gasPrice) },
+            gasAdjustment: gasAdjustment,
+            memo: this.memo,
+          };
+        } else {
+          txOptions = {
+            msgs: [msgSwap],
+            memo: this.memo,
+          };
+        }
+
+        if (wallet) {
+          await wallet
+            .createAndSignTx(txOptions)
+            .then((tx) => lcd.tx.broadcast(tx))
+            .then((txResult) => {
+              swapResult = txResult;
+
+              const swapSuccess = !isTxError(txResult);
+              if (swapSuccess) {
+                tokenSwap.txSuccess = swapSuccess;
+              } else {
+                tokenSwap.txSuccess = !swapSuccess;
+                throw new Error(
+                  `encountered an error while running the transaction: ${txResult.code} ${txResult.codespace}`
+                );
+              }
+              const txHash = txResult.txhash;
+              const events = JSON.parse(txResult.raw_log)[0].events;
+              const swap = events.find((obj) => {
+                return obj.type === 'swap';
+              });
+              const offer = Coin.fromString(swap.attributes.offer);
+              const ask = Coin.fromString(swap.attributes.swap_coin);
+              const fee = Coin.fromString(swap.attributes.swap_fee);
+
+              tokenSwap.expectedIn = {
+                amount: parseFloat(offer.amount) / DENOM_UNIT,
+                token: TERRA_TOKENS[offer.denom],
+              };
+              tokenSwap.expectedOut = {
+                amount: parseFloat(ask.amount) / DENOM_UNIT,
+                token: TERRA_TOKENS[ask.denom],
+              };
+              tokenSwap.fee = {
+                amount: parseFloat(fee.amount) / DENOM_UNIT,
+                token: TERRA_TOKENS[fee.denom],
+              };
+              tokenSwap.txHash = txHash;
+            });
+          return tokenSwap;
+        }
       }
-
-      await wallet
-        .createAndSignTx(txOptions)
-        .then((tx) => lcd.tx.broadcast(tx))
-        .then((txResult) => {
-          swapResult = txResult;
-
-          const swapSuccess = !isTxError(txResult);
-          if (swapSuccess) {
-            tokenSwap.txSuccess = swapSuccess;
-          } else {
-            tokenSwap.txSuccess = !swapSuccess;
-            throw new Error(
-              `encountered an error while running the transaction: ${txResult.code} ${txResult.codespace}`
-            );
-          }
-          const txHash = txResult.txhash;
-          const events = JSON.parse(txResult.raw_log)[0].events;
-          const swap = events.find((obj) => {
-            return obj.type === 'swap';
-          });
-          const offer = Coin.fromString(swap.attributes.offer);
-          const ask = Coin.fromString(swap.attributes.swap_coin);
-          const fee = Coin.fromString(swap.attributes.swap_fee);
-
-          tokenSwap.expectedIn = {
-            amount: parseFloat(offer.amount) / DENOM_UNIT,
-            token: TERRA_TOKENS[offer.denom],
-          };
-          tokenSwap.expectedOut = {
-            amount: parseFloat(ask.amount) / DENOM_UNIT,
-            token: TERRA_TOKENS[ask.denom],
-          };
-          tokenSwap.fee = {
-            amount: parseFloat(fee.amount) / DENOM_UNIT,
-            token: TERRA_TOKENS[fee.denom],
-          };
-          tokenSwap.txHash = txHash;
-        });
-      return tokenSwap;
     } catch (err) {
       logger.error(err);
       let reason;
