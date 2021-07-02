@@ -134,7 +134,7 @@ export class EthereumService {
    * @param {string} spender
    * @param {string} tokenAddress
    * @param {number} decimals
-   * @return {Promise<BigInt>}
+   * @return {Promise<string>}
    */
   async getERC20Allowance(
     wallet: Wallet,

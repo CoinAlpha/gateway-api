@@ -15,8 +15,8 @@ import balancerRoutes from './routes/balancer.route';
 import ethRoutes from './routes/ethereum';
 import perpFiRoutes from './routes/perpetual_finance.route';
 import terraRoutes from './routes/terra.route';
-import uniswapRoutes from './routes/uniswap.route';
-import uniswapV3Routes from './routes/uniswap_v3.route';
+import uniswapRoutes from './routes/uniswap';
+import uniswapV3Routes from './routes/uniswap_v3';
 
 // load configs
 const globalConfig =
