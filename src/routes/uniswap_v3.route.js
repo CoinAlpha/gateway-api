@@ -31,10 +31,8 @@ const getErrorMessage = (err) => {
     [WIP] Custom error message based-on string match
   */
   let message = err;
-  if (err.includes('failed to meet quorum')) {
-    message = 'Failed to meet quorum in Uniswap';
-  } else if (err.includes('Invariant failed: ADDRESSES')) {
-    message = 'Invariant failed: ADDRESSES';
+  if (err.includes('Invariant failed: RATIO_CURRENT')) {
+    message = 'Cannot find a proper route';
   } else if (err.includes('"call revert exception')) {
     message = statusMessages.no_pool_available;
   } else if (err.includes('"trade" is read-only')) {

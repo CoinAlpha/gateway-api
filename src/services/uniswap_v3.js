@@ -317,7 +317,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
       Object.values(this.pools),
       tokenAmountIn,
       tOut,
-      { maxHops: 3 }
+      { maxHops: 1 }
     );
     let trade;
     if (trades === undefined) {
@@ -345,7 +345,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
       Object.values(this.pools),
       tIn,
       tokenAmountOut,
-      { maxHops: 3 }
+      { maxHops: 1 }
     );
     let trade;
     if (trades === undefined) {
@@ -359,17 +359,17 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
   }
 
   async swapExactIn(wallet, trade, tokenAddress, gasPrice) {
-    const result = uniV3.Router.swapCallParameters(trade, {
+    const { calldata, value } = uniV3.SwapRouter.swapCallParameters(trade, {
       deadline: this.get_ttl(),
-      recipient: wallet.address,
+      recipient: wallet.signer.address,
       slippageTolerance: this.get_slippage()
     });
 
     const contract = this.get_contract('router', wallet);
-    const tx = await contract[result.methodName](...result.args, {
+    const tx = await contract.multicall([calldata], {
       gasPrice: gasPrice * 1e9,
       gasLimit: GAS_LIMIT,
-      value: result.value
+      value: value
     });
 
     debug(`Tx Hash: ${tx.hash}`);
@@ -377,17 +377,17 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
   }
 
   async swapExactOut(wallet, trade, tokenAddress, gasPrice) {
-    const result = uniV3.Router.swapCallParameters(trade, {
+    const { calldata, value } = uniV3.SwapRouter.swapCallParameters(trade, {
       deadline: this.get_ttl(),
-      recipient: wallet.address,
+      recipient: wallet.signer.address,
       slippageTolerance: this.get_slippage()
     });
 
     const contract = this.get_contract('router', wallet);
-    const tx = await contract[result.methodName](...result.args, {
+    const tx = await contract.multicall([calldata], {
       gasPrice: gasPrice * 1e9,
       gasLimit: GAS_LIMIT,
-      value: result.value
+      value: value
     });
 
     debug(`Tx Hash: ${tx.hash}`);
