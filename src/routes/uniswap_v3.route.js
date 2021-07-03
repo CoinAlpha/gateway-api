@@ -238,7 +238,7 @@ router.post('/trade', async (req, res) => {
       logger.info(`uniswap.route - Price: ${price.toString()}`);
       if (!limitPrice || price <= limitPrice) {
         // pass swaps to exchange-proxy to complete trade
-        const tx = await uniswap.swapExactOut(
+        const tx = await uniswap.swap(
           wallet,
           trade,
           baseTokenContractInfo,
@@ -274,7 +274,7 @@ router.post('/trade', async (req, res) => {
       logger.info(`Price: ${price.toString()}`);
       if (!limitPrice || price >= limitPrice) {
         // pass swaps to exchange-proxy to complete trade
-        const tx = await uniswap.swapExactIn(
+        const tx = await uniswap.swap(
           wallet,
           trade,
           baseTokenContractInfo,

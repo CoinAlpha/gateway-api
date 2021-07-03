@@ -358,7 +358,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
     return { trade, expectedAmount };
   }
 
-  async swapExactIn(wallet, trade, tokenAddress, gasPrice) {
+  async swap(wallet, trade, tokenAddress, gasPrice) {
     const { calldata, value } = uniV3.SwapRouter.swapCallParameters(trade, {
       deadline: this.get_ttl(),
       recipient: wallet.signer.address,
@@ -376,23 +376,6 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
     return tx;
   }
 
-  async swapExactOut(wallet, trade, tokenAddress, gasPrice) {
-    const { calldata, value } = uniV3.SwapRouter.swapCallParameters(trade, {
-      deadline: this.get_ttl(),
-      recipient: wallet.signer.address,
-      slippageTolerance: this.get_slippage()
-    });
-
-    const contract = this.get_contract('router', wallet);
-    const tx = await contract.multicall([calldata], {
-      gasPrice: gasPrice * 1e9,
-      gasLimit: GAS_LIMIT,
-      value: value
-    });
-
-    debug(`Tx Hash: ${tx.hash}`);
-    return tx;
-  }
   /////////////////////////////////////////////////// End of Swap section
 
   //////////////////////////////////////////////////////////// LP section
