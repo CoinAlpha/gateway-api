@@ -37,6 +37,8 @@ const getErrorMessage = (err) => {
     message = statusMessages.no_pool_available;
   } else if (err.includes('"trade" is read-only')) {
     message = statusMessages.no_pool_available;
+  } else if (err.includes('insufficient funds')) {
+    message = statusMessages.insufficient_fee;
   }
   return message;
 };
@@ -260,7 +262,7 @@ router.post('/trade', async (req, res) => {
           txHash: tx.hash
         });
       } else {
-        res.status(200).json({
+        res.status(500).json({
           error: swapMoreThanMaxPriceError,
           message: `Swap price ${price} exceeds limitPrice ${limitPrice}`
         });
@@ -296,7 +298,7 @@ router.post('/trade', async (req, res) => {
           txHash: tx.hash
         });
       } else {
-        res.status(200).json({
+        res.status(500).json({
           error: swapLessThanMaxPriceError,
           message: `Swap price ${price} lower than limitPrice ${limitPrice}`
         });
@@ -412,12 +414,10 @@ router.post('/price', async (req, res) => {
     let reason;
     let errCode = 500;
     if (Object.keys(err).includes('isInsufficientReservesError')) {
-      errCode = 200;
       reason = statusMessages.insufficient_reserves + ' in ' + ' at Uniswap';
     } else if (Object.getOwnPropertyNames(err).includes('message')) {
       reason = getErrorMessage(err.message);
       if (reason === statusMessages.no_pool_available) {
-        errCode = 200;
         res.status(errCode).json({
           info: reason,
           message: err
@@ -550,7 +550,7 @@ router.post('/add-position', async (req, res) => {
     res.status(200).json(result);
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
-    res.status(200).json({
+    res.status(500).json({
       info: statusMessages.operation_error,
       message: err
     });
@@ -664,7 +664,7 @@ router.post('/collect-fees', async (req, res) => {
     res.status(200).json(result);
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
-    res.status(200).json({
+    res.status(500).json({
       info: statusMessages.operation_error,
       message: err
     });
