@@ -39,6 +39,8 @@ const getErrorMessage = (err) => {
     message = statusMessages.no_pool_available;
   } else if (err.includes('insufficient funds')) {
     message = statusMessages.insufficient_fee;
+  } else {
+    message = statusMessages.operation_error;
   }
   return message;
 };
@@ -309,10 +311,7 @@ router.post('/trade', async (req, res) => {
     }
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
-    let reason;
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error);
+    let reason = getErrorMessage(err.message);
     res.status(500).json({
       error: reason,
       message: err
@@ -414,7 +413,7 @@ router.post('/price', async (req, res) => {
     let reason;
     let errCode = 500;
     if (Object.keys(err).includes('isInsufficientReservesError')) {
-      reason = statusMessages.insufficient_reserves + ' in ' + ' at Uniswap';
+      reason = statusMessages.insufficient_reserves;
     } else if (Object.getOwnPropertyNames(err).includes('message')) {
       reason = getErrorMessage(err.message);
       if (reason === statusMessages.no_pool_available) {
@@ -550,8 +549,9 @@ router.post('/add-position', async (req, res) => {
     res.status(200).json(result);
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
+    let reason = getErrorMessage(err.message);
     res.status(500).json({
-      info: statusMessages.operation_error,
+      info: reason,
       message: err
     });
   }
@@ -608,12 +608,8 @@ router.post('/remove-position', async (req, res) => {
     res.status(200).json(result);
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
-    let reason;
-    let errCode = 500;
-    err.reason
-      ? (reason = err.reason)
-      : (reason = statusMessages.operation_error);
-    res.status(errCode).json({
+    let reason = getErrorMessage(err.message);
+    res.status(500).json({
       error: reason,
       message: err
     });
@@ -664,8 +660,9 @@ router.post('/collect-fees', async (req, res) => {
     res.status(200).json(result);
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
+    let reason = getErrorMessage(err.message);
     res.status(500).json({
-      info: statusMessages.operation_error,
+      info: reason,
       message: err
     });
   }
