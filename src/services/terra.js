@@ -4,7 +4,7 @@ import {
   Coin,
   MsgSwap,
   MnemonicKey,
-  isTxError
+  isTxError,
 } from '@terra-money/terra.js';
 import BigNumber from 'bignumber.js';
 import { getHummingbotMemo } from './utils';
@@ -19,7 +19,7 @@ const TERRA_TOKENS = {
   uusd: { symbol: 'UST' },
   ukrw: { symbol: 'KRT' },
   usdr: { symbol: 'SDT' },
-  umnt: { symbol: 'MNT' }
+  umnt: { symbol: 'MNT' },
 };
 const DENOM_UNIT = BigNumber('1e+6');
 const TOBIN_TAX = 0.0025; // a Tobin Tax (set at 0.25%) for spot-converting Terra<>Terra swaps
@@ -57,7 +57,7 @@ export default class Terra {
     try {
       const lcd = new LCDClient({
         URL: this.lcdUrl,
-        chainID: this.network
+        chainID: this.network,
       });
       lcd.config.gasAdjustment = GAS_ADJUSTMENT;
       lcd.config.gasPrices = GAS_PRICE;
@@ -187,12 +187,12 @@ export default class Terra {
             offer = { amount: amount };
             exchangeRate = {
               amount: swapCoin.amount / DENOM_UNIT / amount,
-              token: quoteToken
+              token: quoteToken,
             };
             costAmount = amount * exchangeRate.amount;
             cost = {
               amount: costAmount,
-              token: quoteToken
+              token: quoteToken,
             };
           });
       } else {
@@ -207,12 +207,12 @@ export default class Terra {
             exchangeRate = {
               amount:
                 ((amount / parseInt(swapCoin.amount)) * DENOM_UNIT) / amount, // adjusted amount
-              token: quoteToken
+              token: quoteToken,
             };
             costAmount = amount * exchangeRate.amount;
             cost = {
               amount: costAmount,
-              token: quoteToken
+              token: quoteToken,
             };
             offer = { amount: cost.amount };
           });
@@ -223,7 +223,7 @@ export default class Terra {
         // fee in quote
         txFee = {
           amount: parseFloat(fee[this.getTokenDenom(quoteToken)]),
-          token: quoteToken
+          token: quoteToken,
         };
       });
 
@@ -257,7 +257,7 @@ export default class Terra {
       const lcd = this.connect();
 
       const mk = new MnemonicKey({
-        mnemonic: secret
+        mnemonic: secret,
       });
       let wallet;
       try {
@@ -308,12 +308,12 @@ export default class Terra {
           msgs: [msgSwap],
           gasPrices: { uluna: parseFloat(gasPrice) },
           gasAdjustment: gasAdjustment,
-          memo: this.memo
+          memo: this.memo,
         };
       } else {
         txOptions = {
           msgs: [msgSwap],
-          memo: this.memo
+          memo: this.memo,
         };
       }
 
@@ -344,15 +344,15 @@ export default class Terra {
 
           tokenSwap.expectedIn = {
             amount: parseFloat(offer.amount) / DENOM_UNIT,
-            token: TERRA_TOKENS[offer.denom].symbol
+            token: TERRA_TOKENS[offer.denom].symbol,
           };
           tokenSwap.expectedOut = {
             amount: parseFloat(ask.amount) / DENOM_UNIT,
-            token: TERRA_TOKENS[ask.denom].symbol
+            token: TERRA_TOKENS[ask.denom].symbol,
           };
           tokenSwap.fee = {
             amount: parseFloat(fee.amount) / DENOM_UNIT,
-            token: TERRA_TOKENS[fee.denom].symbol
+            token: TERRA_TOKENS[fee.denom].symbol,
           };
           tokenSwap.txHash = txHash;
         });

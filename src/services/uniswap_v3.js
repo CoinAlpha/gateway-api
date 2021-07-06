@@ -117,7 +117,7 @@ export default class UniswapV3 {
       poolContract.liquidity(),
       poolContract.slot0(),
       poolContract.ticks(minTick),
-      poolContract.ticks(maxTick)
+      poolContract.ticks(maxTick),
     ]);
 
     return {
@@ -134,14 +134,14 @@ export default class UniswapV3 {
         {
           index: minTick,
           liquidityNet: poolData[2].value[1],
-          liquidityGross: poolData[2].value[0]
+          liquidityGross: poolData[2].value[0],
         },
         {
           index: maxTick,
           liquidityNet: poolData[3].value[1],
-          liquidityGross: poolData[3].value[0]
-        }
-      ]
+          liquidityGross: poolData[3].value[0],
+        },
+      ],
     };
   }
 
@@ -258,7 +258,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
                 pairs.push([
                   poolAddress,
                   this.tokenList[tokens[firstToken]],
-                  this.tokenList[tokens[secondToken]]
+                  this.tokenList[tokens[secondToken]],
                 ]);
                 poolDataRequests.push(
                   this.get_pool_state(
@@ -317,7 +317,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
       Object.values(this.pools),
       tokenAmountIn,
       tOut,
-      { maxHops: 3 }
+      { maxHops: 1 }
     );
     let trade;
     if (trades === undefined) {
@@ -345,7 +345,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
       Object.values(this.pools),
       tIn,
       tokenAmountOut,
-      { maxHops: 3 }
+      { maxHops: 1 }
     );
     let trade;
     if (trades === undefined) {
@@ -358,41 +358,24 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
     return { trade, expectedAmount };
   }
 
-  async swapExactIn(wallet, trade, tokenAddress, gasPrice) {
-    const result = uniV3.Router.swapCallParameters(trade, {
+  async swap(wallet, trade, tokenAddress, gasPrice) {
+    const { calldata, value } = uniV3.SwapRouter.swapCallParameters(trade, {
       deadline: this.get_ttl(),
-      recipient: wallet.address,
-      slippageTolerance: this.get_slippage()
+      recipient: wallet.signer.address,
+      slippageTolerance: this.get_slippage(),
     });
 
     const contract = this.get_contract('router', wallet);
-    const tx = await contract[result.methodName](...result.args, {
+    const tx = await contract.multicall([calldata], {
       gasPrice: gasPrice * 1e9,
       gasLimit: GAS_LIMIT,
-      value: result.value
+      value: value,
     });
 
     debug(`Tx Hash: ${tx.hash}`);
     return tx;
   }
 
-  async swapExactOut(wallet, trade, tokenAddress, gasPrice) {
-    const result = uniV3.Router.swapCallParameters(trade, {
-      deadline: this.get_ttl(),
-      recipient: wallet.address,
-      slippageTolerance: this.get_slippage()
-    });
-
-    const contract = this.get_contract('router', wallet);
-    const tx = await contract[result.methodName](...result.args, {
-      gasPrice: gasPrice * 1e9,
-      gasLimit: GAS_LIMIT,
-      value: result.value
-    });
-
-    debug(`Tx Hash: ${tx.hash}`);
-    return tx;
-  }
   /////////////////////////////////////////////////// End of Swap section
 
   //////////////////////////////////////////////////////////// LP section
@@ -427,7 +410,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
         ),
         tickLower: position.tickLower,
         tickUpper: position.tickUpper,
-        liquidity: position.liquidity
+        liquidity: position.liquidity,
       });
       return {
         token0: token0.symbol,
@@ -446,7 +429,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
         unclaimedToken1: ethers.utils.formatUnits(
           feeInfo.amount1.toString(),
           token1.decimals
-        )
+        ),
       };
     }
   }
@@ -467,8 +450,8 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
           token1,
           ethers.utils.parseUnits('0', token1.decimals)
         ),
-        recipient: wallet.signer.address
-      }
+        recipient: wallet.signer.address,
+      },
     };
   }
 
@@ -476,7 +459,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
     let extraData;
     const commonData = {
       slippageTolerance: this.get_slippage(),
-      deadline: this.get_ttl()
+      deadline: this.get_ttl(),
     };
     if (tokenId == 0) {
       extraData = { recipient: wallet.signer.address, createPool: true };
@@ -545,7 +528,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
       ),
       amount0: ethers.utils.parseUnits(amount0, tokenIn.decimals),
       amount1: ethers.utils.parseUnits(amount1, tokenOut.decimals),
-      useFullPrecision: true
+      useFullPrecision: true,
     });
     const callData = uniV3.NonfungiblePositionManager.addCallParameters(
       position,
@@ -553,7 +536,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
     );
     return await nftContract.multicall([callData.calldata], {
       value: callData.value,
-      gasLimit: GAS_LIMIT
+      gasLimit: GAS_LIMIT,
     });
   }
 
@@ -581,7 +564,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
       ),
       tickLower: positionData.tickLower,
       tickUpper: positionData.tickUpper,
-      liquidity: positionData.liquidity
+      liquidity: positionData.liquidity,
     });
     const callData = uniV3.NonfungiblePositionManager.removeCallParameters(
       position,
@@ -595,7 +578,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
     );
     return await contract.multicall([callData.calldata], {
       value: callData.value,
-      gasLimit: GAS_LIMIT
+      gasLimit: GAS_LIMIT,
     });
   }
 
@@ -605,7 +588,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
       tokenId: tokenId,
       recipient: wallet.signer.address,
       amount0Max: MaxUint128,
-      amount1Max: MaxUint128
+      amount1Max: MaxUint128,
     };
     return isStatic
       ? await contract.callStatic.collect(collectData, { gasLimit: GAS_LIMIT })

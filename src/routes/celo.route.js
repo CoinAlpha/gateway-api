@@ -46,11 +46,11 @@ router.get('/status', (req, res) => {
     if (code === 0) {
       res.status(200).json({
         synced: out_message[0].toLowerCase() === 'true',
-        message: err_message.join('')
+        message: err_message.join(''),
       });
     } else {
       res.status(401).json({
-        error: err_message.join('')
+        error: err_message.join(''),
       });
     }
   });
@@ -109,7 +109,7 @@ router.get('/price', (req, res) => {
       const result = Object.assign(paramData, {
         price: price,
         timestamp: initTime,
-        latency: hbUtils.latency(initTime, Date.now())
+        latency: hbUtils.latency(initTime, Date.now()),
       });
       res.status(200).json(result);
     }
@@ -163,11 +163,11 @@ router.get('/balance', (req, res) => {
       res.status(200).json({
         address: address,
         balance: walletBalances,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     } else {
       res.status(401).json({
-        error: err_message
+        error: err_message,
       });
     }
   });
@@ -194,7 +194,7 @@ router.post('/unlock', (req, res) => {
     'account:unlock',
     address,
     '--password',
-    secret
+    secret,
   ]);
 
   let err_message = [],
@@ -225,11 +225,11 @@ router.post('/unlock', (req, res) => {
       res.status(200).json({
         unlocked: unlocked,
         message: out_message.join(),
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     } else {
       res.status(401).json({
-        error: err_message.join()
+        error: err_message.join(),
       });
     }
   });
