@@ -35,7 +35,7 @@
         {
           "name": "eth/uniswap/v3/start",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [],
             "body": {
               "mode": "urlencoded",

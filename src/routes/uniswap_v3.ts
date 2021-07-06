@@ -123,11 +123,7 @@ router.post('/result', async (req: Request, res: Response) => {
 
 router.get('/start', async (req, res) => {
   /*
-    POST: /eth/uniswap/v3/start
-      x-www-form-urlencoded: {
-        "pairs":"[ETH-USDT, ...]"
-        "gasPrice":30
-      }
+    GET: /eth/uniswap/v3/start?pairs=["WETH-USDC"]&gasPrice=30
   */
   const orderedPairs = [];
   const initTime = Date.now();
@@ -374,10 +370,12 @@ router.post('/price', async (req: Request, res: Response) => {
     }
     const gasLimit = estimateGasLimit();
     const gasCost = await fees.getGasCost(gasPrice, gasLimit);
-
+      console.log('made it here')
     try {
       // fetch pools for all tiers
-      let priceResult, price;
+        let priceResult, price;
+        console.log('try it')
+        console.log(req.body)
 
       if (req.body.amount) {
         // get price at this depth
