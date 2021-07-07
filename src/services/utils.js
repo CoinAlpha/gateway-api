@@ -15,7 +15,7 @@ export const statusMessages = {
   no_pool_available: 'No Pool Available',
   invalid_token_symbol: 'Invalid Token Symbol',
   insufficient_reserves: 'Insufficient Liquidity Reserves',
-  page_not_found: 'Page not found. Invalid path'
+  page_not_found: 'Page not found. Invalid path',
 };
 
 export const latency = (startTime, endTime) =>
@@ -68,7 +68,7 @@ export const getSymbols = (tradingPair) => {
   const symbols = tradingPair.split('-');
   const baseQuotePair = {
     base: symbols[0].toUpperCase(),
-    quote: symbols[1].toUpperCase()
+    quote: symbols[1].toUpperCase(),
   };
   return baseQuotePair;
 };
@@ -76,7 +76,7 @@ export const getSymbols = (tradingPair) => {
 export const reportConnectionError = (res, error) => {
   res.json({
     error: error.errno,
-    code: error.code
+    code: error.code,
   });
 };
 

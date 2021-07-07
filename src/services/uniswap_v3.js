@@ -1,7 +1,7 @@
 import { logger } from './logger';
 import {
   encodePriceSqrt,
-  getTickFromPrice
+  getTickFromPrice,
 } from '../static/uniswap-v3/helper_functions';
 
 const debug = require('debug')('router');
@@ -83,7 +83,7 @@ export default class UniswapV3 {
     const poolAddressRequests = [
       coreContract.getPool(tokenIn, tokenOut, FeeAmount.LOW),
       coreContract.getPool(tokenIn, tokenOut, FeeAmount.MEDIUM),
-      coreContract.getPool(tokenIn, tokenOut, FeeAmount.HIGH)
+      coreContract.getPool(tokenIn, tokenOut, FeeAmount.HIGH),
     ];
     await Promise.allSettled(poolAddressRequests).then((values) => {
       for (pool = 0; pool < 3; pool++) {
@@ -149,11 +149,11 @@ export default class UniswapV3 {
           quoteTokenContractInfo.decimals
         ),
         //sqrtPriceLimitX96: encodePriceSqrt(priceFraction.d, priceFraction.n)
-        sqrtPriceLimitX96: 0
+        sqrtPriceLimitX96: 0,
       },
       {
         //gasPrice: gasPrice * 1e9,
-        gasLimit: GAS_LIMIT
+        gasLimit: GAS_LIMIT,
       }
     );
 
@@ -195,11 +195,11 @@ export default class UniswapV3 {
           quoteTokenContractInfo.decimals
         ),
         //sqrtPriceLimitX96: encodePriceSqrt(priceFraction.d, priceFraction.n)
-        sqrtPriceLimitX96: 0
+        sqrtPriceLimitX96: 0,
       },
       {
         //gasPrice: gasPrice * 1e9,
-        gasLimit: GAS_LIMIT
+        gasLimit: GAS_LIMIT,
       }
     );
 
@@ -225,7 +225,7 @@ export default class UniswapV3 {
       feeGrowthInside0LastX128: position[8].toString(),
       feeGrowthInside1LastX128: position[9].toString(),
       tokensOwed0: position[10].toString(),
-      tokensOwed1: position[11].toString()
+      tokensOwed1: position[11].toString(),
     };
   }
 
@@ -238,8 +238,8 @@ export default class UniswapV3 {
           liquidity: liquidity,
           amount0Min: 0,
           amount1Min: 0,
-          deadline: Date.now() + TTL
-        }
+          deadline: Date.now() + TTL,
+        },
       ]
     );
     const collectFeesData = contract.interface.encodeFunctionData('collect', [
@@ -247,8 +247,8 @@ export default class UniswapV3 {
         tokenId: tokenId,
         recipient: wallet.signer.address,
         amount0Max: MaxUint128,
-        amount1Max: MaxUint128
-      }
+        amount1Max: MaxUint128,
+      },
     ]);
     const burnData = contract.interface.encodeFunctionData('burn', [tokenId]);
 
@@ -279,8 +279,8 @@ export default class UniswapV3 {
         amount1Min: 0,
         recipient: wallet.signer.address,
         deadline: Date.now() + TTL,
-        fee: FeeAmount[fee]
-      }
+        fee: FeeAmount[fee],
+      },
     ]);
 
     return mintData;
@@ -311,7 +311,7 @@ export default class UniswapV3 {
         token0.address,
         token1.address,
         FeeAmount[fee],
-        encodePriceSqrt(midPrice.n, midPrice.d)
+        encodePriceSqrt(midPrice.n, midPrice.d),
       ]
     );
 
@@ -330,7 +330,7 @@ export default class UniswapV3 {
     let calls = [mintData];
     if (pool === ethers.constants.AddressZero) {
       const tx = await nftContract.multicall([initPoolData, mintData], {
-        gasLimit: GAS_LIMIT
+        gasLimit: GAS_LIMIT,
       });
       return tx;
     } else {
@@ -384,7 +384,7 @@ export default class UniswapV3 {
     );
 
     return await contract.multicall(removeData.concat(mintData), {
-      gasLimit: GAS_LIMIT
+      gasLimit: GAS_LIMIT,
     });
   }
 
@@ -395,7 +395,7 @@ export default class UniswapV3 {
         tokenId: tokenId,
         recipient: wallet.signer.address,
         amount0Max: MaxUint128,
-        amount1Max: MaxUint128
+        amount1Max: MaxUint128,
       },
       { gasLimit: GAS_LIMIT }
     );

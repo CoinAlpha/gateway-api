@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
     provider: perpFi.provider.connection.url,
     loadedMetadata: perpFi.loadedMetadata,
     connection: true,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 });
 
@@ -33,7 +33,7 @@ router.get('/load-metadata', async (req, res) => {
     provider: perpFi.provider.connection.url,
     loadedMetadata: loadedMetadata,
     connection: true,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 });
 
@@ -55,7 +55,7 @@ router.post('/balances', async (req, res) => {
     err.reason ? (reason = err.reason) : (reason = 'Error getting wallet');
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
     return;
   }
@@ -68,7 +68,7 @@ router.post('/balances', async (req, res) => {
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      balances: balances
+      balances: balances,
     });
   } catch (err) {
     let reason;
@@ -77,7 +77,7 @@ router.post('/balances', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -100,7 +100,7 @@ router.post('/allowances', async (req, res) => {
     err.reason ? (reason = err.reason) : (reason = 'Error getting wallet');
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
     return;
   }
@@ -112,7 +112,7 @@ router.post('/allowances', async (req, res) => {
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      approvals: approvals
+      approvals: approvals,
     });
   } catch (err) {
     let reason;
@@ -121,7 +121,7 @@ router.post('/allowances', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -148,7 +148,7 @@ router.post('/approve', async (req, res) => {
     err.reason ? (reason = err.reason) : (reason = 'Error getting wallet');
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
     return;
   }
@@ -163,7 +163,7 @@ router.post('/approve', async (req, res) => {
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
       amount: amount,
-      approval: approval
+      approval: approval,
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -173,7 +173,7 @@ router.post('/approve', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -208,7 +208,7 @@ router.post('/open', async (req, res) => {
     err.reason ? (reason = err.reason) : (reason = 'Error getting wallet');
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
     return;
   }
@@ -233,7 +233,7 @@ router.post('/open', async (req, res) => {
       side: side,
       leverage: leverage,
       minBaseAssetAmount: minBaseAssetAmount,
-      txHash: tx.hash
+      txHash: tx.hash,
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -243,7 +243,7 @@ router.post('/open', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -271,7 +271,7 @@ router.post('/close', async (req, res) => {
     err.reason ? (reason = err.reason) : (reason = 'Error getting wallet');
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
     return;
   }
@@ -286,7 +286,7 @@ router.post('/close', async (req, res) => {
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
       minimalQuoteAsset: minimalQuoteAsset,
-      txHash: tx.hash
+      txHash: tx.hash,
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -296,7 +296,7 @@ router.post('/close', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -322,7 +322,7 @@ router.post('/position', async (req, res) => {
     err.reason ? (reason = err.reason) : (reason = 'Error getting wallet');
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
     return;
   }
@@ -336,7 +336,7 @@ router.post('/position', async (req, res) => {
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      position: position
+      position: position,
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -346,7 +346,7 @@ router.post('/position', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -370,7 +370,7 @@ router.post('/margin', async (req, res) => {
     err.reason ? (reason = err.reason) : (reason = 'Error getting wallet');
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
     return;
   }
@@ -384,7 +384,7 @@ router.post('/margin', async (req, res) => {
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      margin: allBalances
+      margin: allBalances,
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -394,7 +394,7 @@ router.post('/margin', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -419,7 +419,7 @@ router.post('/receipt', async (req, res) => {
     receipt.status = txReceipt.status;
   }
   logger.info(`eth.route - Get TX Receipt: ${txHash}`, {
-    message: JSON.stringify(receipt)
+    message: JSON.stringify(receipt),
   });
   res.status(200).json({
     network: perpFi.network,
@@ -427,7 +427,7 @@ router.post('/receipt', async (req, res) => {
     latency: latency(initTime, Date.now()),
     txHash: txHash,
     confirmed: confirmed,
-    receipt: receipt
+    receipt: receipt,
   });
   return txReceipt;
 });
@@ -457,7 +457,7 @@ router.post('/price', async (req, res) => {
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
       side: side,
-      price: price
+      price: price,
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -467,7 +467,7 @@ router.post('/price', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -483,7 +483,7 @@ router.get('/pairs', async (req, res) => {
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      pairs: Object.keys(perpFi.amm)
+      pairs: Object.keys(perpFi.amm),
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -493,7 +493,7 @@ router.get('/pairs', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
@@ -518,7 +518,7 @@ router.post('/funding', async (req, res) => {
       network: perpFi.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      fr: fr
+      fr: fr,
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -528,7 +528,7 @@ router.post('/funding', async (req, res) => {
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });

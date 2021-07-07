@@ -47,19 +47,19 @@ export default class Balancer {
 
     if (pools.pools.length === 0) {
       debug('>>> No pools contain the tokens provided.', {
-        message: this.network
+        message: this.network,
       });
       return {};
     }
     debug(`>>> ${pools.pools.length} Pools Retrieved.`, {
-      message: this.network
+      message: this.network,
     });
   }
 
   async getCachedPools(tokenIn, tokenOut) {
     const cachePools = this.cachedPools[tokenIn + tokenOut].pools;
     debug(`>>> get cached Pools. ${tokenIn + tokenOut}`, {
-      message: `total pools: ${cachePools.length}`
+      message: `total pools: ${cachePools.length}`,
     });
     return cachePools;
   }
@@ -116,7 +116,7 @@ export default class Balancer {
           tokenOut: tokenOut,
           swapAmount: swapsFormatted[i].tokenInParam,
           limitReturnAmount: swapsFormatted[i].tokenOutParam,
-          maxPrice: swapsFormatted[i].maxPrice.toString()
+          maxPrice: swapsFormatted[i].maxPrice.toString(),
         };
         swaps.push(swap);
       }
@@ -180,7 +180,7 @@ export default class Balancer {
           tokenOut: tokenOut,
           swapAmount: swapsFormatted[i].tokenOutParam,
           limitReturnAmount: swapsFormatted[i].tokenInParam,
-          maxPrice: swapsFormatted[i].maxPrice.toString()
+          maxPrice: swapsFormatted[i].maxPrice.toString(),
         };
         swaps.push(swap);
       }
@@ -217,7 +217,7 @@ export default class Balancer {
         0,
         {
           gasPrice: gasPrice * 1e9,
-          gasLimit: GAS_BASE + swaps.length * GAS_PER_SWAP
+          gasLimit: GAS_BASE + swaps.length * GAS_PER_SWAP,
         }
       );
       debug(`Tx Hash: ${tx.hash}`);
@@ -245,7 +245,7 @@ export default class Balancer {
         expectedIn,
         {
           gasPrice: gasPrice * 1e9,
-          gasLimit: GAS_BASE + swaps.length * GAS_PER_SWAP
+          gasLimit: GAS_BASE + swaps.length * GAS_PER_SWAP,
         }
       );
       debug(`Tx Hash: ${tx.hash}`);
