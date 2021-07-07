@@ -150,37 +150,35 @@ router.get('/start', async (req, res) => {
     const baseTokenContractInfo = eth.getERC20TokenAddress(baseTokenSymbol);
     const quoteTokenContractInfo = eth.getERC20TokenAddress(quoteTokenSymbol);
 
-      if (baseTokenContractInfo && quoteTokenContractInfo) {
-    // check for valid token symbols
-    // order trading pairs
-    if (baseTokenContractInfo.address < quoteTokenContractInfo.address) {
-      orderedPairs.push(pair.join('-'));
-    } else {
-      orderedPairs.push(pair.reverse().join('-'));
-    }
-
-    uniswap.extend_update_pairs([
-      baseTokenContractInfo,
-      quoteTokenContractInfo,
-    ]);
-
-  const gasLimit = estimateGasLimit();
-  const gasCost = await fees.getGasCost(gasPrice, gasLimit);
-
-  const result = {
-    network: eth.networkName,
-    timestamp: initTime,
-    latency: latency(initTime, Date.now()),
-    success: true,
-    pairs: orderedPairs,
-    gasPrice: gasPrice,
-    gasLimit: gasLimit,
-    gasCost: gasCost,
-  };
-  res.status(200).json(result);
-
+    if (baseTokenContractInfo && quoteTokenContractInfo) {
+      // check for valid token symbols
+      // order trading pairs
+      if (baseTokenContractInfo.address < quoteTokenContractInfo.address) {
+        orderedPairs.push(pair.join('-'));
       } else {
+        orderedPairs.push(pair.reverse().join('-'));
+      }
 
+      uniswap.extend_update_pairs([
+        baseTokenContractInfo,
+        quoteTokenContractInfo,
+      ]);
+
+      const gasLimit = estimateGasLimit();
+      const gasCost = await fees.getGasCost(gasPrice, gasLimit);
+
+      const result = {
+        network: eth.networkName,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        success: true,
+        pairs: orderedPairs,
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+        gasCost: gasCost,
+      };
+      res.status(200).json(result);
+    } else {
       const undefinedToken =
         baseTokenContractInfo === undefined
           ? baseTokenSymbol
@@ -190,9 +188,7 @@ router.get('/start', async (req, res) => {
         message: `Token contract address not found for ${undefinedToken}. Check token list source`,
       });
     }
-
   }
-
 });
 
 router.post('/trade', async (req: Request, res: Response) => {
@@ -370,12 +366,12 @@ router.post('/price', async (req: Request, res: Response) => {
     }
     const gasLimit = estimateGasLimit();
     const gasCost = await fees.getGasCost(gasPrice, gasLimit);
-      console.log('made it here')
+    console.log('made it here');
     try {
       // fetch pools for all tiers
-        let priceResult, price;
-        console.log('try it')
-        console.log(req.body)
+      let priceResult, price;
+      console.log('try it');
+      console.log(req.body);
 
       if (req.body.amount) {
         // get price at this depth
