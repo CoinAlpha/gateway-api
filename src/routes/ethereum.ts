@@ -51,6 +51,7 @@ router.post('/balances', async (req: Request, res: Response) => {
 
       tokenContractList[symbol] = tokenContractInfo;
     }
+      console.log(tokenContractList);
 
     // Getting user balancers
     const balances: Record<string, string> = {};
