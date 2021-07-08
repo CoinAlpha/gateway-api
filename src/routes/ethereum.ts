@@ -1,4 +1,8 @@
-import { bigNumberWithDecimalToStr, EthereumService, TokenERC20Info } from '../services/ethereum';
+import {
+  bigNumberWithDecimalToStr,
+  EthereumService,
+  TokenERC20Info,
+} from '../services/ethereum';
 import { EthereumConfigService } from '../services/ethereum_config';
 import { EthereumGasService } from '../services/ethereum_gas';
 import { logger } from '../services/logger';
@@ -37,7 +41,7 @@ router.post('/balances', async (req: Request, res: Response) => {
     );
 
     // Populate token contract info using token symbol list
-    let tokenContractList: Record<string, TokenERC20Info> = {};
+    const tokenContractList: Record<string, TokenERC20Info> = {};
 
     for (const symbol of JSON.parse(req.body.tokenList)) {
       const tokenContractInfo = ethereumService.getERC20TokenAddress(symbol);
@@ -47,18 +51,22 @@ router.post('/balances', async (req: Request, res: Response) => {
 
       tokenContractList[symbol] = tokenContractInfo;
     }
+    console.log(tokenContractList);
 
     // Getting user balancers
-      const balances: Record<string, string> = {};
-      console.log('balances');
+    const balances: Record<string, string> = {};
+    console.log('balances');
     balances.ETH = await ethereumService.getETHBalance(wallet);
     await Promise.all(
       Object.keys(tokenContractList).map(async (symbol) => {
         if (tokenContractList[symbol] !== undefined) {
           const address = tokenContractList[symbol].address;
           const decimals = tokenContractList[symbol].decimals;
-          balances[symbol] = 
-            await ethereumService.getERC20Balance(wallet, address, decimals);
+          balances[symbol] = await ethereumService.getERC20Balance(
+            wallet,
+            address,
+            decimals
+          );
         } else {
           logger.error(`Token contract info for ${symbol} not found`);
         }
@@ -89,7 +97,7 @@ router.post('/allowances', async (req: Request, res: Response) => {
   try {
     const wallet = ethereumService.getWallet(req.body.privateKey);
     // Populate token contract info using token symbol list
-    let tokenContractList: Record<string, TokenERC20Info> = {};
+    const tokenContractList: Record<string, TokenERC20Info> = {};
     for (const symbol of JSON.parse(req.body.tokenList)) {
       const tokenContractInfo = ethereumService.getERC20TokenAddress(symbol);
       if (!tokenContractInfo) {
@@ -104,14 +112,12 @@ router.post('/allowances', async (req: Request, res: Response) => {
         const address = tokenContractList[symbol].address;
         const decimals = tokenContractList[symbol].decimals;
         try {
-          approvals[symbol] = 
-            await ethereumService.getERC20Allowance(
-              wallet,
-              spender,
-              address,
-              decimals
-            )
-          ;
+          approvals[symbol] = await ethereumService.getERC20Allowance(
+            wallet,
+            spender,
+            address,
+            decimals
+          );
         } catch (err) {
           logger.error(err);
           // this helps preserve the expected behavior
@@ -185,7 +191,7 @@ router.post('/approve', async (req: Request, res: Response) => {
         latency: latency(initTime, Date.now()),
         tokenAddress: tokenAddress,
         spender: spender,
-          amount: bigNumberWithDecimalToStr(amount, tokenContractInfo.decimals),
+        amount: bigNumberWithDecimalToStr(amount, tokenContractInfo.decimals),
         approval: approval,
       });
     }

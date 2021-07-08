@@ -55,15 +55,18 @@ const stringInsert = (str: string, val: string, index: number) => {
 };
 
 export const bigNumberWithDecimalToStr = (n: BigNumber, d: number): string => {
-    const n_ = n.toString();
-    
-    var zeros = "";
-    
-    if (n_.length <= d) {
-        zeros = "0".repeat(d - n_.length + 1);
-    }
-    
-    return stringInsert(zeros + n_.split('').reverse().join(''), ".", d).split('').reverse().join('');
+  const n_ = n.toString();
+
+  let zeros = '';
+
+  if (n_.length <= d) {
+    zeros = '0'.repeat(d - n_.length + 1);
+  }
+
+  return stringInsert(n_.split('').reverse().join('') + zeros, '.', d)
+    .split('')
+    .reverse()
+    .join('');
 };
 
 export class EthereumService {
@@ -119,8 +122,8 @@ export class EthereumService {
     // instantiate a contract and pass in provider for read-only access
     const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
     try {
-        const balance = await contract.balanceOf(wallet.address);
-        return bigNumberWithDecimalToStr(balance, decimals);
+      const balance = await contract.balanceOf(wallet.address);
+      return bigNumberWithDecimalToStr(balance, decimals);
     } catch (err) {
       throw new Error(
         err.reason || `Error balance lookup for token address ${tokenAddress}`
@@ -146,7 +149,7 @@ export class EthereumService {
     const contract = new Contract(tokenAddress, abi.ERC20Abi, this.provider);
     try {
       const allowance = await contract.allowance(wallet.address, spender);
-        return bigNumberWithDecimalToStr(allowance, decimals);
+      return bigNumberWithDecimalToStr(allowance, decimals);
     } catch (err) {
       throw new Error(err.reason || 'error allowance lookup');
     }

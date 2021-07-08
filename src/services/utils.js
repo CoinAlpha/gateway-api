@@ -16,6 +16,7 @@ export const statusMessages = {
   invalid_token_symbol: 'Invalid Token Symbol',
   insufficient_reserves: 'Insufficient Liquidity Reserves',
   page_not_found: 'Page not found. Invalid path',
+  insufficient_fee: 'No enough native token to cover for gas.',
 };
 
 export const latency = (startTime, endTime) =>

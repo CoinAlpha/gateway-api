@@ -8,8 +8,8 @@ export class EthereumConfigService {
     return {
       balancer: this.config.getConfig('EXCHANGE_PROXY'),
       uniswap: this.config.getConfig('UNISWAP_ROUTER'),
-        uniswapV3Router: this.config.getConfig('UNISWAP_V3_ROUTER'),
-      uniswapV3NFTManager: this.config.getConfig('UNISWAP_V3_NFT_MANAGER'),        
+      uniswapV3Router: this.config.getConfig('UNISWAP_V3_ROUTER'),
+      uniswapV3NFTManager: this.config.getConfig('UNISWAP_V3_NFT_MANAGER'),
     };
   }
 
