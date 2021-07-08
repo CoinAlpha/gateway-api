@@ -9,11 +9,10 @@ import {
   StdTx,
   StdSignMsg,
   StdFee,
+  BlockTxBroadcastResult,
 } from '@terra-money/terra.js';
 import { getHummingbotMemo } from './utils';
-import { ethers } from 'ethers';
 
-const debug = require('debug')('router');
 const globalConfig =
   require('../services/configuration_manager').configManagerInstance;
 
@@ -29,9 +28,17 @@ const TERRA_TOKENS: Record<string, string> = {
 // const DENOM_UNIT = ethers.BigNumber.from(BigInt('1e+6'));
 const DENOM_UNIT = 10 ** 6;
 
-const GAS_PRICE = { uluna: 0.16 };
+const ULUNA_GAS_PRICE = 0.16;
 
 const GAS_ADJUSTMENT = 1.4;
+
+export interface SwapRate {
+  offerAmount: number;
+  exchangeRate: number;
+  quoteToken: string;
+  costAmount: number;
+  txFee: Record<string, number>;
+}
 
 export default class Terra {
   private lcdUrl;
@@ -45,15 +52,16 @@ export default class Terra {
     this.memo = getHummingbotMemo();
 
     try {
-      this.lcd = this.connect();
+      const lcd = this.connect();
 
-      if (this.lcd) {
+      if (typeof lcd !== 'string') {
+        this.lcd = lcd;
         this.lcd.market.parameters().catch(() => {
           throw new Error('Connection error');
         });
         // set gas & fee
         this.lcd.config.gasAdjustment = GAS_ADJUSTMENT;
-        this.lcd.config.gasPrices = GAS_PRICE;
+        this.lcd.config.gasPrices = { uluna: ULUNA_GAS_PRICE };
       }
     } catch (err) {
       logger.error(err);
@@ -62,14 +70,14 @@ export default class Terra {
   }
 
   // connect Terra LCD
-  connect() {
+  connect(): LCDClient | string {
     try {
       const lcd = new LCDClient({
         URL: this.lcdUrl,
         chainID: this.network,
       });
       lcd.config.gasAdjustment = GAS_ADJUSTMENT;
-      lcd.config.gasPrices = GAS_PRICE;
+      lcd.config.gasPrices = { uluna: ULUNA_GAS_PRICE };
       return lcd;
     } catch (err) {
       logger.error(err);
@@ -149,27 +157,32 @@ export default class Terra {
     }
   }
 
-  async getTxFee(): Promise<Record<string, number> | undefined> {
-    try {
-      const lunaFee = GAS_PRICE.uluna * GAS_ADJUSTMENT;
-      const feeList: Record<string, number> = { uluna: lunaFee };
-      if (this.lcd) {
+  async getTxFee(): Promise<Record<string, number> | string> {
+    if (this.lcd) {
+      try {
+        const ulunaFee = ULUNA_GAS_PRICE * GAS_ADJUSTMENT;
+        const feeList: Record<string, number> = { uluna: ulunaFee };
+
         await this.lcd.oracle.exchangeRates().then((rates: Coins) => {
           rates.toArray().forEach((rate: Coin) => {
-            feeList[rate.denom] = rate.amount.toNumber() * lunaFee;
+            feeList[rate.denom] = rate.amount.toNumber() * ulunaFee;
           });
         });
 
         return feeList;
+      } catch (err) {
+        logger.error(err);
+
+        let reason;
+        if (err.reason) {
+          reason = err.reason;
+        } else {
+          reason = 'error Terra exchange rate lookup';
+        }
+        return reason;
       }
-      return;
-    } catch (err) {
-      logger.error(err);
-      let reason;
-      err.reason
-        ? (reason = err.reason)
-        : (reason = 'error Terra exchange rate lookup');
-      return reason;
+    } else {
+      return 'terra client uninitialized';
     }
   }
 
@@ -179,92 +192,83 @@ export default class Terra {
     quoteToken: string,
     amount: number,
     tradeType: string
-  ) {
-    try {
-      let offerCoin;
-      let offerDenom;
-      let swapDenom;
-      let costAmount: number;
-      let cost: Record<any, any>;
-      let offer: Record<any, any> = {};
-      let exchangeRate: Record<any, any> = {};
-      const swaps: Record<any, any> = {};
-
-      if (tradeType.toLowerCase() === 'sell') {
-        // sell base
-        offerDenom = this.getTokenDenom(baseToken);
-        swapDenom = this.getTokenDenom(quoteToken);
-        if (offerDenom && swapDenom) {
-          offerCoin = new Coin(offerDenom, amount * DENOM_UNIT);
-          if (this.lcd) {
-            await this.lcd.market
-              .swapRate(offerCoin, swapDenom)
-              .then((swapCoin) => {
-                offer = { amount: amount };
-                exchangeRate = {
-                  amount: swapCoin.amount.toNumber() / DENOM_UNIT / amount,
-                  token: quoteToken,
-                };
-                costAmount = amount * exchangeRate.amount;
-                cost = {
-                  amount: costAmount,
-                  token: quoteToken,
-                };
-
-                swaps.offer = offer;
-                swaps.price = exchangeRate;
-                swaps.cost = cost;
-              });
-          }
-        }
-      } else {
-        // buy base
-        offerDenom = this.getTokenDenom(quoteToken);
-        swapDenom = this.getTokenDenom(baseToken);
-
-        if (offerDenom && swapDenom) {
-          offerCoin = new Coin(offerDenom, 1 * DENOM_UNIT);
-          if (this.lcd) {
-            await this.lcd.market
-              .swapRate(offerCoin, swapDenom)
-              .then((swapCoin) => {
-                exchangeRate = {
-                  amount:
-                    amount / (swapCoin.amount.toNumber() * DENOM_UNIT) / amount, // adjusted amount
-                  token: quoteToken,
-                };
-                costAmount = amount * exchangeRate.amount;
-                cost = {
-                  amount: costAmount,
-                  token: quoteToken,
-                };
-                offer = { amount: cost.amount };
-
-                swaps.offer = offer;
-                swaps.price = exchangeRate;
-                swaps.cost = cost;
-              });
-          }
-        }
-      }
-
-      let txFee;
-      await this.getTxFee().then((fee) => {
-        // fee in quote
-        txFee = {
-          amount: fee ? fee[this.getTokenDenom(quoteToken) || ''] || '0' : 0,
-          token: quoteToken,
+  ): Promise<SwapRate | string> {
+    if (this.lcd) {
+      try {
+        let swapRate: SwapRate = {
+          offerAmount: 0,
+          exchangeRate: 0,
+          quoteToken: '',
+          costAmount: 0,
+          txFee: {},
         };
-      });
+        if (tradeType.toLowerCase() === 'sell') {
+          // sell base
+          const offerDenom = this.getTokenDenom(baseToken);
+          const swapDenom = this.getTokenDenom(quoteToken);
+          if (offerDenom && swapDenom) {
+            const offerCoin = new Coin(offerDenom, amount * DENOM_UNIT);
+            await this.lcd.market
+              .swapRate(offerCoin, swapDenom)
+              .then((swapCoin) => {
+                const exchangeRate =
+                  swapCoin.amount.toNumber() / DENOM_UNIT / amount;
+                swapRate = {
+                  offerAmount: amount,
+                  exchangeRate: exchangeRate,
+                  quoteToken: quoteToken,
+                  costAmount: amount * exchangeRate,
+                  txFee: {},
+                };
+              });
+          }
+        } else {
+          // buy base
+          const offerDenom = this.getTokenDenom(quoteToken);
+          const swapDenom = this.getTokenDenom(baseToken);
 
-      swaps.txFee = txFee;
-      debug('swaps', swaps);
-      return swaps;
-    } catch (err) {
-      logger.error(err);
-      let reason;
-      err.reason ? (reason = err.reason) : (reason = 'error swap rate lookup');
-      return reason;
+          if (offerDenom && swapDenom) {
+            const offerCoin = new Coin(offerDenom, 1 * DENOM_UNIT);
+            await this.lcd.market
+              .swapRate(offerCoin, swapDenom)
+              .then((swapCoin) => {
+                const exchangeRate =
+                  amount / (swapCoin.amount.toNumber() * DENOM_UNIT) / amount; // adjusted amount
+                const costAmount = amount * exchangeRate;
+
+                swapRate = {
+                  offerAmount: costAmount,
+                  exchangeRate: exchangeRate,
+                  quoteToken: quoteToken,
+                  costAmount: costAmount,
+                  txFee: {},
+                };
+              });
+          }
+        }
+
+        if (swapRate) {
+          const fees = await this.getTxFee();
+          if (typeof fees != 'string') {
+            swapRate.txFee = fees;
+          }
+
+          return swapRate;
+        } else {
+          return 'error swap rate lookup';
+        }
+      } catch (err) {
+        logger.error(err);
+        let reason;
+        if (err.reason) {
+          reason = err.reason;
+        } else {
+          reason = 'error swap rate lookup';
+        }
+        return reason;
+      }
+    } else {
+      return 'terra client uninitialized';
     }
   }
 
@@ -279,115 +283,120 @@ export default class Terra {
     secret: string
   ): Promise<any> {
     let swapResult;
-    try {
-      // connect to lcd
-      const lcd = this.connect();
-
-      const mk = new MnemonicKey({
-        mnemonic: secret,
-      });
-      let wallet;
+    // connect to lcd
+    const lcd = this.connect();
+    if (typeof lcd === 'string') {
+      logger.error('Unable to connect to the lcd client.');
+      throw Error('Unable to connect to the lcd client.');
+    } else {
       try {
-        wallet = lcd.wallet(mk);
+        let wallet;
+        try {
+          const mk = new MnemonicKey({
+            mnemonic: secret,
+          });
+          wallet = lcd.wallet(mk);
+        } catch (err) {
+          logger.error(err);
+          throw Error('Wallet access error');
+        }
+
+        const address = wallet.key.accAddress;
+
+        // get the current swap rate
+        const baseDenom = this.getTokenDenom(baseToken);
+        const quoteDenom = this.getTokenDenom(quoteToken);
+
+        let offerDenom, swapDenom;
+        const tokenSwap: Record<any, any> = {};
+
+        if (tradeType.toLowerCase() === 'sell') {
+          offerDenom = baseDenom;
+          swapDenom = quoteDenom;
+        } else {
+          offerDenom = quoteDenom;
+          swapDenom = baseDenom;
+        }
+
+        const swaps = await this.getSwapRate(
+          baseToken,
+          quoteToken,
+          amount,
+          tradeType
+        );
+
+        if (typeof swaps != 'string' && offerDenom && swapDenom) {
+          const offerAmount = swaps.offerAmount * DENOM_UNIT;
+          const offerCoin = new Coin(offerDenom, offerAmount);
+
+          // Create and Sign Transaction
+          const msgSwap = new MsgSwap(address, offerCoin, swapDenom);
+
+          let txOptions;
+          if (gasPrice !== null) {
+            // ignore gasAdjustment when gasPrice is not set
+            txOptions = {
+              msgs: [msgSwap],
+              gasPrices: { uluna: parseFloat(gasPrice) },
+              gasAdjustment: gasAdjustment,
+              memo: this.memo,
+            };
+          } else {
+            txOptions = {
+              msgs: [msgSwap],
+              memo: this.memo,
+            };
+          }
+
+          if (wallet) {
+            await wallet
+              .createAndSignTx(txOptions)
+              .then((tx: StdTx) => lcd.tx.broadcast(tx))
+              .then((txResult: BlockTxBroadcastResult) => {
+                swapResult = txResult;
+
+                if (!isTxError(txResult)) {
+                  tokenSwap.txSuccess = true;
+                } else {
+                  tokenSwap.txSuccess = false;
+                  const code = txResult.code || '';
+                  const codespace = txResult.codespace || '';
+                  throw new Error(
+                    `encountered an error while running the transaction: ${code} ${codespace}`
+                  );
+                }
+                const txHash = txResult.txhash;
+                const events = JSON.parse(txResult.raw_log)[0].events;
+                const swap = events.find((obj: Record<string, any>) => {
+                  return obj.type === 'swap';
+                });
+                const offer = Coin.fromString(swap.attributes.offer);
+                const ask = Coin.fromString(swap.attributes.swap_coin);
+                const fee = Coin.fromString(swap.attributes.swap_fee);
+
+                tokenSwap.expectedIn = {
+                  amount: offerAmount / DENOM_UNIT,
+                  token: TERRA_TOKENS[offer.denom],
+                };
+                tokenSwap.expectedOut = {
+                  amount: ask.amount.toNumber() / DENOM_UNIT,
+                  token: TERRA_TOKENS[ask.denom],
+                };
+                tokenSwap.fee = {
+                  amount: fee.amount.toNumber() / DENOM_UNIT,
+                  token: TERRA_TOKENS[fee.denom],
+                };
+                tokenSwap.txHash = txHash;
+              });
+            return tokenSwap;
+          }
+        }
       } catch (err) {
         logger.error(err);
-        throw Error('Wallet access error');
+        let reason;
+        err.reason ? (reason = err.reason) : (reason = swapResult);
+        return { txSuccess: false, message: reason };
       }
-
-      const address = wallet.key.accAddress;
-
-      // get the current swap rate
-      const baseDenom = this.getTokenDenom(baseToken);
-      const quoteDenom = this.getTokenDenom(quoteToken);
-
-      let offerDenom, swapDenom;
-      let swaps;
-      const tokenSwap: Record<any, any> = {};
-
-      if (tradeType.toLowerCase() === 'sell') {
-        offerDenom = baseDenom;
-        swapDenom = quoteDenom;
-      } else {
-        offerDenom = quoteDenom;
-        swapDenom = baseDenom;
-      }
-
-      await this.getSwapRate(baseToken, quoteToken, amount, tradeType).then(
-        (rate) => {
-          swaps = rate;
-        }
-      );
-
-      if (swaps && offerDenom && swapDenom) {
-        const offerAmount = (swaps.offer.amount || 0) * DENOM_UNIT;
-        const offerCoin = new Coin(offerDenom, offerAmount);
-
-        // Create and Sign Transaction
-        const msgSwap = new MsgSwap(address, offerCoin, swapDenom);
-
-        let txOptions;
-        if (gasPrice !== null) {
-          // ignore gasAdjustment when gasPrice is not set
-          txOptions = {
-            msgs: [msgSwap],
-            gasPrices: { uluna: parseFloat(gasPrice) },
-            gasAdjustment: gasAdjustment,
-            memo: this.memo,
-          };
-        } else {
-          txOptions = {
-            msgs: [msgSwap],
-            memo: this.memo,
-          };
-        }
-
-        if (wallet) {
-          await wallet
-            .createAndSignTx(txOptions)
-            .then((tx) => lcd.tx.broadcast(tx))
-            .then((txResult) => {
-              swapResult = txResult;
-
-              const swapSuccess = !isTxError(txResult);
-              if (swapSuccess) {
-                tokenSwap.txSuccess = swapSuccess;
-              } else {
-                tokenSwap.txSuccess = !swapSuccess;
-                throw new Error(
-                  `encountered an error while running the transaction: ${txResult.code} ${txResult.codespace}`
-                );
-              }
-              const txHash = txResult.txhash;
-              const events = JSON.parse(txResult.raw_log)[0].events;
-              const swap = events.find((obj) => {
-                return obj.type === 'swap';
-              });
-              const offer = Coin.fromString(swap.attributes.offer);
-              const ask = Coin.fromString(swap.attributes.swap_coin);
-              const fee = Coin.fromString(swap.attributes.swap_fee);
-
-              tokenSwap.expectedIn = {
-                amount: parseFloat(offer.amount) / DENOM_UNIT,
-                token: TERRA_TOKENS[offer.denom],
-              };
-              tokenSwap.expectedOut = {
-                amount: parseFloat(ask.amount) / DENOM_UNIT,
-                token: TERRA_TOKENS[ask.denom],
-              };
-              tokenSwap.fee = {
-                amount: parseFloat(fee.amount) / DENOM_UNIT,
-                token: TERRA_TOKENS[fee.denom],
-              };
-              tokenSwap.txHash = txHash;
-            });
-          return tokenSwap;
-        }
-      }
-    } catch (err) {
-      logger.error(err);
-      let reason;
-      err.reason ? (reason = err.reason) : (reason = swapResult);
-      return { txSuccess: false, message: reason };
     }
   }
 }
