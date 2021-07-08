@@ -41,7 +41,7 @@ router.post('/balances', async (req: Request, res: Response) => {
     );
 
     // Populate token contract info using token symbol list
-    let tokenContractList: Record<string, TokenERC20Info> = {};
+    const tokenContractList: Record<string, TokenERC20Info> = {};
 
     for (const symbol of JSON.parse(req.body.tokenList)) {
       const tokenContractInfo = ethereumService.getERC20TokenAddress(symbol);
@@ -51,6 +51,7 @@ router.post('/balances', async (req: Request, res: Response) => {
 
       tokenContractList[symbol] = tokenContractInfo;
     }
+    console.log(tokenContractList);
 
     // Getting user balancers
     const balances: Record<string, string> = {};
@@ -96,7 +97,7 @@ router.post('/allowances', async (req: Request, res: Response) => {
   try {
     const wallet = ethereumService.getWallet(req.body.privateKey);
     // Populate token contract info using token symbol list
-    let tokenContractList: Record<string, TokenERC20Info> = {};
+    const tokenContractList: Record<string, TokenERC20Info> = {};
     for (const symbol of JSON.parse(req.body.tokenList)) {
       const tokenContractInfo = ethereumService.getERC20TokenAddress(symbol);
       if (!tokenContractInfo) {

@@ -57,13 +57,13 @@ const stringInsert = (str: string, val: string, index: number) => {
 export const bigNumberWithDecimalToStr = (n: BigNumber, d: number): string => {
   const n_ = n.toString();
 
-  var zeros = '';
+  let zeros = '';
 
   if (n_.length <= d) {
     zeros = '0'.repeat(d - n_.length + 1);
   }
 
-  return stringInsert(zeros + n_.split('').reverse().join(''), '.', d)
+  return stringInsert(n_.split('').reverse().join('') + zeros, '.', d)
     .split('')
     .reverse()
     .join('');
