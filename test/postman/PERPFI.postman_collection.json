@@ -1,0 +1,384 @@
+{
+  "info": {
+    "_postman_id": "08bf4528-5e70-42cd-bf71-b97f81088b9c",
+    "name": "PERPFI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "default",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://localhost:{{port}}/perpfi/",
+          "protocol": "https",
+          "host": ["localhost"],
+          "port": "{{port}}",
+          "path": ["perpfi", ""]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "perpfi/load-metadata",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://localhost:{{port}}/perpfi/load-metadata",
+          "protocol": "https",
+          "host": ["localhost"],
+          "port": "{{port}}",
+          "path": ["perpfi", "load-metadata"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "perpfi/pairs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://localhost:{{port}}/perpfi/pairs",
+          "protocol": "https",
+          "host": ["localhost"],
+          "port": "{{port}}",
+          "path": ["perpfi", "pairs"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "perpfi/balances",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "privateKey",
+              "value": "{{privateKey}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://localhost:{{port}}/perpfi/balances",
+          "protocol": "https",
+          "host": ["localhost"],
+          "port": "{{port}}",
+          "path": ["perpfi", "balances"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "perpfi/allowances",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "privateKey",
+              "value": "{{privateKey}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://localhost:{{port}}/perpfi/allowances",
+          "protocol": "https",
+          "host": ["localhost"],
+          "port": "{{port}}",
+          "path": ["perpfi", "allowances"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "perpfi/approve",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "privateKey",
+              "value": "{{privateKey}}",
+              "type": "text"
+            },
+            {
+              "key": "amount",
+              "value": "10",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://localhost:{{port}}/perpfi/approve",
+          "protocol": "https",
+          "host": ["localhost"],
+          "port": "{{port}}",
+          "path": ["perpfi", "approve"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "perpfi/open",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "privateKey",
+              "value": "{{privateKey}}",
+              "type": "text"
+            },
+            {
+              "key": "margin",
+              "value": "15",
+              "type": "text"
+            },
+            {
+              "key": "leverage",
+              "value": "2",
+              "type": "text"
+            },
+            {
+              "key": "side",
+              "value": "{{SHORT}}",
+              "type": "text"
+            },
+            {
+              "key": "pair",
+              "value": "SNXUSDC",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://localhost:{{port}}/perpfi/open",
+          "protocol": "https",
+          "host": ["localhost"],
+          "port": "{{port}}",
+          "path": ["perpfi", "open"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "perpfi/close",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "privateKey",
+              "value": "{{privateKey}}",
+              "type": "text"
+            },
+            {
+              "key": "pair",
+              "value": "SNXUSDC",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://localhost:{{port}}/perpfi/close",
+          "protocol": "https",
+          "host": ["localhost"],
+          "port": "{{port}}",
+          "path": ["perpfi", "close"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "perpfi/receipt",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "txHash",
+              "value": "0xd29120d947319c880f68a44b897c733c07ec313d670a7df55e523b501d7a03a2",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://localhost:{{port}}/perpfi/receipt",
+          "protocol": "https",
+          "host": ["localhost"],
+          "port": "{{port}}",
+          "path": ["perpfi", "receipt"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "perpfi/position",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "privateKey",
+              "value": "{{privateKey}}",
+              "type": "text"
+            },
+            {
+              "key": "pair",
+              "value": "SNXUSDC",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://localhost:{{port}}/perpfi/position",
+          "protocol": "https",
+          "host": ["localhost"],
+          "port": "{{port}}",
+          "path": ["perpfi", "position"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "perpfi/margin",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "privateKey",
+              "value": "{{privateKey}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://localhost:{{port}}/perpfi/margin",
+          "protocol": "https",
+          "host": ["localhost"],
+          "port": "{{port}}",
+          "path": ["perpfi", "margin"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "perpfi/pnl",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "privateKey",
+              "value": "{{privateKey}}",
+              "type": "text"
+            },
+            {
+              "key": "pair",
+              "value": "SNXUSDC",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://localhost:{{port}}/perpfi/pnl",
+          "protocol": "https",
+          "host": ["localhost"],
+          "port": "{{port}}",
+          "path": ["perpfi", "pnl"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "perpfi/funding",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "amount",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "pair",
+              "value": "SNXUSDC",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://localhost:{{port}}/perpfi/funding",
+          "protocol": "https",
+          "host": ["localhost"],
+          "port": "{{port}}",
+          "path": ["perpfi", "funding"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "perpfi/price",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "side",
+              "value": "buy",
+              "type": "text"
+            },
+            {
+              "key": "pair",
+              "value": "SNXUSDC",
+              "type": "text"
+            },
+            {
+              "key": "amount",
+              "value": "1",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://localhost:{{port}}/perpfi/price",
+          "protocol": "https",
+          "host": ["localhost"],
+          "port": "{{port}}",
+          "path": ["perpfi", "price"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

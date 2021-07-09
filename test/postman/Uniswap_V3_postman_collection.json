@@ -1,0 +1,465 @@
+{
+  "info": {
+    "_postman_id": "5de36bfa-027e-46e3-810d-219e42c75314",
+    "name": "Uniswap V3",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "uniswap v3 endpoints",
+      "item": [
+        {
+          "name": "eth/uniswap/v3",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [],
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://localhost:{{port}}/eth/uniswap/v3",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "{{port}}",
+              "path": ["eth", "uniswap", "v3"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "eth/uniswap/v3/start",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [],
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://localhost:{{port}}/eth/uniswap/v3/start",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "{{port}}",
+              "path": ["eth", "uniswap", "v3", "start"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "eth/uniswap/v3/gas-limit",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [],
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://localhost:{{port}}/eth/uniswap/v3/gas-limit",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "{{port}}",
+              "path": ["eth", "uniswap", "v3", "gas-limit"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "eth/uniswap/v3/result",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://localhost:{{port}}/eth/uniswap/v3/result?logs=&section=lp",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "{{port}}",
+              "path": ["eth", "uniswap", "v3", "result"],
+              "query": [
+                {
+                  "key": "logs",
+                  "value": ""
+                },
+                {
+                  "key": "section",
+                  "value": "lp"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "eth/uniswap/v3/price(current price)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "base",
+                  "value": "WETH",
+                  "type": "text"
+                },
+                {
+                  "key": "quote",
+                  "value": "USDC",
+                  "type": "text"
+                },
+                {
+                  "key": "privateKey",
+                  "value": "{{privateKey}}",
+                  "type": "text"
+                },
+                {
+                  "key": "tier",
+                  "value": "MEDIUM",
+                  "type": "text"
+                },
+                {
+                  "key": "amount",
+                  "value": "0.0001",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "side",
+                  "value": "buy",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "seconds",
+                  "value": "10",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "https://localhost:{{port}}/eth/uniswap/v3/price",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "{{port}}",
+              "path": ["eth", "uniswap", "v3", "price"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "eth/uniswap/v3/price(historical price)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "base",
+                  "value": "WETH",
+                  "type": "text"
+                },
+                {
+                  "key": "quote",
+                  "value": "USDC",
+                  "type": "text"
+                },
+                {
+                  "key": "privateKey",
+                  "value": "{{privateKey}}",
+                  "type": "text"
+                },
+                {
+                  "key": "tier",
+                  "value": "MEDIUM",
+                  "type": "text"
+                },
+                {
+                  "key": "seconds",
+                  "value": "10",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "https://localhost:{{port}}/eth/uniswap/v3/price",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "{{port}}",
+              "path": ["eth", "uniswap", "v3", "price"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "eth/uniswap/v3/trade",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "base",
+                  "value": "COIN3",
+                  "type": "text"
+                },
+                {
+                  "key": "quote",
+                  "value": "COIN1",
+                  "type": "text"
+                },
+                {
+                  "key": "amount",
+                  "value": "0.5",
+                  "type": "text"
+                },
+                {
+                  "key": "limitPrice",
+                  "value": "",
+                  "type": "text"
+                },
+                {
+                  "key": "gasPrice",
+                  "value": "37",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "privateKey",
+                  "value": "{{privateKey}}",
+                  "type": "text"
+                },
+                {
+                  "key": "side",
+                  "value": "sell",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "https://localhost:{{port}}/eth/uniswap/v3/trade",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "{{port}}",
+              "path": ["eth", "uniswap", "v3", "trade"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "eth/uniswap/v3/position",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "tokenId",
+                  "value": "3413",
+                  "type": "text"
+                },
+                {
+                  "key": "privateKey",
+                  "value": "{{privateKey}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "https://localhost:{{port}}/eth/uniswap/v3/position",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "{{port}}",
+              "path": ["eth", "uniswap", "v3", "position"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "eth/uniswap/v3/add-position",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "gasPrice",
+                  "value": "37",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "privateKey",
+                  "value": "{{privateKey}}",
+                  "type": "text"
+                },
+                {
+                  "key": "token0",
+                  "value": "COIN1",
+                  "type": "text"
+                },
+                {
+                  "key": "token1",
+                  "value": "COIN3",
+                  "type": "text"
+                },
+                {
+                  "key": "fee",
+                  "value": "MEDIUM",
+                  "type": "text"
+                },
+                {
+                  "key": "lowerPrice",
+                  "value": "0.1",
+                  "type": "text"
+                },
+                {
+                  "key": "upperPrice",
+                  "value": "5",
+                  "type": "text"
+                },
+                {
+                  "key": "amount0",
+                  "value": "10",
+                  "type": "text"
+                },
+                {
+                  "key": "amount1",
+                  "value": "10",
+                  "type": "text"
+                },
+                {
+                  "key": "tokenId",
+                  "value": "3413",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "https://localhost:{{port}}/eth/uniswap/v3/add-position",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "{{port}}",
+              "path": ["eth", "uniswap", "v3", "add-position"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "eth/uniswap/v3/collect-fees",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "gasPrice",
+                  "value": "37",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "privateKey",
+                  "value": "{{privateKey}}",
+                  "type": "text"
+                },
+                {
+                  "key": "tokenId",
+                  "value": "44",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "https://localhost:{{port}}/eth/uniswap/v3//collect-fees",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "{{port}}",
+              "path": ["eth", "uniswap", "v3", "", "collect-fees"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "eth/uniswap/v3/remove-position",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "gasPrice",
+                  "value": "37",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "privateKey",
+                  "value": "{{privateKey}}",
+                  "type": "text"
+                },
+                {
+                  "key": "tokenId",
+                  "value": "3413",
+                  "type": "text"
+                },
+                {
+                  "key": "reducePercent",
+                  "value": "50",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "https://localhost:{{port}}/eth/uniswap/v3/remove-position",
+              "protocol": "https",
+              "host": ["localhost"],
+              "port": "{{port}}",
+              "path": ["eth", "uniswap", "v3", "remove-position"]
+            }
+          },
+          "response": []
+        }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [""]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [""]
+          }
+        }
+      ]
+    }
+  ]
+}

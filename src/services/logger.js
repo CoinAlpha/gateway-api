@@ -1,28 +1,26 @@
-import { getLocalDate } from './utils'
-require('dotenv').config()
-// const fecha = require('fecha')
-const appRoot = require('app-root-path')
-const winston = require('winston')
+import { getLocalDate } from './utils';
+const appRoot = require('app-root-path');
+const winston = require('winston');
 require('winston-daily-rotate-file');
+const globalConfig =
+  require('../services/configuration_manager').configManagerInstance;
 
 const logFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.align(),
-  winston.format.printf(
-    info => {
-      const localDate = getLocalDate()
-      return `${localDate} | ${info.level} | ${info.message}`
-    }
-  ),
-)
+  winston.format.printf((info) => {
+    const localDate = getLocalDate();
+    return `${localDate} | ${info.level} | ${info.message}`;
+  })
+);
 
 const getLogPath = () => {
-  let logPath = process.env.LOG_PATH
+  let logPath = globalConfig.getConfig('LOG_PATH');
   if (typeof logPath === 'undefined' || logPath == null || logPath === '') {
-    logPath = [appRoot.path, 'logs'].join('/')
+    logPath = [appRoot.path, 'logs'].join('/');
   }
-  return logPath
-}
+  return logPath;
+};
 
 const config = {
   file: {
@@ -30,37 +28,28 @@ const config = {
     filename: `${getLogPath()}/logs_gateway_app.log.%DATE%`,
     datePattern: 'YYYY-MM-DD',
     handleExceptions: true,
+    handleRejections: true,
   },
-  error: {
-    level: 'error',
-    filename: `${getLogPath()}/logs_gateway_error.log.%DATE%`,
-    datePattern: 'YYYY-MM-DD',
-    handleExceptions: false,
-  },
-  rejection: {
-    level: 'error',
-    filename: `${getLogPath()}/logs_gateway_rejection.log.%DATE%`,
-    datePattern: 'YYYY-MM-DD',
-    handleExceptions: true,
-  },
-  debug: {
-    level: 'debug',
-    filename: `${getLogPath()}/logs_gateway_debug.log.%DATE%`,
-    datePattern: 'YYYY-MM-DD',
-    handleExceptions: false,
-  },
-}
+};
 
-const allLogsFileTransport = new winston.transports.DailyRotateFile(config.file)
-const errorLogsFileTransport = new winston.transports.DailyRotateFile(config.error)
-const debugTransport = new winston.transports.DailyRotateFile(config.debug)
-const rejectionTransport = new winston.transports.DailyRotateFile(config.rejection)
+const allLogsFileTransport = new winston.transports.DailyRotateFile(
+  config.file
+);
 
 const options = {
   format: logFormat,
-  transports: [allLogsFileTransport, errorLogsFileTransport, debugTransport],
-  rejectionHandlers: [rejectionTransport],
+  transports: [allLogsFileTransport],
   exitOnError: false,
+};
+
+const logger = winston.createLogger(options);
+
+if (process.env.NODE_ENV !== 'production') {
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    })
+  );
 }
 
-export const logger = winston.createLogger(options)
+export { logger };

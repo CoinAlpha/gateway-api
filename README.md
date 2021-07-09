@@ -6,9 +6,23 @@ Hummingbot Gateway is an open-source project that integrates cryptocurrency trad
 
 We created hummingbot to promote **decentralized market-making**: enabling members of the community to contribute to the liquidity and trading efficiency in cryptocurrency markets.
 
-
-
 ## Getting Started
+
+### Run gateway-api
+
+You can either use the hummingbot client to create a config file or you can 
+create or edit one manually. Copy `conf/global_conf.yml.example` to 
+`conf/global_conf.yml` then edit the file with your settings.
+
+gateway-api is a TypeScript project and has a build phase. You can use `npm`
+or `yarn` to download dependencies, build then run it.
+
+
+```bash
+yarn
+yarn build
+yarn start
+```
 
 ### Learn more about Hummingbot
 
@@ -46,3 +60,20 @@ Hummingbot Gateway was created and is maintained by CoinAlpha, Inc. We are [a gl
 ## Legal
 
 - **License**: Hummingbot is licensed under [Apache 2.0](./LICENSE).
+
+## Development
+
+This repo uses `eslint` and `prettier`. When you run `git commit` it will trigger the `pre-commit` hook.
+This will run `eslint` on the `src` and `test` directories.
+
+You can lint before committing with:
+
+```bash
+yarn run lint
+```
+
+You can run the prettifier before committing with:
+
+```bash
+yarn run prettier
+```

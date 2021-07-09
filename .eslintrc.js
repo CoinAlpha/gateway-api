@@ -1,14 +1,23 @@
 module.exports = {
-  extends: 'standard',
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint', 'prettier'],
+  env: {
+    node: true,
+  },
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/eslint-recommended',
+    'plugin:@typescript-eslint/recommended',
+    'prettier',
+  ],
   rules: {
-    // disable semicolon check
-    semi: 'off',
-
-    // override default options for rules from base configurations
-    'comma-dangle': 'off',
-
-    // disable rules from base configurations
     'no-console': 'off',
-    'no-multi-spaces': 'off',
-  }
+    // 'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    semi: [2, 'always'],
+    'prettier/prettier': 'error',
+    '@typescript-eslint/no-var-requires': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+  },
 };
