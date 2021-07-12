@@ -26,6 +26,7 @@ export interface EthTransactionReceipt {
   blockNumber: number;
   confirmations: number;
   status: number;
+  logs: Array<Object>;
 }
 
 export interface TokenERC20Info {
@@ -266,6 +267,7 @@ export class EthereumService {
       blockNumber: transaction.blockNumber,
       confirmations: transaction.confirmations,
       status: transaction.status || 0,
+      logs: transaction.logs
     };
   }
 }
