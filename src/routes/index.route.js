@@ -25,13 +25,12 @@ router.post('/update', async (req, res) => {
   const paramData = getParamData(req.body);
 
   try {
-    console.log(updateConfig(paramData));
+    updateConfig(paramData);
     const config = loadConfig();
     res.status(200).json({
       config: config,
     });
   } catch (err) {
-    console.log(err);
     let reason;
     err.reason
       ? (reason = err.reason)

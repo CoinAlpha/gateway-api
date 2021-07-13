@@ -366,13 +366,9 @@ router.post('/price', async (req: Request, res: Response) => {
     }
     const gasLimit = estimateGasLimit();
     const gasCost = await fees.getGasCost(gasPrice, gasLimit);
-    console.log('made it here');
     try {
       // fetch pools for all tiers
       let priceResult, price;
-      console.log('try it');
-      console.log(req.body);
-
       if (req.body.amount) {
         // get price at this depth
         const amount = req.body.amount;
