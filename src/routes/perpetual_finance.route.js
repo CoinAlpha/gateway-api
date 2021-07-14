@@ -197,7 +197,6 @@ router.post('/open', async (req, res) => {
   const margin = paramData.margin;
   const leverage = paramData.leverage;
   const minBaseAssetAmount = paramData.minBaseAssetAmount;
-  console.log(minBaseAssetAmount);
   const privateKey = paramData.privateKey;
   let wallet;
   try {

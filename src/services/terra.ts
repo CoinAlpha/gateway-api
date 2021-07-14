@@ -7,8 +7,6 @@ import {
   MnemonicKey,
   isTxError,
   StdTx,
-  StdSignMsg,
-  StdFee,
   BlockTxBroadcastResult,
 } from '@terra-money/terra.js';
 import { getHummingbotMemo } from './utils';
@@ -88,19 +86,6 @@ export default class Terra {
       err.reason
         ? (reason = err.reason)
         : (reason = 'error Terra Denom lookup');
-      return reason;
-    }
-  }
-
-  async getEstimateFee(tx: StdTx | StdSignMsg): Promise<StdFee | string> {
-    try {
-      return await this.lcd.tx.estimateFee(tx);
-    } catch (err) {
-      logger.error(err);
-      let reason;
-      err.reason
-        ? (reason = err.reason)
-        : (reason = 'error Terra estimate fee lookup');
       return reason;
     }
   }
