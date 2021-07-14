@@ -37,6 +37,13 @@ export interface SwapRate {
   txFee: number;
 }
 
+// parse from JSON log of transaction result
+interface SwapResults {
+  offer: string;
+  swapCoin: string;
+  swapFee: string;
+}
+
 export default class Terra {
   private lcdUrl;
   private network;
@@ -175,7 +182,9 @@ export default class Terra {
             .swapRate(offerCoin, swapDenom)
             .then((swapCoin) => {
               const exchangeRate =
-                    ((amount / Math.floor(swapCoin.amount.toNumber())) * DENOM_UNIT) / amount; // adjusted amount
+                ((amount / Math.floor(swapCoin.amount.toNumber())) *
+                  DENOM_UNIT) /
+                amount; // adjusted amount
 
               const costAmount = amount * exchangeRate;
 
@@ -215,6 +224,29 @@ export default class Terra {
     }
   }
 
+  getSwapResults = (txResult: BlockTxBroadcastResult): SwapResults | null => {
+    const events = JSON.parse(txResult.raw_log)[0].events;
+    const swap = events.find((obj: Record<string, any>) => {
+      return obj.type === 'swap';
+    });
+    let offer, swapCoin, swapFee;
+    swap.attributes.forEach((i: Record<string, string>) => {
+      if (i.key === 'offer') {
+        offer = i.value;
+      } else if (i.key === 'swap_coin') {
+        swapCoin = i.value;
+      } else if (i.key === 'swap_fee') {
+        swapFee = i.value;
+      }
+    });
+
+    if (offer && swapCoin && swapFee) {
+      return { offer, swapCoin, swapFee };
+    }
+
+    return null;
+  };
+
   // Swap tokens
   async swapTokens(
     baseToken: string,
@@ -225,8 +257,7 @@ export default class Terra {
     gasAdjustment: number,
     secret: string
   ): Promise<any> {
-    let swapResult;
-
+      let txResult_;
     try {
       let wallet;
       try {
@@ -264,7 +295,7 @@ export default class Terra {
       );
 
       if (typeof swaps != 'string' && offerDenom && swapDenom) {
-          const offerAmount = Math.floor(swaps.offerAmount * DENOM_UNIT);
+        const offerAmount = Math.floor(swaps.offerAmount * DENOM_UNIT);
         const offerCoin = new Coin(offerDenom, offerAmount);
 
         // Create and Sign Transaction
@@ -291,8 +322,7 @@ export default class Terra {
             .createAndSignTx(txOptions)
             .then((tx: StdTx) => this.lcd.tx.broadcast(tx))
             .then((txResult: BlockTxBroadcastResult) => {
-              swapResult = txResult;
-
+                txResult_ = txResult;
               if (!isTxError(txResult)) {
                 tokenSwap.txSuccess = true;
               } else {
@@ -304,27 +334,29 @@ export default class Terra {
                 );
               }
               const txHash = txResult.txhash;
-              const events = JSON.parse(txResult.raw_log)[0].events;
-              const swap = events.find((obj: Record<string, any>) => {
-                return obj.type === 'swap';
-              });
-              const offer = Coin.fromString(swap.attributes.offer);
-              const ask = Coin.fromString(swap.attributes.swap_coin);
-              const fee = Coin.fromString(swap.attributes.swap_fee);
 
-              tokenSwap.expectedIn = {
-                amount: offerAmount / DENOM_UNIT,
-                token: TERRA_TOKENS[offer.denom],
-              };
-              tokenSwap.expectedOut = {
-                amount: ask.amount.toNumber() / DENOM_UNIT,
-                token: TERRA_TOKENS[ask.denom],
-              };
-              tokenSwap.fee = {
-                amount: fee.amount.toNumber() / DENOM_UNIT,
-                token: TERRA_TOKENS[fee.denom],
-              };
-              tokenSwap.txHash = txHash;
+              const swapResults = this.getSwapResults(txResult);
+              if (swapResults) {
+                const offer = Coin.fromString(swapResults.offer);
+                const ask = Coin.fromString(swapResults.swapCoin);
+                const fee = Coin.fromString(swapResults.swapFee);
+
+                tokenSwap.expectedIn = {
+                  amount: offerAmount / DENOM_UNIT,
+                  token: TERRA_TOKENS[offer.denom],
+                };
+                tokenSwap.expectedOut = {
+                  amount: ask.amount.toNumber() / DENOM_UNIT,
+                  token: TERRA_TOKENS[ask.denom],
+                };
+                tokenSwap.fee = {
+                  amount: fee.amount.toNumber() / DENOM_UNIT,
+                  token: TERRA_TOKENS[fee.denom],
+                };
+                tokenSwap.txHash = txHash;
+              } else {
+                throw new Error(`Unable to parse swapResults from txResult`);
+              }
             });
           return tokenSwap;
         }
@@ -332,7 +364,7 @@ export default class Terra {
     } catch (err) {
       logger.error(err);
       let reason;
-      err.reason ? (reason = err.reason) : (reason = swapResult);
+      err.reason ? (reason = err.reason) : (reason = txResult_);
       return { txSuccess: false, message: reason };
     }
   }
