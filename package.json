@@ -25,7 +25,7 @@
     "@balancer-labs/sor": "^0.3.3",
     "@ethersproject/experimental": "^5.3.0",
     "@perp/contract": "^1.0.6",
-    "@terra-money/terra.js": "^1.8.5",
+    "@terra-money/terra.js": "^1.8.8",
     "@types/node": "^15.12.4",
     "@uniswap/sdk": "^3.0.3",
     "@uniswap/sdk-core": "^3.0.0",
