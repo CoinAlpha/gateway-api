@@ -175,7 +175,7 @@ export default class Terra {
             .swapRate(offerCoin, swapDenom)
             .then((swapCoin) => {
               const exchangeRate =
-                ((amount / swapCoin.amount.toNumber()) * DENOM_UNIT) / amount; // adjusted amount
+                    ((amount / Math.floor(swapCoin.amount.toNumber())) * DENOM_UNIT) / amount; // adjusted amount
 
               const costAmount = amount * exchangeRate;
 
@@ -264,7 +264,7 @@ export default class Terra {
       );
 
       if (typeof swaps != 'string' && offerDenom && swapDenom) {
-        const offerAmount = swaps.offerAmount * DENOM_UNIT;
+          const offerAmount = Math.floor(swaps.offerAmount * DENOM_UNIT);
         const offerCoin = new Coin(offerDenom, offerAmount);
 
         // Create and Sign Transaction
