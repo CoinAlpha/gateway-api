@@ -181,7 +181,7 @@ router.post('/trade', async (req, res) => {
         "quote":"KRT"
         "side":"buy" or "sell"
         "amount":1
-        "secret": "mysupersecret"
+        "privateKey": "mysupersecret"
       }
   */
   const initTime = Date.now();
