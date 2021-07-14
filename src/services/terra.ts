@@ -175,7 +175,8 @@ export default class Terra {
             .swapRate(offerCoin, swapDenom)
             .then((swapCoin) => {
               const exchangeRate =
-                amount / (swapCoin.amount.toNumber() * DENOM_UNIT) / amount; // adjusted amount
+                ((amount / swapCoin.amount.toNumber()) * DENOM_UNIT) / amount; // adjusted amount
+
               const costAmount = amount * exchangeRate;
 
               swapRate = {
@@ -192,8 +193,9 @@ export default class Terra {
       if (swapRate) {
         const fees = await this.getTxFee();
         if (typeof fees != 'string') {
-          if (fees[swapRate.quoteToken]) {
-            swapRate.txFee = fees[swapRate.quoteToken];
+          const quoteTokenDenom = this.getTokenDenom(swapRate.quoteToken);
+          if (quoteTokenDenom && fees[quoteTokenDenom]) {
+            swapRate.txFee = fees[quoteTokenDenom];
           }
         }
 
