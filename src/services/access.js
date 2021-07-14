@@ -12,7 +12,7 @@ export const validateAccess = (req, res, next) => {
     const method = req.method;
     const url = req.url;
     const requestInfo = 'Request from IP: ' + ip + ' ' + method + ' ' + url;
-    console.log(requestInfo);
+    logger.info(requestInfo);
     next();
   } else if (cert.subject) {
     logger.error(statusMessages.ssl_cert_invalid);

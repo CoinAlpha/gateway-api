@@ -26,6 +26,7 @@ export interface EthTransactionReceipt {
   blockNumber: number;
   confirmations: number;
   status: number;
+  logs: Array<Object>;
 }
 
 export interface TokenERC20Info {
@@ -215,7 +216,7 @@ export class EthereumService {
   /**
    * Get ERC20 token address
    * @param {string} tokenSymbol
-   * @return string | null
+   * @return {TokenERC20Info} | null
    */
   getERC20TokenAddress(tokenSymbol: string): TokenERC20Info | undefined {
     if (this.erc20TokenList) {
@@ -228,6 +229,21 @@ export class EthereumService {
     }
     return;
   }
+
+  /**
+   * Get ERC20 by token address
+   * @param {string} tokenAddress
+   * @return {TokenERC20Info} | null
+   */
+  getERC20TokenByAddress(tokenAddress: string): TokenERC20Info | undefined  {
+    if (this.erc20TokenList) {
+      const tokenContract = this.erc20TokenList.tokens.filter((obj) => {
+      return obj.address.toUpperCase() === tokenAddress.toUpperCase();
+    });
+    return tokenContract[0];
+  }
+  return;
+}
 
   /**
    * Return wallet of a private string
@@ -251,6 +267,7 @@ export class EthereumService {
       blockNumber: transaction.blockNumber,
       confirmations: transaction.confirmations,
       status: transaction.status || 0,
+      logs: transaction.logs
     };
   }
 }

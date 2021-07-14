@@ -51,11 +51,9 @@ router.post('/balances', async (req: Request, res: Response) => {
 
       tokenContractList[symbol] = tokenContractInfo;
     }
-    console.log(tokenContractList);
 
     // Getting user balancers
     const balances: Record<string, string> = {};
-    console.log('balances');
     balances.ETH = await ethereumService.getETHBalance(wallet);
     await Promise.all(
       Object.keys(tokenContractList).map(async (symbol) => {
@@ -170,7 +168,6 @@ router.post('/approve', async (req: Request, res: Response) => {
           tokenContractInfo.decimals
         );
       }
-      console.log('approve');
       // call approve function
       let approval;
       try {

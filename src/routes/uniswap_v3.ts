@@ -366,13 +366,9 @@ router.post('/price', async (req: Request, res: Response) => {
     }
     const gasLimit = estimateGasLimit();
     const gasCost = await fees.getGasCost(gasPrice, gasLimit);
-    console.log('made it here');
     try {
       // fetch pools for all tiers
       let priceResult, price;
-      console.log('try it');
-      console.log(req.body);
-
       if (req.body.amount) {
         // get price at this depth
         const amount = req.body.amount;
@@ -483,7 +479,7 @@ router.post('/position', async (req: Request, res: Response) => {
 
   try {
     // fetch position data
-    const positionData = await uniswap.getPosition(wallet, tokenId);
+    const positionData = await uniswap.getPosition(wallet, tokenId, eth);
 
     const result = {
       network: uniswap.network,
@@ -601,6 +597,7 @@ router.post('/remove-position', async (req: Request, res: Response) => {
     new ethers.Wallet(privateKey, uniswap.provider)
   );
   const tokenId = req.body.tokenId;
+  const getFee = req.body.getFee.toUpperCase()  === "TRUE" ? true : false
 
   let gasPrice;
   if (req.body.gasPrice) {
@@ -624,21 +621,30 @@ router.post('/remove-position', async (req: Request, res: Response) => {
       wallet,
       tokenId,
       eth,
-      reducePercent
+      reducePercent,
+      getFee
     );
 
     const result = {
       network: uniswap.network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-
-      hash: removelp.hash,
       gasPrice: gasPrice,
       gasLimit: gasLimit,
       gasCost: gasCost,
+      gasFee: 0,
+      hash: ''
+
     };
 
-    debug(`Remove lp: ${removelp.hash}`);
+    if (getFee && gasPrice){
+      result.gasFee = parseInt(removelp.toString()) * gasPrice;
+      debug(`Estimated gas to remove lp: ${result.gasFee}`);
+    } else {
+      result.hash = removelp.hash;
+      debug(`Remove lp: ${result.hash}`);
+    }
+
     res.status(200).json(result);
   } catch (err) {
     logger.error(req.originalUrl, { message: err });

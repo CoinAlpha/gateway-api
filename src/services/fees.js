@@ -39,21 +39,20 @@ export default class Fees {
         const response = await axios.get(ethGasStationURL);
         // divite by 10 to convert it to Gwei)
         this.ethGasPrice = response.data[gasLevel] / 10;
-        console.log(
+        logger.info(
           `get ETHGasStation gas price (${gasLevel}): ${
             this.ethGasPrice
           } / interval: ${this.ethGasStationRefreshTime / 1000} sec`
         );
       } else {
         this.ethGasPrice = ethManualGasPrice;
-        console.log(
+        logger.info(
           `get manual fixed gas price: ${this.ethGasPrice} / interval: ${
             this.ethGasStationRefreshTime / 1000
           } sec`
         );
       }
     } catch (err) {
-      console.log(err);
       logger.error(err);
       let reason;
       err.reason

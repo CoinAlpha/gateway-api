@@ -379,7 +379,6 @@ export default class PerpetualFinance {
       }
       return price;
     } catch (err) {
-      console.log(err);
       logger.error(err);
       let reason;
       err.reason ? (reason = err.reason) : (reason = 'error getting Price');
@@ -414,7 +413,6 @@ export default class PerpetualFinance {
         (funding.markPrice - funding.indexPrice) / 24 / funding.indexPrice;
       return funding;
     } catch (err) {
-      console.log(err);
       logger.error(err)();
       let reason;
       err.reason ? (reason = err.reason) : (reason = 'error getting fee');
