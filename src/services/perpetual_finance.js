@@ -92,14 +92,14 @@ export default class PerpetualFinance {
             d: Ethers.utils.parseUnits(
               this.pairAmountCache[pair],
               DEFAULT_DECIMALS
-            )
+            ),
           }),
           amm.getOutputPrice(0, {
             d: Ethers.utils.parseUnits(
               this.pairAmountCache[pair],
               DEFAULT_DECIMALS
-            )
-          })
+            ),
+          }),
         ]).then((values) => {
           if (!Object.prototype.hasOwnProperty.call(this.priceCache, pair)) {
             this.priceCache[pair] = [];
@@ -204,11 +204,11 @@ export default class PerpetualFinance {
   async openPosition(side, margin, levrg, pair, minBaseAmount, wallet) {
     try {
       const quoteAssetAmount = {
-        d: Ethers.utils.parseUnits(margin, DEFAULT_DECIMALS)
+        d: Ethers.utils.parseUnits(margin, DEFAULT_DECIMALS),
       };
       const leverage = { d: Ethers.utils.parseUnits(levrg, DEFAULT_DECIMALS) };
       const minBaseAssetAmount = {
-        d: Ethers.utils.parseUnits(minBaseAmount, DEFAULT_DECIMALS)
+        d: Ethers.utils.parseUnits(minBaseAmount, DEFAULT_DECIMALS),
       };
       const clearingHouse = new Ethers.Contract(
         this.ClearingHouse,
@@ -236,7 +236,7 @@ export default class PerpetualFinance {
   async closePosition(wallet, pair, minimalQuote) {
     try {
       const minimalQuoteAsset = {
-        d: Ethers.utils.parseUnits(minimalQuote, DEFAULT_DECIMALS)
+        d: Ethers.utils.parseUnits(minimalQuote, DEFAULT_DECIMALS),
       };
       const clearingHouse = new Ethers.Contract(
         this.ClearingHouse,
@@ -274,7 +274,7 @@ export default class PerpetualFinance {
           this.amm[pair],
           wallet.address,
           Ethers.BigNumber.from(PNL_OPTION_SPOT_PRICE)
-        )
+        ),
       ]).then((values) => {
         positionValues.openNotional = Ethers.utils.formatUnits(
           values[0].value.openNotional.d,
@@ -361,12 +361,12 @@ export default class PerpetualFinance {
         );
         if (side === 'buy') {
           price = await amm.getInputPrice(0, {
-            d: Ethers.utils.parseUnits(amount, DEFAULT_DECIMALS)
+            d: Ethers.utils.parseUnits(amount, DEFAULT_DECIMALS),
           });
           price = amount / Ethers.utils.formatUnits(price.d);
         } else {
           price = await amm.getOutputPrice(0, {
-            d: Ethers.utils.parseUnits(amount, DEFAULT_DECIMALS)
+            d: Ethers.utils.parseUnits(amount, DEFAULT_DECIMALS),
           });
           price = Ethers.utils.formatUnits(price.d) / amount;
         }
@@ -379,7 +379,6 @@ export default class PerpetualFinance {
       }
       return price;
     } catch (err) {
-      console.log(err);
       logger.error(err);
       let reason;
       err.reason ? (reason = err.reason) : (reason = 'error getting Price');
@@ -399,7 +398,7 @@ export default class PerpetualFinance {
       await Promise.allSettled([
         amm.getUnderlyingTwapPrice(3600),
         amm.getTwapPrice(3600),
-        amm.nextFundingTime()
+        amm.nextFundingTime(),
       ]).then((values) => {
         funding.indexPrice = parseFloat(
           Ethers.utils.formatUnits(values[0].value.d)
@@ -414,7 +413,6 @@ export default class PerpetualFinance {
         (funding.markPrice - funding.indexPrice) / 24 / funding.indexPrice;
       return funding;
     } catch (err) {
-      console.log(err);
       logger.error(err)();
       let reason;
       err.reason ? (reason = err.reason) : (reason = 'error getting fee');

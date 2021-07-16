@@ -2,7 +2,7 @@ import {
   getParamData,
   statusMessages,
   loadConfig,
-  updateConfig
+  updateConfig,
 } from '../services/utils';
 
 const express = require('express');
@@ -12,7 +12,7 @@ const router = express.Router();
 router.get('/', (req, res) => {
   res.status(200).json({
     config: loadConfig(),
-    status: 'ok'
+    status: 'ok',
   });
 });
 
@@ -25,21 +25,21 @@ router.post('/update', async (req, res) => {
   const paramData = getParamData(req.body);
 
   try {
-    console.log(updateConfig(paramData));
+    updateConfig(paramData);
     const config = loadConfig();
     res.status(200).json({
-      config: config
+      config: config,
     });
   } catch (err) {
-    console.log(err);
     let reason;
     err.reason
       ? (reason = err.reason)
       : (reason = statusMessages.operation_error);
     res.status(500).json({
       error: reason,
-      message: err
+      message: err,
     });
   }
 });
-module.exports = router;
+
+export default router;

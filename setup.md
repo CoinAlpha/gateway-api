@@ -89,10 +89,6 @@ https://localhost:5000/eth/deposit
 
 # BALANCER
 
-# get price and pools for a trade
-https://localhost:5000/balancer/buy-price
-https://localhost:5000/balancer/sell-price
-
 # execute trade
 https://localhost:5000/balancer/buy
 https://localhost:5000/balancer/sell

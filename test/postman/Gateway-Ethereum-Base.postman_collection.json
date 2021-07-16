@@ -134,46 +134,6 @@
           "response": []
         },
         {
-          "name": "eth/get-weth",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                {
-                  "key": "gasPrice",
-                  "value": "31",
-                  "type": "text"
-                },
-                {
-                  "key": "amount",
-                  "value": "0.03",
-                  "type": "text"
-                },
-                {
-                  "key": "privateKey",
-                  "value": "{{privateKey}}",
-                  "type": "text"
-                },
-                {
-                  "key": "tokenAddress",
-                  "value": "{{WETH}}",
-                  "type": "text"
-                }
-              ]
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/eth/get-weth",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["eth", "get-weth"]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "eth/get-receipt",
           "request": {
             "method": "POST",

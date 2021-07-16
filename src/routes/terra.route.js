@@ -5,7 +5,7 @@ import {
   getParamData,
   latency,
   reportConnectionError,
-  statusMessages
+  statusMessages,
 } from '../services/utils';
 import { logger } from '../services/logger';
 
@@ -28,7 +28,7 @@ router.post('/', async (req, res) => {
     gasPrices: terra.lcd.config.gasPrices,
     gasAdjustment: terra.lcd.config.gasAdjustment,
     connection: true,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 });
 
@@ -59,7 +59,7 @@ router.post('/balances', async (req, res) => {
       network: network,
       timestamp: initTime,
       latency: latency(initTime, Date.now()),
-      balances: balances
+      balances: balances,
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -77,7 +77,7 @@ router.post('/balances', async (req, res) => {
     }
     res.status(500).json({
       error: reason,
-      message: message
+      message: message,
     });
   }
 });
@@ -102,7 +102,7 @@ router.post('/start', async (req, res) => {
     latency: latency(initTime, Date.now()),
     success: true,
     base: baseTokenSymbol,
-    quote: quoteTokenSymbol
+    quote: quoteTokenSymbol,
   };
   res.status(200).json(result);
 });
@@ -147,7 +147,7 @@ router.post('/price', async (req, res) => {
       tradeType: tradeType,
       price: exchangeRate.price.amount,
       cost: exchangeRate.cost.amount,
-      txFee: exchangeRate.txFee.amount
+      txFee: exchangeRate.txFee.amount,
     });
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
@@ -165,7 +165,7 @@ router.post('/price', async (req, res) => {
     }
     res.status(500).json({
       error: reason,
-      message: message
+      message: message,
     });
   }
 });
@@ -221,7 +221,7 @@ router.post('/trade', async (req, res) => {
       base: baseToken,
       tradeType: tradeType,
       quote: quoteToken,
-      amount: amount
+      amount: amount,
     };
     Object.assign(swapResult, tokenSwaps);
     logger.info(
@@ -244,9 +244,9 @@ router.post('/trade', async (req, res) => {
     }
     res.status(500).json({
       error: reason,
-      message: message
+      message: message,
     });
   }
 });
 
-module.exports = router;
+export default router;

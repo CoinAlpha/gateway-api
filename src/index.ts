@@ -29,10 +29,10 @@ if ((typeof certPath === 'undefined' && certPath == null) || certPath === '') {
 app.set('env', env);
 const options = {
   key: fs.readFileSync(certPath.concat('/server_key.pem'), {
-    encoding: 'utf-8'
+    encoding: 'utf-8',
   }),
   cert: fs.readFileSync(certPath.concat('/server_cert.pem'), {
-    encoding: 'utf-8'
+    encoding: 'utf-8',
   }),
   // request client certificate from user
   requestCert: true,
@@ -40,13 +40,13 @@ const options = {
   rejectUnauthorized: true,
   // use ca cert created with own key for self-signed
   ca: [fs.readFileSync(certPath.concat('/ca_cert.pem'), { encoding: 'utf-8' })],
-  passphrase: certPassphrase
+  passphrase: certPassphrase,
 };
 
 const server = https.createServer(options, app);
 
 // event listener for "error" event
-const onError = (error) => {
+const onError = (error: Record<string, any>) => {
   if (error.syscall !== 'listen') {
     throw error;
   }
@@ -71,9 +71,13 @@ const onError = (error) => {
 // event listener for "listening" event.
 const onListening = () => {
   const addr = server.address();
-  const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
-  console.log('listening on ' + bind);
-  logger.debug('listening on ' + bind);
+  if (addr) {
+    const bind =
+      typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
+    logger.debug('listening on ' + bind);
+  } else {
+    logger.debug('server.address() failed, not listening');
+  }
 };
 
 // listen on provided port, on all network interfaces.
@@ -85,8 +89,7 @@ const serverConfig = {
   app: 'gateway-api',
   port: port,
   ethereumChain: ethereumChain,
-  terraChain: terraChain
+  terraChain: terraChain,
 };
 
 logger.info(JSON.stringify(serverConfig));
-console.log(serverConfig);

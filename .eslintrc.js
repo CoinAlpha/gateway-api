@@ -1,17 +1,23 @@
 module.exports = {
-  extends: ['eslint:recommended', 'prettier'],
-  parser: 'babel-eslint',
-  plugins: ['prettier'],
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint', 'prettier'],
   env: {
     node: true,
-    es6: true
   },
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/eslint-recommended',
+    'plugin:@typescript-eslint/recommended',
+    'prettier',
+  ],
   rules: {
-    'comma-dangle': ['error', 'never'],
-    'no-multi-spaces': 'off',
-    'no-underscore-dangle': 'off',
-    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'no-console': 'off',
+    // 'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    semi: [2, 'always'],
     'prettier/prettier': 'error',
-    semi: [2, 'always']
-  }
+    '@typescript-eslint/no-var-requires': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+  },
 };
