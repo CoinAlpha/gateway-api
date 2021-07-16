@@ -1,24 +1,28 @@
-'use strict';
-
 import express from 'express';
+import { Request, Response } from 'express';
+import { Coin } from '@terra-money/terra.js';
 import {
-  getParamData,
   latency,
   reportConnectionError,
   statusMessages,
 } from '../services/utils';
 import { logger } from '../services/logger';
 
+import {
+  DENOM_UNIT,
+  GAS_ADJUSTMENT,
+  TERRA_TOKENS,
+  ULUNA_GAS_PRICE,
+} from '../services/terra';
 import Terra from '../services/terra';
 
 const router = express.Router();
-const terra = new Terra();
+const terra: Terra = new Terra();
 
 // constants
 const network = terra.lcd.config.chainID;
-const denomUnitMultiplier = terra.denomUnitMultiplier;
 
-router.post('/', async (req, res) => {
+router.post('/', async (_req: Request, res: Response) => {
   /*
     POST /
   */
@@ -32,25 +36,24 @@ router.post('/', async (req, res) => {
   });
 });
 
-router.post('/balances', async (req, res) => {
+router.post('/balances', async (req: Request, res: Response) => {
   /*
     POST:
         address:{{address}}
   */
   const initTime = Date.now();
 
-  const paramData = getParamData(req.body);
-  const address = paramData.address;
+  const address = req.body.address;
 
-  let balances = {};
+  const balances: Record<string, number> = {};
 
   try {
     await terra.lcd.bank.balance(address).then((bal) => {
-      bal.toArray().forEach(async (x) => {
-        const item = x.toData();
+      bal.toArray().forEach(async (coin: Coin) => {
+        const item = coin.toData();
         const denom = item.denom;
-        const amount = item.amount / denomUnitMultiplier;
-        const symbol = terra.tokens[denom].symbol;
+        const amount = parseFloat(item.amount) / DENOM_UNIT;
+        const symbol = TERRA_TOKENS[denom];
         balances[symbol] = amount;
       });
     });
@@ -92,9 +95,8 @@ router.post('/start', async (req, res) => {
       }
   */
   const initTime = Date.now();
-  const paramData = getParamData(req.body);
-  const baseTokenSymbol = paramData.base;
-  const quoteTokenSymbol = paramData.quote;
+  const baseTokenSymbol = req.body.base;
+  const quoteTokenSymbol = req.body.quote;
 
   const result = {
     network: network,
@@ -119,36 +121,37 @@ router.post('/price', async (req, res) => {
   */
   const initTime = Date.now();
 
-  const paramData = getParamData(req.body);
-  const baseToken = paramData.base;
-  const quoteToken = paramData.quote;
-  const tradeType = paramData.side.toUpperCase();
-  const amount = parseFloat(paramData.amount);
-
-  let exchangeRate;
+  const baseToken = req.body.base;
+  const quoteToken = req.body.quote;
+  const tradeType = req.body.side.toUpperCase();
+  const amount = parseFloat(req.body.amount);
 
   try {
-    await terra
-      .getSwapRate(baseToken, quoteToken, amount, tradeType)
-      .then((rate) => {
-        exchangeRate = rate;
-      })
-      .catch((err) => {
-        reportConnectionError(res, err);
-      });
+    const exchangeRate = await terra.getSwapRate(
+      baseToken,
+      quoteToken,
+      amount,
+      tradeType
+    );
 
-    res.status(200).json({
-      network: network,
-      timestamp: initTime,
-      latency: latency(initTime, Date.now()),
-      base: baseToken,
-      quote: quoteToken,
-      amount: amount,
-      tradeType: tradeType,
-      price: exchangeRate.price.amount,
-      cost: exchangeRate.cost.amount,
-      txFee: exchangeRate.txFee.amount,
-    });
+    if (typeof exchangeRate === 'string') {
+      res.status(500).json({
+        error: 'Unable to getSwapRate',
+      });
+    } else {
+      res.status(200).json({
+        network: network,
+        timestamp: initTime,
+        latency: latency(initTime, Date.now()),
+        base: baseToken,
+        quote: quoteToken,
+        amount: amount,
+        tradeType: tradeType,
+        price: exchangeRate.exchangeRate,
+        cost: exchangeRate.costAmount,
+        txFee: exchangeRate.txFee,
+      });
+    }
   } catch (err) {
     logger.error(req.originalUrl, { message: err });
     let message;
@@ -178,21 +181,21 @@ router.post('/trade', async (req, res) => {
         "quote":"KRT"
         "side":"buy" or "sell"
         "amount":1
-        "secret": "mysupersecret"
+        "privateKey": "mysupersecret"
       }
   */
   const initTime = Date.now();
 
-  const paramData = getParamData(req.body);
-  const baseToken = paramData.base;
-  const quoteToken = paramData.quote;
-  const tradeType = paramData.side.toUpperCase();
-  const amount = parseFloat(paramData.amount);
-  const gasPrice =
-    parseFloat(paramData.gas_price) || terra.lcd.config.gasPrices.uluna;
-  const gasAdjustment =
-    paramData.gas_adjustment || terra.lcd.config.gasAdjustment;
-  const secret = paramData.privateKey;
+  const baseToken = req.body.base;
+  const quoteToken = req.body.quote;
+  const tradeType = req.body.side.toUpperCase();
+  const amount = parseFloat(req.body.amount);
+
+  const gasPrice = parseFloat(req.body.gas_price) || ULUNA_GAS_PRICE;
+
+  const gasAdjustment = req.body.gas_adjustment || GAS_ADJUSTMENT;
+
+  const secret = req.body.privateKey;
 
   let tokenSwaps;
 
