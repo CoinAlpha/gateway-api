@@ -597,7 +597,7 @@ router.post('/remove-position', async (req: Request, res: Response) => {
     new ethers.Wallet(privateKey, uniswap.provider)
   );
   const tokenId = req.body.tokenId;
-  const getFee = req.body.getFee.toUpperCase()  === "TRUE" ? true : false
+  const getFee = req.body.getFee.toUpperCase() === 'TRUE' ? true : false;
 
   let gasPrice;
   if (req.body.gasPrice) {
@@ -633,11 +633,10 @@ router.post('/remove-position', async (req: Request, res: Response) => {
       gasLimit: gasLimit,
       gasCost: gasCost,
       gasFee: 0,
-      hash: ''
-
+      hash: '',
     };
 
-    if (getFee && gasPrice){
+    if (getFee && gasPrice) {
       result.gasFee = parseInt(removelp.toString()) * gasPrice;
       debug(`Estimated gas to remove lp: ${result.gasFee}`);
     } else {

@@ -18,7 +18,7 @@
               "urlencoded": [
                 {
                   "key": "address",
-                  "value": "{{address}}",
+                  "value": "{{terraWalletAddress}}",
                   "type": "text"
                 }
               ],
@@ -57,7 +57,7 @@
                   "type": "text"
                 },
                 {
-                  "key": "trade_type",
+                  "key": "side",
                   "value": "buy",
                   "type": "text"
                 },
@@ -186,7 +186,7 @@
                   "type": "text"
                 },
                 {
-                  "key": "trade_type",
+                  "key": "side",
                   "value": "buy",
                   "type": "text"
                 },
@@ -196,8 +196,8 @@
                   "type": "text"
                 },
                 {
-                  "key": "secret",
-                  "value": "{{secret}}",
+                  "key": "privateKey",
+                  "value": "{{privateKey}}",
                   "type": "text"
                 }
               ]

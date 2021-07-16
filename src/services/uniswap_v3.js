@@ -540,7 +540,13 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
     });
   }
 
-  async reducePosition(wallet, tokenId, eth, decreasePercent = 100, getFee = false) {
+  async reducePosition(
+    wallet,
+    tokenId,
+    eth,
+    decreasePercent = 100,
+    getFee = false
+  ) {
     // Reduce position and burn
     const contract = this.get_contract('nft', wallet);
     const positionData = await this.getPosition(wallet, tokenId, 0, true);
@@ -576,7 +582,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
         wallet
       )
     );
-    if (getFee){
+    if (getFee) {
       return await contract.estimateGas.multicall([callData.calldata], {
         value: callData.value,
         gasLimit: GAS_LIMIT,
