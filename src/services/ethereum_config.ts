@@ -17,10 +17,6 @@ export class EthereumConfigService {
     return this.config.getConfig('ETHEREUM_TOKEN_LIST_URL');
   }
 
-  get approvalGasLimit(): string {
-    return this.config.getConfig('APPROVAL_GAS_LIMIT');
-  }
-
   get networkName(): string {
     return this.config.getConfig('ETHEREUM_CHAIN');
   }
