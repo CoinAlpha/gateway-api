@@ -17,7 +17,7 @@ const abiDecoder = require('abi-decoder');
 
 // constants
 const FeeAmount = uniV3.FeeAmount;
-const GAS_LIMIT = globalConfig.getConfig('UNISWAP_GAS_LIMIT') || 5506880;
+const GAS_LIMIT = globalConfig.getConfig('UNISWAP_GAS_LIMIT') || 550688;
 const UPDATE_PERIOD = globalConfig.getConfig('UNISWAP_UPDATE_PERIOD') || 300000; // stop updating pair after 5 minutes from last request
 const MaxUint128 = ethers.BigNumber.from(2).pow(128).sub(1);
 
