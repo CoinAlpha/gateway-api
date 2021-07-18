@@ -27,7 +27,7 @@ export class EthereumConfigService {
 
   get gasServiceUrl(): string {
     return (
-      this.config.getConfig('ETH_GAS_STATION_URL') +
+      'https://ethgasstation.info/api/ethgasAPI.json?api-key=' +
       this.config.getConfig('ETH_GAS_STATION_API_KEY')
     );
   }

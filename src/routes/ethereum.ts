@@ -4,7 +4,9 @@ import {
   TokenERC20Info,
 } from '../services/ethereum';
 import { EthereumConfigService } from '../services/ethereum_config';
-import { EthereumGasService } from '../services/ethereum_gas';
+// import { EthereumGasService } from '../services/ethereum_gas';
+import Fees from '../services/fees';
+
 import { logger } from '../services/logger';
 import { Router, Request, Response } from 'express';
 import { ethers } from 'ethers';
@@ -17,7 +19,8 @@ const latency = (startTime: number, endTime: number): number => {
 
 const config = new EthereumConfigService();
 const ethereumService = new EthereumService(config);
-const ethereumGasService = new EthereumGasService(config);
+// const ethereumGasService = new EthereumGasService(config);
+const fees = new Fees();
 
 router.post('/', async (_req: Request, res: Response) => {
   /*
@@ -158,8 +161,8 @@ router.post('/approve', async (req: Request, res: Response) => {
       res.status(500).send(`Token "${req.body.token}" is not supported`);
     } else {
       const tokenAddress = tokenContractInfo.address;
-
-      const gasPrice = req.body.gasPrice || ethereumGasService.getGasPrice();
+      // const gasPrice = req.body.gasPrice || ethereumGasService.getGasPrice();
+      const gasPrice = req.body.gasPrice || fees.ethGasPrice;
 
       let amount = ethers.constants.MaxUint256;
       if (req.body.amount) {
