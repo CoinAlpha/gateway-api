@@ -178,7 +178,7 @@ export class EthereumService {
       return await contract.approve(spender, amount, {
         gasPrice: gasPrice * 1e9,
         // fixate gas limit to prevent overwriting
-        gasLimit: this.config.approvalGasLimit,
+        gasLimit: 60000,
       });
     } catch (err) {
       throw new Error(err.reason || 'error approval');
@@ -235,15 +235,15 @@ export class EthereumService {
    * @param {string} tokenAddress
    * @return {TokenERC20Info} | null
    */
-  getERC20TokenByAddress(tokenAddress: string): TokenERC20Info | undefined  {
+  getERC20TokenByAddress(tokenAddress: string): TokenERC20Info | undefined {
     if (this.erc20TokenList) {
       const tokenContract = this.erc20TokenList.tokens.filter((obj) => {
-      return obj.address.toUpperCase() === tokenAddress.toUpperCase();
-    });
-    return tokenContract[0];
+        return obj.address.toUpperCase() === tokenAddress.toUpperCase();
+      });
+      return tokenContract[0];
+    }
+    return;
   }
-  return;
-}
 
   /**
    * Return wallet of a private string
@@ -262,12 +262,19 @@ export class EthereumService {
   async getTransactionReceipt(txHash: string): Promise<EthTransactionReceipt> {
     const transaction = await this.provider.getTransactionReceipt(txHash);
 
+    let gasUsed;
+    if (transaction.gasUsed) {
+      gasUsed = transaction.gasUsed.toNumber();
+    } else {
+      gasUsed = 0;
+    }
+
     return {
-      gasUsed: transaction.gasUsed.toNumber(),
+      gasUsed: gasUsed,
       blockNumber: transaction.blockNumber,
       confirmations: transaction.confirmations,
       status: transaction.status || 0,
-      logs: transaction.logs
+      logs: transaction.logs,
     };
   }
 }

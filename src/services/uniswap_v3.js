@@ -17,7 +17,7 @@ const abiDecoder = require('abi-decoder');
 
 // constants
 const FeeAmount = uniV3.FeeAmount;
-const GAS_LIMIT = globalConfig.getConfig('UNISWAP_GAS_LIMIT') || 5506880;
+const GAS_LIMIT = globalConfig.getConfig('UNISWAP_GAS_LIMIT') || 550688;
 const UPDATE_PERIOD = globalConfig.getConfig('UNISWAP_UPDATE_PERIOD') || 300000; // stop updating pair after 5 minutes from last request
 const MaxUint128 = ethers.BigNumber.from(2).pow(128).sub(1);
 
@@ -178,7 +178,7 @@ export default class UniswapV3 {
                   request[twap].value.tickCumulatives[0].toNumber()
               )
             )
-            .toFixed()
+            .toSignificant(8)
         );
       }
     }
@@ -418,10 +418,10 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
         fee: Object.keys(FeeAmount).find(
           (key) => FeeAmount[key] === position.fee
         ),
-        lowerPrice: positionInst.token0PriceLower.toFixed(8),
-        upperPrice: positionInst.token0PriceUpper.toFixed(8),
-        amount0: positionInst.amount0.toFixed(),
-        amount1: positionInst.amount1.toFixed(),
+        lowerPrice: positionInst.token0PriceLower.toSignificant(8),
+        upperPrice: positionInst.token0PriceUpper.toSignificant(8),
+        amount0: positionInst.amount0.toSignificant(8),
+        amount1: positionInst.amount1.toSignificant(8),
         unclaimedToken0: ethers.utils.formatUnits(
           feeInfo.amount0.toString(),
           token0.decimals
