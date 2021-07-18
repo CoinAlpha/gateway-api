@@ -76,11 +76,11 @@ GMT_OFFSET: +0800
 # EthGasStation
 # API key for defipulse.com gas station API
 # Gas level you want to use for Ethereum transactions (fast, fastest, safeLow, average)
-ETH_GAS_STATION_ENABLE: true
+ENABLE_ETH_GAS_STATION: true
 ETH_GAS_STATION_API_KEY:
 ETH_GAS_STATION_GAS_LEVEL: fast
 ETH_GAS_STATION_REFRESH_TIME: 60
-ETH_MANUAL_GAS_PRICE: 100
+MANUAL_GAS_PRICE: 100
 
 # Balancer Config
 BALANCER_MAX_SWAPS: 4

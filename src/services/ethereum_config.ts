@@ -17,6 +17,10 @@ export class EthereumConfigService {
     return this.config.getConfig('ETHEREUM_TOKEN_LIST_URL');
   }
 
+  get approvalGasLimit(): string {
+    return this.config.getConfig('APPROVAL_GAS_LIMIT');
+  }
+
   get networkName(): string {
     return this.config.getConfig('ETHEREUM_CHAIN');
   }
@@ -27,7 +31,7 @@ export class EthereumConfigService {
 
   get gasServiceUrl(): string {
     return (
-      'https://ethgasstation.info/api/ethgasAPI.json?api-key=' +
+      this.config.getConfig('ETH_GAS_STATION_URL') +
       this.config.getConfig('ETH_GAS_STATION_API_KEY')
     );
   }
