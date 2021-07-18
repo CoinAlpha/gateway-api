@@ -262,8 +262,15 @@ export class EthereumService {
   async getTransactionReceipt(txHash: string): Promise<EthTransactionReceipt> {
     const transaction = await this.provider.getTransactionReceipt(txHash);
 
+    let gasUsed;
+    if (transaction.gasUsed) {
+      gasUsed = transaction.gasUsed.toNumber();
+    } else {
+      gasUsed = 0;
+    }
+
     return {
-      gasUsed: transaction.gasUsed.toNumber(),
+      gasUsed: gasUsed,
       blockNumber: transaction.blockNumber,
       confirmations: transaction.confirmations,
       status: transaction.status || 0,
