@@ -178,7 +178,7 @@ export class EthereumService {
       return await contract.approve(spender, amount, {
         gasPrice: gasPrice * 1e9,
         // fixate gas limit to prevent overwriting
-        gasLimit: 60000,
+        gasLimit: 100000,
       });
     } catch (err) {
       throw new Error(err.reason || 'error approval');
