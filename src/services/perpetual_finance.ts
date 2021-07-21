@@ -1,6 +1,6 @@
 import { logger } from './logger';
-
-const fetch = require('cross-fetch');
+import fetch from 'node-fetch';
+import { Body } from 'node-fetch';
 
 const Ethers = require('ethers');
 const AmmArtifact = require('@perp/contract/build/contracts/Amm.json');
@@ -13,12 +13,54 @@ const globalConfig =
 const GAS_LIMIT = 2123456;
 const DEFAULT_DECIMALS = 18;
 const CONTRACT_ADDRESSES = 'https://metadata.perp.exchange/';
-const XDAI_PROVIDER =
+const XDAI_PROVIDER: string =
   globalConfig.getConfig('XDAI_PROVIDER') || 'https://dai.poa.network';
 const PNL_OPTION_SPOT_PRICE = 0;
 const UPDATE_PERIOD = 60000; // stop updating prices after 30 secs from last request
 
+interface contract {
+  name: string;
+  address: string;
+}
+
+interface layer {
+  contracts: Record<string, contract>;
+  network: string;
+  externalContracts: Record<string, string>;
+}
+
+interface layers {
+  layer1: layer;
+  layer2: layer;
+}
+
+function isLayers(o: any): o is layers {
+  return 'layer1' in o && 'layer2' in o;
+}
+
+const safeJsonParse =
+  <T>(guard: (o: any) => o is T) =>
+  (text: string): ParseResult<T> => {
+    const parsed = JSON.parse(text);
+    return guard(parsed) ? { parsed, hasError: false } : { hasError: true };
+  };
+
+type ParseResult<T> =
+  | { parsed: T; hasError: false; error?: undefined }
+  | { parsed?: undefined; hasError: true; error?: unknown };
+
 export default class PerpetualFinance {
+  public providerUrl;
+  public network;
+  public provider;
+  public gasLimit: number;
+  public contractAddressesUrl: string;
+  public amm: Record<any, any>;
+  public priceCache: Record<any, any>;
+  public cacheExpirary: Record<any, any>;
+  public pairAmountCache: Record<any, any>;
+  public loadedMetadata: boolean | null = null;
+
   constructor(network = 'mainnet') {
     this.providerUrl = XDAI_PROVIDER;
     this.network = network;
@@ -44,14 +86,27 @@ export default class PerpetualFinance {
       }
     }
 
-    this.loadedMetadata = this.load_metadata();
+    (async () => {
+      this.loadedMetadata = await this.load_metadata();
+    })();
   }
 
-  async load_metadata() {
+  async load_metadata(): Promise<boolean> {
     try {
-      const metadata = await fetch(this.contractAddressesUrl).then((res) =>
-        res.json()
-      );
+      const res = await fetch(this.contractAddressesUrl);
+      const json = await res.json();
+      const layers = safeJsonParse(isLayers)(json);
+
+      if (result.hasError) {
+        return false;
+      } else {
+        for (const (key, item) of Object.entries(layers.layer2)) {
+
+        }
+        return true;
+      }
+
+      /*
       const layer2 = Object.keys(metadata.layers.layer2.contracts);
 
       for (var key of layer2) {
@@ -67,6 +122,7 @@ export default class PerpetualFinance {
       this.xUsdcAddr = metadata.layers.layer2.externalContracts.usdc;
       this.loadedMetadata = true;
       return true;
+      */
     } catch (err) {
       return false;
     }
