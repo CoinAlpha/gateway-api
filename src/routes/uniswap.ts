@@ -209,7 +209,7 @@ router.post('/trade', async (req: Request, res: Response) => {
         const trade = result.trade;
         const expectedAmount = result.expectedAmount;
         if (side === 'BUY') {
-          const price = trade.executionPrice.invert().toSignificant(8);
+          const price = trade.executionPrice.invert().toFixed(8);
           if (!limitPrice || price <= limitPrice) {
             // pass swaps to exchange-proxy to complete trade
             const tx = await uniswap.swapExactOut(
@@ -226,7 +226,7 @@ router.post('/trade', async (req: Request, res: Response) => {
               base: baseTokenAddress,
               quote: quoteTokenAddress,
               amount: amount,
-              expectedIn: expectedAmount.toSignificant(8),
+              expectedIn: expectedAmount.toFixed(8),
               price: price,
               gasPrice: gasPrice,
               gasLimit,
@@ -244,7 +244,7 @@ router.post('/trade', async (req: Request, res: Response) => {
           }
         } else {
           // sell
-          const price = trade.executionPrice.toSignificant(8);
+          const price = trade.executionPrice.toFixed(8);
           logger.info(`Price: ${price.toString()}`);
           if (!limitPrice || price >= limitPrice) {
             // pass swaps to exchange-proxy to complete trade
@@ -262,7 +262,7 @@ router.post('/trade', async (req: Request, res: Response) => {
               base: baseTokenAddress,
               quote: quoteTokenAddress,
               amount: parseFloat(req.body.amount),
-              expectedOut: expectedAmount.toSignificant(8),
+              expectedOut: expectedAmount.toFixed(8),
               price: parseFloat(price),
               gasPrice: gasPrice,
               gasLimit,
@@ -351,13 +351,11 @@ router.post('/price', async (req: Request, res: Response) => {
         if (trade !== null && expectedAmount !== null) {
           const price =
             side === 'BUY'
-              ? trade.executionPrice.invert().toSignificant(8)
-              : trade.executionPrice.toSignificant(8);
+              ? trade.executionPrice.invert().toFixed(8)
+              : trade.executionPrice.toFixed(8);
 
           const tradeAmount = parseFloat(amount);
-          const expectedTradeAmount = parseFloat(
-            expectedAmount.toSignificant(8)
-          );
+          const expectedTradeAmount = parseFloat(expectedAmount.toFixed(8));
           const tradePrice = parseFloat(price);
 
           const result = {
