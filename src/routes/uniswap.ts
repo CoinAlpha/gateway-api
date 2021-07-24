@@ -21,7 +21,8 @@ const eth = new EthereumService(ethConfig);
 
 const uniswap = new Uniswap(globalConfig.getConfig('ETHEREUM_CHAIN'));
 uniswap.generate_tokens();
-setTimeout(uniswap.update_pairs.bind(uniswap), 2000);
+// setTimeout(uniswap.update_pairs.bind(uniswap), 2000);
+
 const fees = new Fees();
 
 const swapMoreThanMaxPriceError = 'Price too high';
@@ -124,12 +125,12 @@ router.get('/start', async (req: Request, res: Response) => {
         });
         return;
       }
-      await Promise.allSettled([
-        uniswap.extend_update_pairs([
-          baseTokenContractInfo.address,
-          quoteTokenContractInfo.address,
-        ]),
-      ]);
+      // await Promise.allSettled([
+      //   uniswap.extend_update_pairs([
+      //     baseTokenContractInfo.address,
+      //     quoteTokenContractInfo.address,
+      //   ]),
+      // ]);
     }
 
     const gasLimit = estimateGasLimit();
@@ -309,6 +310,7 @@ router.post('/price', async (req: Request, res: Response) => {
         "quote":"BAT"
         "base":"DAI"
         "amount":1
+        "side":"buy"
       }
   */
   const initTime = Date.now();

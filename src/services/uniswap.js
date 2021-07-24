@@ -13,7 +13,7 @@ const globalConfig =
 const ROUTER = globalConfig.getConfig('UNISWAP_ROUTER');
 const GAS_LIMIT = globalConfig.getConfig('UNISWAP_GAS_LIMIT') || 150688;
 const TTL = globalConfig.getConfig('UNISWAP_TTL') || 300;
-const UPDATE_PERIOD = globalConfig.getConfig('UNISWAP_UPDATE_PERIOD') || 300000; // stop updating pair after 5 minutes from last request
+// const UPDATE_PERIOD = globalConfig.getConfig('UNISWAP_UPDATE_PERIOD') || 300000; // stop updating pair after 5 minutes from last request
 
 export default class Uniswap {
   constructor(network = 'mainnet') {
@@ -30,15 +30,15 @@ export default class Uniswap {
     );
     this.pairsCacheTime = globalConfig.getConfig('UNISWAP_PAIRS_CACHE_TIME');
     this.gasLimit = GAS_LIMIT;
-    this.expireTokenPairUpdate = UPDATE_PERIOD;
-    this.zeroReserveCheckInterval = globalConfig.getConfig(
-      'UNISWAP_NO_RESERVE_CHECK_INTERVAL'
-    );
-    this.zeroReservePairs = {}; // No reserve pairs
+    // this.expireTokenPairUpdate = UPDATE_PERIOD;
+    // this.zeroReserveCheckInterval = globalConfig.getConfig(
+    //   'UNISWAP_NO_RESERVE_CHECK_INTERVAL'
+    // );
+    // this.zeroReservePairs = {}; // No reserve pairs
     this.tokenList = {};
-    this.pairs = [];
-    this.tokenSwapList = {};
-    this.cachedRoutes = {};
+    // this.pairs = [];
+    // this.tokenSwapList = {};
+    // this.cachedRoutes = {};
 
     switch (network) {
       case 'mainnet':
@@ -55,17 +55,17 @@ export default class Uniswap {
     }
   }
 
-  async fetch_route(tIn, tOut) {
-    var route, pair;
+  // async fetch_route(tIn, tOut) {
+  //   var route, pair;
 
-    try {
-      pair = await uni.Fetcher.fetchPairData(tIn, tOut);
-      route = new uni.Route([pair], tIn, tOut);
-    } catch (err) {
-      logger.error(err);
-    }
-    return route;
-  }
+  //   try {
+  //     pair = await uni.Fetcher.fetchPairData(tIn, tOut);
+  //     route = new uni.Route([pair], tIn, tOut);
+  //   } catch (err) {
+  //     logger.error(err);
+  //   }
+  //   return route;
+  // }
 
   generate_tokens() {
     for (let token of routeTokens[this.network]) {
@@ -79,152 +79,154 @@ export default class Uniswap {
     }
   }
 
-  async extend_update_pairs(tokens = []) {
-    for (let token of tokens) {
-      if (!Object.prototype.hasOwnProperty.call(this.tokenList, token)) {
-        this.tokenList[token] = await uni.Fetcher.fetchTokenData(
-          this.chainID,
-          token
-        );
-      }
-      this.tokenSwapList[token] = Date.now() + this.expireTokenPairUpdate;
-    }
-  }
+  // async extend_update_pairs(tokens = []) {
+  //   for (let token of tokens) {
+  //     if (!Object.prototype.hasOwnProperty.call(this.tokenList, token)) {
+  //       debug(token);
+  //       this.tokenList[token] = await uni.Fetcher.fetchTokenData(
+  //         this.chainID,
+  //         token
+  //       );
+  //     }
+  //     this.tokenSwapList[token] = Date.now() + this.expireTokenPairUpdate;
+  //   }
+  // }
 
-  async update_pairs() {
-    // Remove banned pairs after ban period
-    if (Object.keys(this.zeroReservePairs).length > 0) {
-      for (let pair in this.zeroReservePairs) {
-        if (this.zeroReservePairs[pair] <= Date.now()) {
-          delete this.zeroReservePairs[pair];
-          // delete this.tokenList[token];
-        }
-      }
-    }
-    // Generate all possible pair combinations of tokens
-    // This is done by generating an upper triangular matrix or right triangular matrix
-    if (Object.keys(this.tokenSwapList).length > 0) {
-      for (let token in this.tokenSwapList) {
-        if (this.tokenSwapList[token] <= Date.now()) {
-          delete this.tokenSwapList[token];
-          // delete this.tokenList[token];
-        }
-      }
+  // async update_pairs() {
+  //   debug('update_pairs');
+  //   // Remove banned pairs after ban period
+  //   if (Object.keys(this.zeroReservePairs).length > 0) {
+  //     for (let pair in this.zeroReservePairs) {
+  //       if (this.zeroReservePairs[pair] <= Date.now()) {
+  //         delete this.zeroReservePairs[pair];
+  //         // delete this.tokenList[token];
+  //       }
+  //     }
+  //   }
+  //   // Generate all possible pair combinations of tokens
+  //   // This is done by generating an upper triangular matrix or right triangular matrix
+  //   if (Object.keys(this.tokenSwapList).length > 0) {
+  //     for (let token in this.tokenSwapList) {
+  //       if (this.tokenSwapList[token] <= Date.now()) {
+  //         delete this.tokenSwapList[token];
+  //         // delete this.tokenList[token];
+  //       }
+  //     }
 
-      let tokens = Object.keys(this.tokenList);
-      var firstToken, secondToken, position;
-      let length = tokens.length;
-      let pairs = [];
-      let pairAddressRequests = [];
-      let pairAddressResponses = [];
-      for (firstToken = 0; firstToken < length; firstToken++) {
-        for (
-          secondToken = firstToken + 1;
-          secondToken < length;
-          secondToken++
-        ) {
-          try {
-            let pairString =
-              this.tokenList[tokens[firstToken]].address +
-              '-' +
-              this.tokenList[tokens[secondToken]].address;
-            if (
-              !Object.prototype.hasOwnProperty.call(
-                this.zeroReservePairs,
-                pairString
-              )
-            ) {
-              pairs.push(pairString);
-              pairAddressRequests.push(
-                uni.Fetcher.fetchPairData(
-                  this.tokenList[tokens[firstToken]],
-                  this.tokenList[tokens[secondToken]]
-                )
-              );
-            }
-          } catch (err) {
-            logger.error(err);
-          }
-        }
-      }
+  //     let tokens = Object.keys(this.tokenList);
+  //     var firstToken, secondToken, position;
+  //     let length = tokens.length;
+  //     let pairs = [];
+  //     let pairAddressRequests = [];
+  //     let pairAddressResponses = [];
+  //     for (firstToken = 0; firstToken < length; firstToken++) {
+  //       for (
+  //         secondToken = firstToken + 1;
+  //         secondToken < length;
+  //         secondToken++
+  //       ) {
+  //         try {
+  //           let pairString =
+  //             this.tokenList[tokens[firstToken]].address +
+  //             '-' +
+  //             this.tokenList[tokens[secondToken]].address;
+  //           if (
+  //             !Object.prototype.hasOwnProperty.call(
+  //               this.zeroReservePairs,
+  //               pairString
+  //             )
+  //           ) {
+  //             pairs.push(pairString);
+  //             debug('fetchPairData request');
+  //             debug(pairs);
+  //             pairAddressRequests.push(
+  //               uni.Fetcher.fetchPairData(
+  //                 this.tokenList[tokens[firstToken]],
+  //                 this.tokenList[tokens[secondToken]]
+  //               )
+  //             );
+  //           }
+  //         } catch (err) {
+  //           logger.error(err);
+  //         }
+  //       }
+  //     }
 
-      await Promise.allSettled(pairAddressRequests).then((values) => {
-        for (position = 0; position < pairAddressRequests.length; position++) {
-          if (values[position].status === 'fulfilled') {
-            pairAddressResponses.push(values[position].value);
-          } else {
-            this.zeroReservePairs[pairs[position]] =
-              Date.now() + this.zeroReserveCheckInterval;
-          }
-        }
-      });
-      this.pairs = pairAddressResponses;
-    }
-    setTimeout(this.update_pairs.bind(this), 1000);
-  }
+  //     await Promise.allSettled(pairAddressRequests).then((values) => {
+  //       // debug('fetchPairData response');
+  //       // debug(values);
+  //       for (position = 0; position < pairAddressRequests.length; position++) {
+  //         if (values[position].status === 'fulfilled') {
+  //           pairAddressResponses.push(values[position].value);
+  //         } else {
+  //           // debug('zeroReservePairs');
+  //           // debug(this.zeroReservePairs);
+  //           this.zeroReservePairs[pairs[position]] =
+  //             Date.now() + this.zeroReserveCheckInterval;
+  //         }
+  //       }
+  //     });
+  //     this.pairs = pairAddressResponses;
+  //     debug('pairs');
+  //     debug(this.pairs);
+  //   }
+  //   setTimeout(this.update_pairs.bind(this), this.pairsCacheTime);
+  // }
 
   async priceSwapIn(tokenIn, tokenOut, tokenInAmount) {
-    await this.extend_update_pairs([tokenIn, tokenOut]);
+    // await this.extend_update_pairs([tokenIn, tokenOut]);
+
     const tIn = this.tokenList[tokenIn];
     const tOut = this.tokenList[tokenOut];
     const tokenAmountIn = new uni.TokenAmount(
       tIn,
       ethers.utils.parseUnits(tokenInAmount, tIn.decimals)
     );
-    if (this.pairs.length === 0) {
-      const route = await this.fetch_route(tIn, tOut);
-      const trade = uni.Trade.exactIn(route, tokenAmountIn);
-      if (trade !== undefined) {
-        const expectedAmount = trade.minimumAmountOut(this.allowedSlippage);
-        this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;
-        return { trade, expectedAmount };
-      }
-      return "Can't find route to swap, kindly update ";
-    }
-    let trade = uni.Trade.bestTradeExactIn(
-      this.pairs,
+    const pair = await uni.Fetcher.fetchPairData(tIn, tOut);
+    const route = new uni.Route([pair], tIn);
+    const trade = new uni.Trade(
+      route,
       tokenAmountIn,
-      this.tokenList[tokenOut],
-      { maxHops: 5 }
-    )[0];
-    if (trade === undefined) {
-      trade = this.cachedRoutes[tIn.symbol + tOut.Symbol];
-    } else {
-      this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;
-    }
+      uni.TradeType.EXACT_INPUT
+    );
+
+    console.log(trade.executionPrice.toSignificant(6));
+    console.log(trade.nextMidPrice.toSignificant(6));
+    console.log(trade.minimumAmountOut(this.allowedSlippage));
     const expectedAmount = trade.minimumAmountOut(this.allowedSlippage);
     return { trade, expectedAmount };
   }
 
   async priceSwapOut(tokenIn, tokenOut, tokenOutAmount) {
-    await this.extend_update_pairs([tokenIn, tokenOut]);
+    // await this.extend_update_pairs([tokenIn, tokenOut]);
     const tOut = this.tokenList[tokenOut];
     const tIn = this.tokenList[tokenIn];
     const tokenAmountOut = new uni.TokenAmount(
       tOut,
       ethers.utils.parseUnits(tokenOutAmount, tOut.decimals)
     );
-    if (this.pairs.length === 0) {
-      const route = await this.fetch_route(tIn, tOut);
-      const trade = uni.Trade.exactOut(route, tokenAmountOut);
-      if (trade !== undefined) {
-        const expectedAmount = trade.maximumAmountIn(this.allowedSlippage);
-        this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;
-        return { trade, expectedAmount };
-      }
-      return;
-    }
+    // if (this.pairs.length === 0) {
+    //   const route = await this.fetch_route(tIn, tOut);
+    //   const trade = uni.Trade.exactOut(route, tokenAmountOut);
+    //   if (trade !== undefined) {
+    //     const expectedAmount = trade.maximumAmountIn(this.allowedSlippage);
+    //     this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;
+    //     return { trade, expectedAmount };
+    //   }
+    //   return;
+    // }
+    const route = await this.fetch_route(tIn, tOut);
     let trade = uni.Trade.bestTradeExactOut(
-      this.pairs,
+      route,
       this.tokenList[tokenIn],
       tokenAmountOut,
       { maxHops: 5 }
     )[0];
-    if (trade === undefined) {
-      trade = this.cachedRoutes[tIn.symbol + tOut.Symbol];
-    } else {
-      this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;
-    }
+    // if (trade === undefined) {
+    //   trade = this.cachedRoutes[tIn.symbol + tOut.Symbol];
+    // } else {
+    //   this.cachedRoutes[tIn.symbol + tOut.Symbol] = trade;
+    // }
     const expectedAmount = trade.maximumAmountIn(this.allowedSlippage);
     return { trade, expectedAmount };
   }
