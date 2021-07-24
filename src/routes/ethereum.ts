@@ -39,34 +39,24 @@ router.post('/balances', async (req: Request, res: Response) => {
 
   // Trying connect to Wallet
   try {
-    const wallet: ethers.Wallet = ethereumService.getWallet(
-      req.body.privateKey || ''
-    );
+    const wallet = ethereumService.getWallet(req.body.privateKey);
 
     // Populate token contract info using token symbol list
-    const tokenContractList: Record<string, TokenERC20Info> = {};
-
+    const tokenList: Record<string, TokenERC20Info> = {};
     for (const symbol of JSON.parse(req.body.tokenList)) {
-      const tokenContractInfo = ethereumService.getERC20TokenAddress(symbol);
-      if (!tokenContractInfo) {
-        continue;
-      }
-
-      tokenContractList[symbol] = tokenContractInfo;
+      const token = ethereumService.getERC20Token(symbol) as TokenERC20Info;
+      tokenList[symbol] = token;
     }
 
-    // Getting user balancers
     const balances: Record<string, string> = {};
     balances.ETH = await ethereumService.getETHBalance(wallet);
     await Promise.all(
-      Object.keys(tokenContractList).map(async (symbol) => {
-        if (tokenContractList[symbol] !== undefined) {
-          const address = tokenContractList[symbol].address;
-          const decimals = tokenContractList[symbol].decimals;
+      Object.keys(tokenList).map(async (symbol) => {
+        if (tokenList[symbol] !== undefined) {
           balances[symbol] = await ethereumService.getERC20Balance(
             wallet,
-            address,
-            decimals
+            tokenList[symbol].address,
+            tokenList[symbol].decimals
           );
         } else {
           logger.error(`Token contract info for ${symbol} not found`);
@@ -94,30 +84,26 @@ router.post('/allowances', async (req: Request, res: Response) => {
     res.status(500).send('Wrong connector');
   }
 
-  // Getting Wallet
+  // Trying connect to Wallet
   try {
     const wallet = ethereumService.getWallet(req.body.privateKey);
-    // Populate token contract info using token symbol list
-    const tokenContractList: Record<string, TokenERC20Info> = {};
-    for (const symbol of JSON.parse(req.body.tokenList)) {
-      const tokenContractInfo = ethereumService.getERC20TokenAddress(symbol);
-      if (!tokenContractInfo) {
-        continue;
-      }
 
-      tokenContractList[symbol] = tokenContractInfo;
+    // Populate token contract info using token symbol list
+    const tokenList: Record<string, TokenERC20Info> = {};
+    for (const symbol of JSON.parse(req.body.tokenList)) {
+      const token = ethereumService.getERC20Token(symbol) as TokenERC20Info;
+      tokenList[symbol] = token;
     }
+
     const approvals: Record<string, string> = {};
     await Promise.all(
-      Object.keys(tokenContractList).map(async (symbol) => {
-        const address = tokenContractList[symbol].address;
-        const decimals = tokenContractList[symbol].decimals;
+      Object.keys(tokenList).map(async (symbol) => {
         try {
           approvals[symbol] = await ethereumService.getERC20Allowance(
             wallet,
             spender,
-            address,
-            decimals
+            tokenList[symbol].address,
+            tokenList[symbol].decimals
           );
         } catch (err) {
           logger.error(err);
@@ -214,6 +200,11 @@ router.post('/poll', async (req: Request, res: Response) => {
     confirmed,
     receipt: confirmed ? receipt : {},
   });
+});
+
+router.post('/token', async (req: Request, res: Response) => {
+  const token = await ethereumService.getERC20Token(req.body.symbol);
+  res.status(200).json(token);
 });
 
 export default router;
