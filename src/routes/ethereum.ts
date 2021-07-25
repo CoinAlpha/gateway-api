@@ -139,33 +139,21 @@ router.post('/approve', async (req: Request, res: Response) => {
     const wallet = ethereumService.getWallet(req.body.privateKey);
 
     // Getting token info
-    const tokenContractInfo = ethereumService.getERC20TokenAddress(
-      req.body.token
-    );
+    const token = ethereumService.getERC20Token(req.body.token);
 
-    if (!tokenContractInfo) {
+    if (!token) {
       res.status(500).send(`Token "${req.body.token}" is not supported`);
     } else {
-      const tokenAddress = tokenContractInfo.address;
-      // const gasPrice = req.body.gasPrice || ethereumGasService.getGasPrice();
-      const gasPrice = req.body.gasPrice || fees.ethGasPrice;
-
-      let amount = ethers.constants.MaxUint256;
-      if (req.body.amount) {
-        amount = ethers.utils.parseUnits(
-          req.body.amount,
-          tokenContractInfo.decimals
-        );
-      }
+      const amount = ethers.utils.parseUnits(req.body.amount, token.decimals);
       // call approve function
       let approval;
       try {
         approval = await ethereumService.approveERC20(
           wallet,
           spender,
-          tokenAddress,
+          token.address,
           amount,
-          gasPrice
+          fees.ethGasPrice as number
         );
       } catch (err) {
         approval = err;
@@ -175,9 +163,9 @@ router.post('/approve', async (req: Request, res: Response) => {
         network: config.networkName,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
-        tokenAddress: tokenAddress,
+        tokenAddress: token.address,
         spender: spender,
-        amount: bigNumberWithDecimalToStr(amount, tokenContractInfo.decimals),
+        amount: bigNumberWithDecimalToStr(amount, token.decimals),
         approval: approval,
       });
     }

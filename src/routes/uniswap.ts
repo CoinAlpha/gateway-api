@@ -106,8 +106,7 @@ router.post('/trade', async (req: Request, res: Response) => {
         "quote":"BAT"
         "base":"DAI"
         "amount":0.1
-        "limitPrice":1
-        "gasPrice":10
+        "limitPrice?":1
         "privateKey":{{privateKey}}
         "side":{buy|sell}
       }
