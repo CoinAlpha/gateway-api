@@ -17,13 +17,30 @@ async function ethTests() {
   // confirm expected response
 
   // call /balances
-  // confirm that token balances are equal to initial
+  // confirm and save balances
+  const balances = {};
+
+  // call /balances with invalid token symbol
+  // confirm expected error message
 
   // call /allowances
-  // confirm that token allowances are equal to initial
+  // confirm and save allowances
+  const allowances = {};
 
-  // call /approve on WETH
-  // confirm that allowance changed
+  // call /balances with invalid token symbol
+  // confirm expected error message
+
+  // call /approve on each token
+  // confirm that allowance changed correctly
+
+  // call /approve with invalid spender address
+  // confirm expected error message
+
+  // call /approve with invalid token symbol
+  // confirm expected error message
+
+  // call /approve with invalid amount
+  // confirm expected error message
 }
 
 async function uniTests() {
@@ -35,6 +52,11 @@ async function uniTests() {
   // price sell
   // trade buy
   // trade sell
+
+  // add tests for extreme values of limitPrice - buy and sell
+
+  // add tests for extreme values of minimumSlippage
+
 }
 
 ethTests();
