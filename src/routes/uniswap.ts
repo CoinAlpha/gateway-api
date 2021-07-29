@@ -9,14 +9,14 @@ import { EthereumService } from '../services/ethereum';
 import { EthereumConfigService } from '../services/ethereum_config';
 
 import Uniswap from '../services/uniswap';
-import Fees from '../services/fees';
+import { EthereumGasService } from '../services/ethereum_gas';
 
 const debug = require('debug')('router');
 const router = express.Router();
 const ethConfig = new EthereumConfigService();
 const eth = new EthereumService(ethConfig);
 const uniswap = new Uniswap();
-const fees = new Fees();
+const fees = new EthereumGasService(ethConfig);
 
 const swapMoreThanMaxPriceError = 'Price too high';
 const swapLessThanMaxPriceError = 'Price too low';
@@ -85,14 +85,14 @@ router.get('/start', async (req: Request, res: Response) => {
       return;
     }
   }
-  const gasCost = await fees.getGasCost(fees.ethGasPrice, uniswap.gasLimit);
+  const gasCost = await fees.getGasCost(uniswap.gasLimit);
   const result = {
     network: eth.networkName,
     timestamp: initTime,
     latency: latency(initTime, Date.now()),
     success: true,
     pairs: pairs,
-    gasPrice: fees.ethGasPrice,
+    gasPrice: fees.getGasPrice(),
     gasLimit: uniswap.gasLimit,
     gasCost: gasCost,
   };
@@ -122,7 +122,7 @@ router.post('/trade', async (req: Request, res: Response) => {
   if (baseToken && quoteToken) {
     const side = req.body.side.toUpperCase();
     const limitPrice = req.body.limitPrice || null;
-    const gasCost = await fees.getGasCost(fees.ethGasPrice, uniswap.gasLimit);
+    const gasCost = await fees.getGasCost(uniswap.gasLimit);
     try {
       // fetch the optimal pool mix from uniswap
       const result: any =
@@ -148,7 +148,7 @@ router.post('/trade', async (req: Request, res: Response) => {
               wallet,
               trade,
               baseToken.address,
-              fees.ethGasPrice
+              fees.getGasPrice()
             );
             // submit response
             res.status(200).json({
@@ -160,7 +160,7 @@ router.post('/trade', async (req: Request, res: Response) => {
               amount: amount,
               expectedIn: expectedAmount.toFixed(8),
               price: price,
-              gasPrice: fees.ethGasPrice,
+              gasPrice: fees.getGasPrice(),
               gasLimit: uniswap.gasLimit,
               gasCost,
               txHash: tx.hash,
@@ -184,7 +184,7 @@ router.post('/trade', async (req: Request, res: Response) => {
               wallet,
               trade,
               baseToken.address,
-              fees.ethGasPrice
+              fees.getGasPrice()
             );
             // submit response
             res.status(200).json({
@@ -196,7 +196,7 @@ router.post('/trade', async (req: Request, res: Response) => {
               amount: parseFloat(req.body.amount),
               expectedOut: expectedAmount.toFixed(8),
               price: parseFloat(price),
-              gasPrice: fees.ethGasPrice,
+              gasPrice: fees.getGasPrice(),
               gasLimit: uniswap.gasLimit,
               gasCost: gasCost,
               txHash: tx.hash,
@@ -250,7 +250,7 @@ router.post('/price', async (req: Request, res: Response) => {
   const quoteToken = eth.getERC20Token(req.body.quote);
   if (baseToken && quoteToken) {
     const side = req.body.side.toUpperCase();
-    const gasCost = await fees.getGasCost(fees.ethGasPrice, uniswap.gasLimit);
+    const gasCost = await fees.getGasCost(uniswap.gasLimit);
 
     try {
       const result: any =
@@ -288,13 +288,13 @@ router.post('/price', async (req: Request, res: Response) => {
             amount: tradeAmount,
             expectedAmount: expectedTradeAmount,
             price: tradePrice,
-            gasPrice: fees.ethGasPrice,
+            gasPrice: fees.getGasPrice(),
             gasLimit: uniswap.gasLimit,
             gasCost: gasCost,
             trade: trade,
           };
           debug(
-            `Price ${side} ${baseToken.symbol}-${quoteToken.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${fees.ethGasPrice} gasLimit:${uniswap.gasLimit} estimated fee:${gasCost} ETH`
+            `Price ${side} ${baseToken.symbol}-${quoteToken.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${fees.getGasPrice()} gasLimit:${uniswap.gasLimit} estimated fee:${gasCost} ETH`
           );
           res.status(200).json(result);
         } else {
