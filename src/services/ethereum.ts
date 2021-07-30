@@ -2,6 +2,7 @@ import axios from 'axios';
 import abi from '../assets/abi.json';
 import { BigNumber, Contract, providers, Wallet } from 'ethers';
 import { EthereumConfigService } from './ethereum_config';
+import { default as kovanErc20TokenList } from '../assets/erc20_tokens_kovan.json';
 export enum GasStationLevel {
   FAST = 'fast',
   FASTEST = 'fastest',
@@ -78,12 +79,14 @@ export class EthereumService {
     switch (this.config.networkName) {
       case Network.KOVAN:
         this.chainId = 42;
+        this.erc20TokenList = kovanErc20TokenList;
         break;
+      default: // MAINNET
+        (async () => {
+          const { data } = await axios.get(this.config.tokenListUrl);
+          this.erc20TokenList = data;
+        })();
     }
-    (async () => {
-      const { data } = await axios.get(this.config.tokenListUrl);
-      this.erc20TokenList = data;
-    })();
   }
 
   get networkName(): string {
