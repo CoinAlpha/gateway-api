@@ -24,9 +24,6 @@ const eth = new EthereumService(ethConfig);
 
 const uniswap = new UniswapV3(globalConfig.getConfig('ETHEREUM_CHAIN'));
 
-uniswap.generate_tokens();
-setTimeout(uniswap.update_pairs.bind(uniswap), 2000);
-
 const fees = new Fees();
 
 const swapMoreThanMaxPriceError = 'Price too high';
@@ -135,12 +132,6 @@ router.get('/start', async (req, res) => {
       error: 'pairs query param required',
     });
   }
-  let gasPrice;
-  if (typeof req.query.gasPrice === 'string') {
-    gasPrice = parseFloat(req.query.gasPrice);
-  } else {
-    gasPrice = fees.ethGasPrice;
-  }
 
   // get token contract address and cache paths
   for (let pair of pairs) {
@@ -159,23 +150,12 @@ router.get('/start', async (req, res) => {
         orderedPairs.push(pair.reverse().join('-'));
       }
 
-      uniswap.extend_update_pairs([
-        baseTokenContractInfo,
-        quoteTokenContractInfo,
-      ]);
-
-      const gasLimit = estimateGasLimit();
-      const gasCost = await fees.getGasCost(gasPrice, gasLimit);
-
       const result = {
         network: eth.networkName,
         timestamp: initTime,
         latency: latency(initTime, Date.now()),
         success: true,
         pairs: orderedPairs,
-        gasPrice: gasPrice,
-        gasLimit: gasLimit,
-        gasCost: gasCost,
       };
       res.status(200).json(result);
     } else {
@@ -250,7 +230,7 @@ router.post('/trade', async (req: Request, res: Response) => {
             );
 
       if (side === 'BUY') {
-        const price = trade.executionPrice.invert().toSignificant(8);
+        const price = parseFloat(trade.executionPrice.invert().toSignificant(8));
         logger.info(`uniswap.route - Price: ${price.toString()}`);
         if (!limitPrice || price <= limitPrice) {
           // pass swaps to exchange-proxy to complete trade
@@ -286,7 +266,7 @@ router.post('/trade', async (req: Request, res: Response) => {
         }
       } else {
         // sell
-        const price = trade.executionPrice.toSignificant(8);
+        const price = parseFloat(trade.executionPrice.toSignificant(8));
         logger.info(`Price: ${price.toString()}`);
         if (!limitPrice || price >= limitPrice) {
           // pass swaps to exchange-proxy to complete trade
@@ -305,7 +285,7 @@ router.post('/trade', async (req: Request, res: Response) => {
             quote: quoteTokenAddress,
             amount: parseFloat(req.body.amount),
             expectedOut: expectedAmount.toSignificant(8),
-            price: parseFloat(price),
+            price: price,
             gasPrice: gasPrice,
             gasLimit,
             gasCost: gasCost,
@@ -419,7 +399,7 @@ router.post('/price', async (req: Request, res: Response) => {
         gasLimit: gasLimit,
         gasCost: gasCost,
       };
-      debug(
+      logger.info(
         `Mid Price ${baseTokenContractInfo.symbol}-${
           quoteTokenContractInfo.symbol
         } | (rate:${JSON.stringify(
