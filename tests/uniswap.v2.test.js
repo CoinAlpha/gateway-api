@@ -44,7 +44,8 @@ async function request(method, path, params) {
 
 async function ethTests() {
   console.log(tokens);
-  // console.log(privateKey);
+	assert.isAtLeast(tokens.length, 2,  "Pls provise atlease 2 tokens");
+  assert.exists(privateKey, "Pls include PRIVATE_KEY in conf file");
 
   // call /
   const result = await request("get", "/", {});
@@ -73,7 +74,7 @@ async function ethTests() {
   let allowances = allowancesResponse1.approvals;
 
   for (let token of tokens){
-  	if (parseFloat(allowances[token]) < 1000.0) { 
+  	if (parseFloat(allowances[token]) < 1000.0) {
  		// call /approve on each token
   		let approve1 = await request("post", "/eth/approve", {token: token, connector: "uniswap", amount: '5000'});
   		console.log(approve1);
@@ -111,15 +112,15 @@ async function unitTests() {
   const gasLimit = await request("post", "/eth/uniswap/gas-limit", {});
 
   // price buy
-  const buyPrice = await request("post", "/eth/uniswap/price", {base: tokens[0], quote: tokens[1], amount: '1', side: 
+  const buyPrice = await request("post", "/eth/uniswap/price", {base: tokens[0], quote: tokens[1], amount: '1', side:
   'buy'});
 
   // price sell
-  const sellPrice = await request("post", "/eth/uniswap/price", {base: tokens[0], quote: tokens[1], amount: '1', side: 
+  const sellPrice = await request("post", "/eth/uniswap/price", {base: tokens[0], quote: tokens[1], amount: '1', side:
   'sell'});
 
   // trade buy
-  const buy = await request("post", "/eth/uniswap/trade", {base: tokens[0], quote: tokens[1], amount: '0.01', side: 
+  const buy = await request("post", "/eth/uniswap/trade", {base: tokens[0], quote: tokens[1], amount: '0.01', side:
   'buy', limitPrice: buyPrice.price});
   assert.hasAnyKeys(buy, ['txHash'], "Buy trade failed.");
   console.log(`Buy hash - ${buy.txHash}`);
@@ -136,7 +137,7 @@ async function unitTests() {
 
 
   // trade sell
-  const sell = await request("post", "/eth/uniswap/trade", {base: tokens[0], quote: tokens[1], amount: '0.01', side: 
+  const sell = await request("post", "/eth/uniswap/trade", {base: tokens[0], quote: tokens[1], amount: '0.01', side:
   'sell', limitPrice: sellPrice.price});
   assert.hasAnyKeys(sell, ['txHash'], "Sell trade failed.");
   console.log(`Buy hash - ${sell.txHash}`);
@@ -149,11 +150,11 @@ async function unitTests() {
 
 
   // add tests for extreme values of limitPrice - buy and sell
-  assert.notExists(await request("post", "/eth/uniswap/trade", {base: tokens[0], quote: tokens[1], amount: '1', side: 
+  assert.notExists(await request("post", "/eth/uniswap/trade", {base: tokens[0], quote: tokens[1], amount: '1', side:
   'buy', limitPrice: buyPrice.price / 1000}));
 
   // add tests for extreme values of minimumSlippage
-  assert.notExists(await request("post", "/eth/uniswap/trade", {base: tokens[0], quote: tokens[1], amount: '1', side: 
+  assert.notExists(await request("post", "/eth/uniswap/trade", {base: tokens[0], quote: tokens[1], amount: '1', side:
   'sell', limitPrice: sellPrice.price * 1000}));
 
 }
@@ -163,5 +164,3 @@ async function unitTests() {
 	await ethTests();
 	await unitTests();
 })();
-
-
