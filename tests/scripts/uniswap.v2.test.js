@@ -124,6 +124,7 @@ async function unitTests() {
   'buy', limitPrice: buyPrice.price});
   assert.hasAnyKeys(buy, ['txHash'], "Buy trade failed.");
   console.log(`Buy hash - ${buy.txHash}`);
+	await sleep(60000); // sleep for 1 minute to give some time for provider to see transaction
   let done = false;
   let tx1, tx2;
   while ( !done ) {
@@ -141,6 +142,7 @@ async function unitTests() {
   'sell', limitPrice: sellPrice.price});
   assert.hasAnyKeys(sell, ['txHash'], "Sell trade failed.");
   console.log(`Buy hash - ${sell.txHash}`);
+	await sleep(60000); // sleep for 1 minute to give some time for provider to see transaction
   while ( !done ) {
 	tx2 = await request("post", "/eth/poll", {txHash: sell.txHash});
 	  console.log(tx2);
