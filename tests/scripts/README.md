@@ -13,7 +13,7 @@ The aim of Hummingbot Gateway Test scripts is to test endpoints related to suppo
 PRIVATE_KEY: "********"
 ```
 
-** Note that test scripts are expected to be run on thesame machine running the gateway server. **
+*** Note that test scripts are expected to be run on thesame machine running the gateway server. ***
 
 ## How to run test scripts
 
