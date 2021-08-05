@@ -118,7 +118,7 @@ router.post('/result', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/order-pairs', async (req, res) => {
+router.get('/start', async (req, res) => {
   /*
     GET: /eth/uniswap/v3/start?pairs=["WETH-USDC"]&gasPrice=30
   */
