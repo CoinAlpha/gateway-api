@@ -20,5 +20,5 @@ PRIVATE_KEY: "********"
 - Simply run  `node -r esm NAME_OF_SCRIPT` .i.e. to run `uniswap.v2.test.js`, run:
 
 ```bash
-node -r esm uniswap.v2.test.js
+node -r esm ./scripts/uniswap.v2.test.js
 ```
