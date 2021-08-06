@@ -3,7 +3,6 @@ import abi from '../assets/abi.json';
 import { BigNumber, Contract, providers, Wallet } from 'ethers';
 import { EthereumConfigService } from './ethereum_config';
 import { default as kovanErc20TokenList } from '../assets/erc20_tokens_kovan.json';
-
 export enum GasStationLevel {
   FAST = 'fast',
   FASTEST = 'fastest',
@@ -33,6 +32,7 @@ export interface TokenERC20Info {
   symbol: string;
   address: string;
   decimals: number;
+  chainId: number;
 }
 
 export interface ERC20TokensList {
@@ -72,21 +72,20 @@ export const bigNumberWithDecimalToStr = (n: BigNumber, d: number): string => {
 
 export class EthereumService {
   private readonly provider = new providers.JsonRpcProvider(this.config.rpcUrl);
+  private chainId = 1;
   private erc20TokenList: ERC20TokensList | null = null;
 
   constructor(private readonly config: EthereumConfigService) {
     switch (this.config.networkName) {
       case Network.KOVAN:
+        this.chainId = 42;
         this.erc20TokenList = kovanErc20TokenList;
         break;
-
-      case Network.MAINNET: {
+      default: // MAINNET
         (async () => {
           const { data } = await axios.get(this.config.tokenListUrl);
           this.erc20TokenList = data;
         })();
-        break;
-      }
     }
   }
 
@@ -211,6 +210,22 @@ export class EthereumService {
     } catch (err) {
       throw new Error(err.reason || 'error deposit');
     }
+  }
+
+  /**
+   * Get ERC20 token
+   * @param {string} tokenSymbol
+   * @return {TokenERC20Info} | null
+   */
+  getERC20Token(symbol: string): TokenERC20Info | undefined {
+    if (this.erc20TokenList) {
+      const token = this.erc20TokenList.tokens.find(
+        (obj) =>
+          obj.symbol === symbol.toUpperCase() && obj.chainId === this.chainId
+      );
+      return token;
+    }
+    return;
   }
 
   /**
