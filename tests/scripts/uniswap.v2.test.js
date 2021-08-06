@@ -9,6 +9,8 @@ const GlobalConfigFilePath = 'conf/global_conf.yml'; // assume run from root dir
 const file = fs.readFileSync(GlobalConfigFilePath, 'utf8');
 const config = YAML.parseDocument(file);
 
+const host = "localhost";
+const port = 5000;
 const tokens = ["WETH", "DAI"];
 const privateKey = config.get('PRIVATE_KEY');
 
@@ -22,14 +24,17 @@ const httpsAgent = axios.create({
     ca: fs.readFileSync(config.get('CERT_PATH') + "/ca_cert.pem"),
     cert: fs.readFileSync(config.get('CERT_PATH') + "/client_cert.pem"),
     key: fs.readFileSync(config.get('CERT_PATH') + "/client_key.pem"),
-    rejectUnauthorized: true
+		host: host,
+   	port: port,
+    requestCert: true,
+		rejectUnauthorized: false
   })
 });
 
 async function request(method, path, params) {
   try {
     let response;
-    const gatewayAddress = "https://localhost:5000";
+    const gatewayAddress = `https://${host}:${port}`;
     if (method === "get") {
       response = await httpsAgent.get(gatewayAddress + path, {params: params});
     } else { // post
@@ -38,7 +43,7 @@ async function request(method, path, params) {
     }
     return response.data;
   } catch (err) {
-    // console.log(`${path} - ${err}`)
+    console.log(`${path} - ${err}`)
   }
 }
 
