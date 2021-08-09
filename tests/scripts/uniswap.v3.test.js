@@ -11,7 +11,7 @@ const config = YAML.parseDocument(file);
 
 const host = 'localhost';
 const port = 5000;
-let tokens = ['WETH', 'DAI'];
+let tokens = ['COIN1', 'COIN3'];
 const tier = 'MEDIUM';
 const privateKey = config.get('PRIVATE_KEY');
 
@@ -198,13 +198,13 @@ async function unitTests() {
     amount1: '0.01',
     fee: tier,
   });
-  assert.hasAnyKeys(pid, ['txHash'], 'Add position failed.');
-  console.log(`PId hash - ${pid.txHash}`);
+  assert.hasAnyKeys(pid, ['hash'], 'Add position failed.');
+  console.log(`New position transaction hash - ${pid.hash}`);
   await sleep(60000); // sleep for 1 minute to give some time for provider to see transaction
   let done = false;
   let tx1, tx2, tid;
   while (!done) {
-    tx1 = await request('post', '/eth/poll', { txHash: pid.txHash });
+    tx1 = await request('post', '/eth/poll', { txHash: pid.hash });
     console.log(tx1);
     done = tx1.confirmed;
   }
@@ -229,16 +229,17 @@ async function unitTests() {
 
   done = false;
 
-  // trade sell
+  // close position
   console.log(`Closing position with id ${tid}...`);
-  const closePid = await request('post', '/eth/uniswap/trade', {
+  const closePid = await request('post', '/eth/uniswap/v3/remove-position', {
     tokenId: tid,
+    getFee: 'false',
   });
-  assert.hasAnyKeys(closePid, ['txHash'], 'Close position transaction failed.');
-  console.log(`closePId hash - ${sell.txHash}`);
+  assert.hasAnyKeys(closePid, ['hash'], 'Close position transaction failed.');
+  console.log(`close position transaction hash - ${closePid.hash}`);
   await sleep(60000); // sleep for 1 minute to give some time for provider to see transaction
   while (!done) {
-    tx2 = await request('post', '/eth/poll', { txHash: closePid.txHash });
+    tx2 = await request('post', '/eth/poll', { txHash: closePid.hash });
     console.log(tx2);
     done = tx2.confirmed;
   }
@@ -248,19 +249,16 @@ async function unitTests() {
       logs: JSON.stringify(tx2.receipt.logs),
       pair: pair,
     });
-    console.log(parsedLog2);
-    /*
     for (let inf of  parsedLog2.info) {
       if (inf.name === 'DecreaseLiquidity') {
         for (let evt of inf.events) {
           if (evt.name === 'tokenId') {
-            tid = evt.value;
+            assert.equal(evt.value, tid);
             console.log(`Lp order with id ${tid} removed.`);
           }
         }
       }
     }
-    */
   }
   assert.equal(tx2.receipt.status, 1, 'Close position transaction reverted.');
 }
