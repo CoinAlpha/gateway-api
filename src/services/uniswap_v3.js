@@ -182,7 +182,7 @@ This swap section of this code is a duplicate of Uniswap v2 with little modifica
 Note that extending the uniswap v2 code may be possible in the future if uniswap v2 is updated to use the new uniswap/sdk-core library.
 */
   /////////////////////////////////////////////////////// Swap section
-
+/*
   async get_pairs(firstToken, secondToken) {
     let poolDataRequests = [];
     let pools = [];
@@ -284,7 +284,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
   }
 
   /////////////////////////////////////////////////// End of Swap section
-
+*/
   //////////////////////////////////////////////////////////// LP section
 
   async getPosition(wallet, tokenId, eth, isRaw = false) {

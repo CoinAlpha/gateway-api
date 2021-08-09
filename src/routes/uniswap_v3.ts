@@ -171,8 +171,8 @@ router.get('/start', async (req, res) => {
   }
 });
 
-router.post('/trade', async (req: Request, res: Response) => {
-  /*
+/*router.post('/trade', async (req: Request, res: Response) => {
+
       POST: /trade
       x-www-form-urlencoded: {
         "quote":"BAT"
@@ -184,7 +184,7 @@ router.post('/trade', async (req: Request, res: Response) => {
         "privateKey":{{privateKey}}
         "side":{buy|sell}
       }
-*/
+
   const initTime = Date.now();
   // params: privateKey (required), base (required), quote (required), amount (required), maxPrice (required), gasPrice (required)
   const privateKey = req.body.privateKey;
@@ -318,7 +318,7 @@ router.post('/trade', async (req: Request, res: Response) => {
     });
   }
 });
-
+*/
 router.post('/price', async (req: Request, res: Response) => {
   /*
     POST: /price
@@ -350,6 +350,7 @@ router.post('/price', async (req: Request, res: Response) => {
       // fetch pools for all tiers
       let priceResult, price;
       if (req.body.amount) {
+        /*
         // get price at this depth
         const amount = req.body.amount;
         const side = req.body.side.toUpperCase();
@@ -378,6 +379,7 @@ router.post('/price', async (req: Request, res: Response) => {
             expectedAmount: parseFloat(expectedAmount.toSignificant(8)),
           };
         }
+        */
       } else {
         // get mid price for all tiers
         priceResult = await uniswap.currentPrice(
