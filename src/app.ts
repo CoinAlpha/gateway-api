@@ -14,7 +14,7 @@ import apiRoutes from './routes/index.route';
 import balancerRoutes from './routes/balancer.route';
 import ethRoutes from './routes/ethereum';
 import perpFiRoutes from './routes/perpetual_finance.route';
-import terraRoutes from './routes/terra.route';
+import terraRoutes from './routes/terra';
 import uniswapRoutes from './routes/uniswap';
 import uniswapV3Routes from './routes/uniswap_v3';
 

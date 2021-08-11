@@ -3,7 +3,6 @@ import abi from '../assets/abi.json';
 import { BigNumber, Contract, providers, Wallet } from 'ethers';
 import { EthereumConfigService } from './ethereum_config';
 import { default as kovanErc20TokenList } from '../assets/erc20_tokens_kovan.json';
-
 export enum GasStationLevel {
   FAST = 'fast',
   FASTEST = 'fastest',
@@ -26,13 +25,14 @@ export interface EthTransactionReceipt {
   blockNumber: number;
   confirmations: number;
   status: number;
-  logs: Array<Object>;
+  logs: Array<providers.Log>;
 }
 
 export interface TokenERC20Info {
   symbol: string;
   address: string;
   decimals: number;
+  chainId: number;
 }
 
 export interface ERC20TokensList {
@@ -72,21 +72,20 @@ export const bigNumberWithDecimalToStr = (n: BigNumber, d: number): string => {
 
 export class EthereumService {
   private readonly provider = new providers.JsonRpcProvider(this.config.rpcUrl);
+  private chainId = 1;
   private erc20TokenList: ERC20TokensList | null = null;
 
   constructor(private readonly config: EthereumConfigService) {
     switch (this.config.networkName) {
       case Network.KOVAN:
+        this.chainId = 42;
         this.erc20TokenList = kovanErc20TokenList;
         break;
-
-      case Network.MAINNET: {
+      default: // MAINNET
         (async () => {
           const { data } = await axios.get(this.config.tokenListUrl);
           this.erc20TokenList = data;
         })();
-        break;
-      }
     }
   }
 
@@ -178,7 +177,7 @@ export class EthereumService {
       return await contract.approve(spender, amount, {
         gasPrice: gasPrice * 1e9,
         // fixate gas limit to prevent overwriting
-        gasLimit: this.config.approvalGasLimit,
+        gasLimit: 100000,
       });
     } catch (err) {
       throw new Error(err.reason || 'error approval');
@@ -214,6 +213,22 @@ export class EthereumService {
   }
 
   /**
+   * Get ERC20 token
+   * @param {string} tokenSymbol
+   * @return {TokenERC20Info} | null
+   */
+  getERC20Token(symbol: string): TokenERC20Info | undefined {
+    if (this.erc20TokenList) {
+      const token = this.erc20TokenList.tokens.find(
+        (obj) =>
+          obj.symbol === symbol.toUpperCase() && obj.chainId === this.chainId
+      );
+      return token;
+    }
+    return;
+  }
+
+  /**
    * Get ERC20 token address
    * @param {string} tokenSymbol
    * @return {TokenERC20Info} | null
@@ -235,15 +250,15 @@ export class EthereumService {
    * @param {string} tokenAddress
    * @return {TokenERC20Info} | null
    */
-  getERC20TokenByAddress(tokenAddress: string): TokenERC20Info | undefined  {
+  getERC20TokenByAddress(tokenAddress: string): TokenERC20Info | undefined {
     if (this.erc20TokenList) {
       const tokenContract = this.erc20TokenList.tokens.filter((obj) => {
-      return obj.address.toUpperCase() === tokenAddress.toUpperCase();
-    });
-    return tokenContract[0];
+        return obj.address.toUpperCase() === tokenAddress.toUpperCase();
+      });
+      return tokenContract[0];
+    }
+    return;
   }
-  return;
-}
 
   /**
    * Return wallet of a private string
@@ -262,12 +277,19 @@ export class EthereumService {
   async getTransactionReceipt(txHash: string): Promise<EthTransactionReceipt> {
     const transaction = await this.provider.getTransactionReceipt(txHash);
 
+    let gasUsed;
+    if (transaction.gasUsed) {
+      gasUsed = transaction.gasUsed.toNumber();
+    } else {
+      gasUsed = 0;
+    }
+
     return {
-      gasUsed: transaction.gasUsed.toNumber(),
+      gasUsed: gasUsed,
       blockNumber: transaction.blockNumber,
       confirmations: transaction.confirmations,
       status: transaction.status || 0,
-      logs: transaction.logs
+      logs: transaction.logs,
     };
   }
 }

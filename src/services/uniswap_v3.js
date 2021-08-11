@@ -17,7 +17,7 @@ const abiDecoder = require('abi-decoder');
 
 // constants
 const FeeAmount = uniV3.FeeAmount;
-const GAS_LIMIT = globalConfig.getConfig('UNISWAP_GAS_LIMIT') || 5506880;
+const GAS_LIMIT = globalConfig.getConfig('UNISWAP_GAS_LIMIT') || 550688;
 const UPDATE_PERIOD = globalConfig.getConfig('UNISWAP_UPDATE_PERIOD') || 300000; // stop updating pair after 5 minutes from last request
 const MaxUint128 = ethers.BigNumber.from(2).pow(128).sub(1);
 
@@ -178,7 +178,7 @@ export default class UniswapV3 {
                   request[twap].value.tickCumulatives[0].toNumber()
               )
             )
-            .toFixed()
+            .toFixed(8)
         );
       }
     }
@@ -420,8 +420,8 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
         ),
         lowerPrice: positionInst.token0PriceLower.toFixed(8),
         upperPrice: positionInst.token0PriceUpper.toFixed(8),
-        amount0: positionInst.amount0.toFixed(),
-        amount1: positionInst.amount1.toFixed(),
+        amount0: positionInst.amount0.toFixed(8),
+        amount1: positionInst.amount1.toFixed(8),
         unclaimedToken0: ethers.utils.formatUnits(
           feeInfo.amount0.toString(),
           token0.decimals
@@ -540,7 +540,13 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
     });
   }
 
-  async reducePosition(wallet, tokenId, eth, decreasePercent = 100, getFee = false) {
+  async reducePosition(
+    wallet,
+    tokenId,
+    eth,
+    decreasePercent = 100,
+    getFee = false
+  ) {
     // Reduce position and burn
     const contract = this.get_contract('nft', wallet);
     const positionData = await this.getPosition(wallet, tokenId, 0, true);
@@ -576,7 +582,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
         wallet
       )
     );
-    if (getFee){
+    if (getFee) {
       return await contract.estimateGas.multicall([callData.calldata], {
         value: callData.value,
         gasLimit: GAS_LIMIT,

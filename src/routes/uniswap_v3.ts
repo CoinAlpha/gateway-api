@@ -250,7 +250,7 @@ router.post('/trade', async (req: Request, res: Response) => {
             );
 
       if (side === 'BUY') {
-        const price = trade.executionPrice.invert().toFixed();
+        const price = trade.executionPrice.invert().toFixed(8);
         logger.info(`uniswap.route - Price: ${price.toString()}`);
         if (!limitPrice || price <= limitPrice) {
           // pass swaps to exchange-proxy to complete trade
@@ -268,7 +268,7 @@ router.post('/trade', async (req: Request, res: Response) => {
             base: baseTokenAddress,
             quote: quoteTokenAddress,
             amount: amount,
-            expectedIn: expectedAmount.toFixed(),
+            expectedIn: expectedAmount.toFixed(8),
             price: price,
             gasPrice: gasPrice,
             gasLimit,
@@ -286,7 +286,7 @@ router.post('/trade', async (req: Request, res: Response) => {
         }
       } else {
         // sell
-        const price = trade.executionPrice.toFixed();
+        const price = trade.executionPrice.toFixed(8);
         logger.info(`Price: ${price.toString()}`);
         if (!limitPrice || price >= limitPrice) {
           // pass swaps to exchange-proxy to complete trade
@@ -304,7 +304,7 @@ router.post('/trade', async (req: Request, res: Response) => {
             base: baseTokenAddress,
             quote: quoteTokenAddress,
             amount: parseFloat(req.body.amount),
-            expectedOut: expectedAmount.toFixed(),
+            expectedOut: expectedAmount.toFixed(8),
             price: parseFloat(price),
             gasPrice: gasPrice,
             gasLimit,
@@ -389,13 +389,13 @@ router.post('/price', async (req: Request, res: Response) => {
         if (trade !== null && expectedAmount !== null) {
           price =
             side === 'BUY'
-              ? trade.executionPrice.invert().toFixed()
-              : trade.executionPrice.toFixed();
+              ? trade.executionPrice.invert().toFixed(8)
+              : trade.executionPrice.toFixed(8);
 
           priceResult = {
             price: parseFloat(price),
             amount: parseFloat(amount),
-            expectedAmount: parseFloat(expectedAmount.toFixed()),
+            expectedAmount: parseFloat(expectedAmount.toFixed(8)),
           };
         }
       } else {
@@ -597,7 +597,7 @@ router.post('/remove-position', async (req: Request, res: Response) => {
     new ethers.Wallet(privateKey, uniswap.provider)
   );
   const tokenId = req.body.tokenId;
-  const getFee = req.body.getFee.toUpperCase()  === "TRUE" ? true : false
+  const getFee = req.body.getFee.toUpperCase() === 'TRUE' ? true : false;
 
   let gasPrice;
   if (req.body.gasPrice) {
@@ -633,11 +633,10 @@ router.post('/remove-position', async (req: Request, res: Response) => {
       gasLimit: gasLimit,
       gasCost: gasCost,
       gasFee: 0,
-      hash: ''
-
+      hash: '',
     };
 
-    if (getFee && gasPrice){
+    if (getFee && gasPrice) {
       result.gasFee = parseInt(removelp.toString()) * gasPrice;
       debug(`Estimated gas to remove lp: ${result.gasFee}`);
     } else {
