@@ -50,9 +50,11 @@ async function request(method, path, params) {
 }
 
 async function ethTests() {
-  console.log(tokens);
-  assert.isAtLeast(tokens.length, 2, 'Pls provise atlease 2 tokens');
-  assert.exists(privateKey, 'Pls include PRIVATE_KEY in conf file');
+  console.log('\nStarting ETH tests');
+  console.log('***************************************************');
+  console.log('Token symbols used in tests: ', tokens);
+  assert.isAtLeast(tokens.length, 2, 'Pls provide at least 2 tokens');
+  assert.exists(privateKey, 'Pls include PRIVATE_KEY in global_conf file');
 
   // call /
   console.log('Checking status of gateway server...');
@@ -161,6 +163,8 @@ async function ethTests() {
 }
 
 async function unitTests() {
+  console.log('\nStarting Uniswap tests');
+  console.log('***************************************************');
   // call /start
   let pair = `${tokens[0]}-${tokens[1]}`;
   console.log(`Starting Uniswap v2 on pair ${pair}...`);
@@ -205,9 +209,10 @@ async function unitTests() {
   });
   assert.hasAnyKeys(buy, ['txHash'], 'Buy trade failed.');
   console.log(`Buy hash - ${buy.txHash}`);
-  await sleep(60000); // sleep for 1 minute to give some time for provider to see transaction
+  await sleep(60000); // sleep for 60 seconds to give some time for provider to see transaction
   let done = false;
   let tx1, tx2;
+  console.log(`Polling...`);
   while (!done) {
     tx1 = await request('post', '/eth/poll', { txHash: buy.txHash });
     console.log(tx1);
@@ -228,7 +233,8 @@ async function unitTests() {
   });
   assert.hasAnyKeys(sell, ['txHash'], 'Sell trade failed.');
   console.log(`Buy hash - ${sell.txHash}`);
-  await sleep(60000); // sleep for 1 minute to give some time for provider to see transaction
+  await sleep(1000); // sleep for 1 second to give some time for provider to see transaction
+  console.log(`Polling...`);
   while (!done) {
     tx2 = await request('post', '/eth/poll', { txHash: sell.txHash });
     console.log(tx2);
