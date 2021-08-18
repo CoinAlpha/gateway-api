@@ -262,19 +262,24 @@ export class EthereumService {
   async getTransactionReceipt(txHash: string): Promise<EthTransactionReceipt> {
     const transaction = await this.provider.getTransactionReceipt(txHash);
 
-    let gasUsed;
-    if (transaction.gasUsed) {
-      gasUsed = transaction.gasUsed.toNumber();
-    } else {
-      gasUsed = 0;
+    if (transaction) {
+      return {
+        gasUsed: transaction.gasUsed.toNumber() || 0,
+        blockNumber: transaction.blockNumber,
+        confirmations: transaction.confirmations,
+        status: transaction.status || 0,
+        logs: transaction.logs,
+      };
+    } else { // transaction is yet to be indexed
+      return {
+        gasUsed: 0,
+        blockNumber: 0,
+        confirmations: 0,
+        status: 0,
+        logs: [],
+      };
     }
 
-    return {
-      gasUsed: gasUsed,
-      blockNumber: transaction.blockNumber,
-      confirmations: transaction.confirmations,
-      status: transaction.status || 0,
-      logs: transaction.logs,
-    };
+
   }
 }
