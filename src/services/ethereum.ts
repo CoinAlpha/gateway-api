@@ -3,6 +3,7 @@ import abi from '../assets/abi.json';
 import { BigNumber, Contract, providers, Wallet } from 'ethers';
 import { EthereumConfigService } from './ethereum_config';
 import { default as kovanErc20TokenList } from '../assets/erc20_tokens_kovan.json';
+import { logger } from '../services/logger';
 
 export enum GasStationLevel {
   FAST = 'fast',
@@ -21,13 +22,13 @@ export enum Network {
   ROPSTEN = 'ropsten',
 }
 
-export interface EthTransactionReceipt {
-  gasUsed: number;
-  blockNumber: number;
-  confirmations: number;
-  status: number;
-  logs: Array<providers.Log>;
-}
+// export interface EthTransactionReceipt {
+//   gasUsed: number;
+//   blockNumber: number;
+//   confirmations: number;
+//   status: number;
+//   logs: Array<providers.Log>;
+// }
 
 export interface TokenERC20Info {
   symbol: string;
@@ -40,12 +41,12 @@ export interface ERC20TokensList {
   tokens: TokenERC20Info[];
 }
 
-export interface EthTransactionReceipt {
-  gasUsed: number;
-  blockNumber: number;
-  confirmations: number;
-  status: number;
-}
+// export interface EthTransactionReceipt {
+//   gasUsed: number;
+//   blockNumber: number;
+//   confirmations: number;
+//   status: number;
+// }
 
 const stringInsert = (str: string, val: string, index: number) => {
   if (index > 0) {
@@ -259,12 +260,12 @@ export class EthereumService {
    * @param {string} txHash
    * @return {Promise<EthTransactionReceipt>}
    */
-  async getTransactionReceipt(txHash: string): Promise<EthTransactionReceipt> {
+  async getTransactionReceipt(txHash: string): Promise<any> {
     const transaction = await this.provider.getTransactionReceipt(txHash);
-
+    logger.info(transaction);
     if (transaction) {
       return {
-        gasUsed: transaction.gasUsed.toNumber() || 0,
+        gasUsed: transaction.gasUsed || 0,
         blockNumber: transaction.blockNumber,
         confirmations: transaction.confirmations,
         status: transaction.status || 0,
