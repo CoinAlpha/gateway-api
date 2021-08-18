@@ -258,7 +258,7 @@ export class EthereumService {
   /**
    * Get transaction receipt for a transaction hash.
    * @param {string} txHash
-   * @return {Promise<EthTransactionReceipt>}
+   * @return {Promise<any>}
    */
   async getTransactionReceipt(txHash: string): Promise<any> {
     const transaction = await this.provider.getTransactionReceipt(txHash);

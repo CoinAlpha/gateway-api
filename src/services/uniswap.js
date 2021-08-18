@@ -11,7 +11,7 @@ const globalConfig =
 
 // constants
 const ROUTER = globalConfig.getConfig('UNISWAP_ROUTER');
-const GAS_LIMIT = globalConfig.getConfig('UNISWAP_GAS_LIMIT') || 150688;
+const GAS_LIMIT = globalConfig.getConfig('UNISWAP_GAS_LIMIT') || 200688;
 const TTL = globalConfig.getConfig('UNISWAP_TTL') || 300;
 const UPDATE_PERIOD = globalConfig.getConfig('UNISWAP_UPDATE_PERIOD') || 300000; // stop updating pair after 5 minutes from last request
 

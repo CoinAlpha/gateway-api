@@ -264,6 +264,6 @@ async function unitTests() {
 }
 
 (async () => {
-  await ethTests();
+  // await ethTests();
   await unitTests();
 })();
