@@ -270,7 +270,8 @@ export class EthereumService {
         status: transaction.status || 0,
         logs: transaction.logs,
       };
-    } else { // transaction is yet to be indexed
+    } else {
+      // transaction is yet to be indexed
       return {
         gasUsed: 0,
         blockNumber: 0,
@@ -279,7 +280,5 @@ export class EthereumService {
         logs: [],
       };
     }
-
-
   }
 }
