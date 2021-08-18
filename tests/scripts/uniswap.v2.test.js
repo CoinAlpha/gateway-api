@@ -95,7 +95,7 @@ async function ethTests() {
 
   // call /allowances
   // confirm and save allowances
-  console.log('checking allowances...');
+  console.log('checking initial allowances...');
   const allowancesResponse1 = await request('post', '/eth/allowances', {
     tokenList: JSON.stringify(tokens),
     connector: 'uniswap',
@@ -104,29 +104,27 @@ async function ethTests() {
   console.log(allowances);
 
   for (let token of tokens) {
-    if (parseFloat(allowances[token]) < 1000.0) {
-      // call /approve on each token
-      console.log(`Approving 5000 ${token}...`);
-      let approve1 = await request('post', '/eth/approve', {
-        token: token,
+    // call /approve on each token
+    console.log(`Resetting allowance for ${token} to 5000...`);
+    let approve1 = await request('post', '/eth/approve', {
+      token: token,
+      connector: 'uniswap',
+      amount: '5000',
+    });
+    console.log(approve1);
+    while (allowances[token] !== approve1.amount) {
+      console.log(
+        'Waiting for atleast 1 block time (i.e 13 secs) to give time for approval to be mined.'
+      );
+      await sleep(13000);
+      // confirm that allowance changed correctly
+      console.log('Rechecking allowances to confirm approval...');
+      let allowancesResponse2 = await request('post', '/eth/allowances', {
+        tokenList: JSON.stringify(tokens),
         connector: 'uniswap',
-        amount: '5000',
       });
-      console.log(approve1);
-      while (allowances[token] !== approve1.amount) {
-        console.log(
-          'Waiting for atleast 1 block time to give time for approval to be mined.'
-        );
-        await sleep(13000);
-        // confirm that allowance changed correctly
-        console.log('Rechecking allowances to confirm approval...');
-        let allowancesResponse2 = await request('post', '/eth/allowances', {
-          tokenList: JSON.stringify(tokens),
-          connector: 'uniswap',
-        });
-        allowances = allowancesResponse2.approvals;
-        console.log(allowances);
-      }
+      allowances = allowancesResponse2.approvals;
+      console.log(allowances);
     }
   }
 
