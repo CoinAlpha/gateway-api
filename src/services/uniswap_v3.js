@@ -178,7 +178,7 @@ export default class UniswapV3 {
                   request[twap].value.tickCumulatives[0].toNumber()
               )
             )
-            .toFixed(8)
+            .toSignificant(8)
         );
       }
     }
@@ -418,10 +418,10 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
         fee: Object.keys(FeeAmount).find(
           (key) => FeeAmount[key] === position.fee
         ),
-        lowerPrice: positionInst.token0PriceLower.toFixed(8),
-        upperPrice: positionInst.token0PriceUpper.toFixed(8),
-        amount0: positionInst.amount0.toFixed(8),
-        amount1: positionInst.amount1.toFixed(8),
+        lowerPrice: positionInst.token0PriceLower.toSignificant(8),
+        upperPrice: positionInst.token0PriceUpper.toSignificant(8),
+        amount0: positionInst.amount0.toSignificant(8),
+        amount1: positionInst.amount1.toSignificant(8),
         unclaimedToken0: ethers.utils.formatUnits(
           feeInfo.amount0.toString(),
           token0.decimals
