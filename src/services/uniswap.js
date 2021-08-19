@@ -11,7 +11,7 @@ const globalConfig =
 
 // constants
 const ROUTER = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
-const GAS_LIMIT = 150688;
+const GAS_LIMIT = 200688;
 const TTL = 300;
 
 export default class Uniswap {

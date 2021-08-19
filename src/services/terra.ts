@@ -257,7 +257,7 @@ export default class Terra {
     gasAdjustment: number,
     secret: string
   ): Promise<any> {
-      let txResult_;
+    let txResult_;
     try {
       let wallet;
       try {
@@ -322,7 +322,7 @@ export default class Terra {
             .createAndSignTx(txOptions)
             .then((tx: StdTx) => this.lcd.tx.broadcast(tx))
             .then((txResult: BlockTxBroadcastResult) => {
-                txResult_ = txResult;
+              txResult_ = txResult;
               if (!isTxError(txResult)) {
                 tokenSwap.txSuccess = true;
               } else {
