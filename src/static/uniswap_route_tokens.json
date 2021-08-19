@@ -51,13 +51,7 @@
       "decimals": 18
     },
     {
-      "address": "0xe0C9275E44Ea80eF17579d33c55136b7DA269aEb",
-      "name": "WrappedBTC",
-      "symbol": "WBTC",
-      "decimals": 8
-    },
-    {
-      "address": "0x1528F3FCc26d13F7079325Fb78D9442607781c8C",
+      "address": "0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa",
       "name": "DaiStablecoin",
       "symbol": "DAI",
       "decimals": 18

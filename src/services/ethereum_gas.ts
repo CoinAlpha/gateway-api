@@ -91,7 +91,7 @@ export class EthereumGasService {
 
   getGasCost(gasLimit: number, inGwei = false): ethers.BigNumber {
     const cost = ethers.BigNumber.from(this.gasPrice * gasLimit);
-    const denom = ethers.BigNumber.from(BigInt('1e+9'));
+    const denom = ethers.BigNumber.from('1000000000');
 
     return inGwei ? cost : cost.div(denom);
   }
