@@ -179,6 +179,9 @@ router.post('/poll', async (req: Request, res: Response) => {
   const initTime = Date.now();
   const receipt = await ethereumService.getTransactionReceipt(req.body.txHash);
   const confirmed = receipt && receipt.blockNumber ? true : false;
+  if (receipt.gasUsed) {
+    receipt.gasUsed = receipt.gasUsed.toNumber();
+  }
 
   res.status(200).json({
     network: config.networkName,
