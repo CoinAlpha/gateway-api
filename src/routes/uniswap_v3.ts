@@ -248,7 +248,7 @@ router.get('/start', async (req, res) => {
             base: baseTokenAddress,
             quote: quoteTokenAddress,
             amount: amount,
-            expectedIn: expectedAmount.toSignificant(8),
+            expectedIn: expectedAmount.toFixed(8),
             price: price,
             gasPrice: gasPrice,
             gasLimit,
@@ -370,13 +370,13 @@ router.post('/price', async (req: Request, res: Response) => {
         if (trade !== null && expectedAmount !== null) {
           price =
             side === 'BUY'
-              ? trade.executionPrice.invert().toSignificant(8)
-              : trade.executionPrice.toSignificant(8);
+              ? trade.executionPrice.invert().toFixed(8)
+              : trade.executionPrice.toFixed(8);
 
           priceResult = {
             price: parseFloat(price),
             amount: parseFloat(amount),
-            expectedAmount: parseFloat(expectedAmount.toSignificant(8)),
+            expectedAmount: parseFloat(expectedAmount.toFixed(8)),
           };
         }
         */

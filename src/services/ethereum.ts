@@ -3,6 +3,7 @@ import abi from '../assets/abi.json';
 import { BigNumber, Contract, providers, Wallet } from 'ethers';
 import { EthereumConfigService } from './ethereum_config';
 import { default as kovanErc20TokenList } from '../assets/erc20_tokens_kovan.json';
+import { logger } from '../services/logger';
 
 export enum GasStationLevel {
   FAST = 'fast',
@@ -21,18 +22,19 @@ export enum Network {
   ROPSTEN = 'ropsten',
 }
 
-export interface EthTransactionReceipt {
-  gasUsed: number;
-  blockNumber: number;
-  confirmations: number;
-  status: number;
-  logs: Array<providers.Log>;
-}
+// export interface EthTransactionReceipt {
+//   gasUsed: number;
+//   blockNumber: number;
+//   confirmations: number;
+//   status: number;
+//   logs: Array<providers.Log>;
+// }
 
 export interface TokenERC20Info {
   symbol: string;
   address: string;
   decimals: number;
+  chainId: number;
 }
 
 export interface ERC20TokensList {
@@ -40,12 +42,12 @@ export interface ERC20TokensList {
   tokens: TokenERC20Info[];
 }
 
-export interface EthTransactionReceipt {
-  gasUsed: number;
-  blockNumber: number;
-  confirmations: number;
-  status: number;
-}
+// export interface EthTransactionReceipt {
+//   gasUsed: number;
+//   blockNumber: number;
+//   confirmations: number;
+//   status: number;
+// }
 
 const stringInsert = (str: string, val: string, index: number) => {
   if (index > 0) {
@@ -72,21 +74,20 @@ export const bigNumberWithDecimalToStr = (n: BigNumber, d: number): string => {
 
 export class EthereumService {
   private readonly provider = new providers.JsonRpcProvider(this.config.rpcUrl);
+  private chainId = 1;
   private erc20TokenList: ERC20TokensList | null = null;
 
   constructor(private readonly config: EthereumConfigService) {
     switch (this.config.networkName) {
       case Network.KOVAN:
+        this.chainId = 42;
         this.erc20TokenList = kovanErc20TokenList;
         break;
-
-      case Network.MAINNET: {
+      default: // MAINNET
         (async () => {
           const { data } = await axios.get(this.config.tokenListUrl);
           this.erc20TokenList = data;
         })();
-        break;
-      }
     }
   }
 
@@ -214,6 +215,22 @@ export class EthereumService {
   }
 
   /**
+   * Get ERC20 token
+   * @param {string} tokenSymbol
+   * @return {TokenERC20Info} | null
+   */
+  getERC20Token(symbol: string): TokenERC20Info | undefined {
+    if (this.erc20TokenList) {
+      const token = this.erc20TokenList.tokens.find(
+        (obj) =>
+          obj.symbol === symbol.toUpperCase() && obj.chainId === this.chainId
+      );
+      return token;
+    }
+    return;
+  }
+
+  /**
    * Get ERC20 token address
    * @param {string} tokenSymbol
    * @return {TokenERC20Info} | null
@@ -257,24 +274,28 @@ export class EthereumService {
   /**
    * Get transaction receipt for a transaction hash.
    * @param {string} txHash
-   * @return {Promise<EthTransactionReceipt>}
+   * @return {Promise<any>}
    */
-  async getTransactionReceipt(txHash: string): Promise<EthTransactionReceipt> {
+  async getTransactionReceipt(txHash: string): Promise<any> {
     const transaction = await this.provider.getTransactionReceipt(txHash);
-
-    let gasUsed;
-    if (transaction.gasUsed) {
-      gasUsed = transaction.gasUsed.toNumber();
+    logger.info(transaction);
+    if (transaction) {
+      return {
+        gasUsed: transaction.gasUsed || 0,
+        blockNumber: transaction.blockNumber,
+        confirmations: transaction.confirmations,
+        status: transaction.status || 0,
+        logs: transaction.logs,
+      };
     } else {
-      gasUsed = 0;
+      // transaction is yet to be indexed
+      return {
+        gasUsed: 0,
+        blockNumber: 0,
+        confirmations: 0,
+        status: 0,
+        logs: [],
+      };
     }
-
-    return {
-      gasUsed: gasUsed,
-      blockNumber: transaction.blockNumber,
-      confirmations: transaction.confirmations,
-      status: transaction.status || 0,
-      logs: transaction.logs,
-    };
   }
 }
