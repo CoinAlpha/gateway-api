@@ -17,8 +17,8 @@ PRIVATE_KEY: "********"
 
 ## How to run test scripts
 
-- Simply run  `node -r esm NAME_OF_SCRIPT` .i.e. to run `uniswap.v2.test.js`, run:
+From the root directory, run  `node -r esm PATH_TO_SCRIPT` .i.e. to run `uniswap.v2.test.js`, run:
 
 ```bash
-node -r esm ./scripts/uniswap.v2.test.js
+node -r esm ./tests/scripts/uniswap.v2.test.js
 ```

@@ -1,7 +1,4 @@
-FROM node:12.13.0-alpine
-
-# Add timezone database
-RUN apk add --no-cache tzdata
+FROM node:12.13.0
 
 # Set labels
 LABEL application="gateway-api"
