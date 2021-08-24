@@ -198,7 +198,6 @@ async function unitTests() {
   });
   assert.hasAnyKeys(pid, ['hash'], 'Add position failed.');
   console.log(`New position transaction hash - ${pid.hash}`);
-  await sleep(60000); // sleep for 1 minute to give some time for provider to see transaction
   let done = false;
   let tx1, tx2, tid;
   while (!done) {
@@ -235,7 +234,6 @@ async function unitTests() {
   });
   assert.hasAnyKeys(closePid, ['hash'], 'Close position transaction failed.');
   console.log(`close position transaction hash - ${closePid.hash}`);
-  await sleep(60000); // sleep for 1 minute to give some time for provider to see transaction
   while (!done) {
     tx2 = await request('post', '/eth/poll', { txHash: closePid.hash });
     console.log(tx2);
