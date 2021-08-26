@@ -48,7 +48,7 @@ export async function request(method, path, params) {
   }
 }
 
-export async function ethTests( connector = null, tokens = [] ) {
+export async function ethTests(connector = null, tokens = []) {
   console.log('\nStarting ETH tests');
   console.log('***************************************************');
   console.log('Token symbols used in tests: ', tokens);

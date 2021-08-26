@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { request, ethTests } from './ethereum.test'
+import { request, ethTests } from './ethereum.test';
 
 let tokens = ['COIN1', 'COIN3'];
 const tier = 'MEDIUM';
@@ -36,7 +36,7 @@ async function unitTests() {
     token0: tokens[0],
     token1: tokens[1],
     lowerPrice: midPrice.prices[0],
-    upperPrice: parseFloat(midPrice.prices[0]) +  1,
+    upperPrice: parseFloat(midPrice.prices[0]) + 1,
     amount0: '0.01',
     amount1: '0.01',
     fee: tier,
@@ -56,12 +56,12 @@ async function unitTests() {
       logs: JSON.stringify(tx1.receipt.logs),
       pair: pair,
     });
-    for (let inf of  parsedLog.info) {
+    for (let inf of parsedLog.info) {
       if (inf.name === 'IncreaseLiquidity') {
         for (let evt of inf.events) {
           if (evt.name === 'tokenId') {
             tid = evt.value;
-            console.log(`New lp order id: ${tid}`)
+            console.log(`New lp order id: ${tid}`);
           }
         }
       }
@@ -90,7 +90,7 @@ async function unitTests() {
       logs: JSON.stringify(tx2.receipt.logs),
       pair: pair,
     });
-    for (let inf of  parsedLog2.info) {
+    for (let inf of parsedLog2.info) {
       if (inf.name === 'DecreaseLiquidity') {
         for (let evt of inf.events) {
           if (evt.name === 'tokenId') {

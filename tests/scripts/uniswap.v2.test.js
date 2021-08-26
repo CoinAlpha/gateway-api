@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { request, ethTests } from './ethereum.test'
+import { request, ethTests } from './ethereum.test';
 
 const tokens = ['WETH', 'DAI'];
 
