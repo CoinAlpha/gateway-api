@@ -1,19 +1,21 @@
 import { assert } from 'chai';
 import { request, ethTests } from './ethereum.test';
 
-let tokens = ['COIN1', 'COIN3'];
-const tier = 'MEDIUM';
+// constants
+const TOKENS = ['COIN1', 'COIN3'];
+const AMOUNTS = [0.01, 0.01];
+const TIER = 'MEDIUM';
 
 async function unitTests() {
   // call /start
-  let pair = `${tokens[0]}-${tokens[1]}`;
+  let pair = `${TOKENS[0]}-${TOKENS[1]}`;
   console.log(`Starting Uniswap v3 on pair ${pair}...`);
   const start = await request('get', '/eth/uniswap/v3/start', {
     pairs: JSON.stringify([pair]),
   });
   console.log(start);
   pair = start.pairs[0];
-  tokens = pair.split('-');
+  let tokens = pair.split('-');
 
   // call /gas-limit
   console.log('Calling uniswap v3 gas-limit endpoint...');
@@ -21,25 +23,25 @@ async function unitTests() {
   console.log(gasLimit);
 
   // mid price
-  console.log(`Checking mid price for ${pair} on the ${tier} fee tier...`);
+  console.log(`Checking mid price for ${pair} on the ${TIER} fee tier...`);
   const midPrice = await request('post', '/eth/uniswap/v3/price', {
     base: tokens[0],
     quote: tokens[1],
     seconds: '1',
-    tier: tier,
+    tier: TIER,
   });
   console.log(`Mid price: ${midPrice.prices[0]}`);
 
   // add position
-  console.log(`Adding position on ${tier} fee tier for ${pair}...`);
+  console.log(`Adding position on ${TIER} fee tier for ${pair}...`);
   const pid = await request('post', '/eth/uniswap/v3/add-position', {
     token0: tokens[0],
     token1: tokens[1],
     lowerPrice: midPrice.prices[0],
     upperPrice: parseFloat(midPrice.prices[0]) + 1,
-    amount0: '0.01',
-    amount1: '0.01',
-    fee: tier,
+    amount0: AMOUNTS[0].toString(),
+    amount1: AMOUNTS[1].toString(),
+    fee: TIER,
   });
   assert.hasAnyKeys(pid, ['hash'], 'Add position failed.');
   console.log(`New position transaction hash - ${pid.hash}`);
@@ -105,6 +107,6 @@ async function unitTests() {
 }
 
 (async () => {
-  await ethTests('uniswapV3NFTManager', tokens);
+  await ethTests('uniswapV3NFTManager', TOKENS);
   await unitTests();
 })();
