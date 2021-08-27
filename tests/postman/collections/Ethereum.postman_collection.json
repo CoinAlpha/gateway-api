@@ -1,0 +1,169 @@
+{
+	"info": {
+		"_postman_id": "97be3455-820f-44c1-bdda-7cfd06ae2841",
+		"name": "Ethereum",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "eth/balances",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "tokenList",
+							"value": "[\"WETH\", \"DAI\"]",
+							"type": "text"
+						},
+						{
+							"key": "privateKey",
+							"value": "{{privateKey}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/balances",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"balances"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/allowances",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "tokenList",
+							"value": "[\"WETH\", \"DAI\"]",
+							"type": "text"
+						},
+						{
+							"key": "privateKey",
+							"value": "{{privateKey}}",
+							"type": "text"
+						},
+						{
+							"key": "connector",
+							"value": "balancer",
+							"type": "text"
+						}
+					],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/allowances",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"allowances"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/approve",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "token",
+							"value": "WETH",
+							"type": "text"
+						},
+						{
+							"key": "privateKey",
+							"value": "{{privateKey}}",
+							"type": "text"
+						},
+						{
+							"key": "connector",
+							"value": "balancer",
+							"type": "text"
+						},
+						{
+							"key": "amount",
+							"value": "999999",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/approve",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"approve"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/poll",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "txHash",
+							"value": "0x8e070298f624a0c65f938cb5a6c1635e8021ba25382f474304e8261e1363dbe3",
+							"type": "text"
+						}
+					],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/poll",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"poll"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
