@@ -56,7 +56,7 @@ export async function ethTests(connector = null, tokens = []) {
   console.log('***************************************************');
   console.log('Token symbols used in tests: ', tokens);
   assert.isAtLeast(tokens.length, 2, 'Pls provide at least 2 tokens');
-  assert.exists(privateKey, 'Pls include PRIVATE_KEY in global_conf file');
+  assert.exists(privateKey, 'Pls set PRIVATE_KEY in environment variable');
 
   // call /
   console.log('Checking status of gateway server...');
