@@ -347,7 +347,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
       liquidityPercentage: this.get_percent(percent),
       slippageTolerance: this.get_slippage(),
       deadline: this.get_ttl(),
-      burnToken: percent == 100 ? true : false,
+      burnToken: false,  // percent == 100 ? true : false,
       collectOptions: {
         expectedCurrencyOwed0: new uni.CurrencyAmount.fromRawAmount(
           token0,

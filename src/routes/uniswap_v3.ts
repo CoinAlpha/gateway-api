@@ -26,8 +26,8 @@ const uniswap = new UniswapV3(globalConfig.getConfig('ETHEREUM_CHAIN'));
 
 const fees = new Fees();
 
-const swapMoreThanMaxPriceError = 'Price too high';
-const swapLessThanMaxPriceError = 'Price too low';
+// const swapMoreThanMaxPriceError = 'Price too high';
+// const swapLessThanMaxPriceError = 'Price too low';
 
 const estimateGasLimit = () => {
   return uniswap.gasLimit;
@@ -348,7 +348,7 @@ router.post('/price', async (req: Request, res: Response) => {
     const gasCost = await fees.getGasCost(gasPrice, gasLimit);
     try {
       // fetch pools for all tiers
-      let priceResult, price;
+      let priceResult;  // , price;
       if (req.body.amount) {
         /*
         // get price at this depth
