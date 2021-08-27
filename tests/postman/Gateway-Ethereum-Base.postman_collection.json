@@ -1,1139 +1,596 @@
 {
-  "info": {
-    "_postman_id": "e39af94e-6095-479e-8ba0-66930b12e364",
-    "name": "Gateway-Ethereum-Base",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "ethereum",
-      "item": [
-        {
-          "name": "eth/balances",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                {
-                  "key": "tokenAddressList",
-                  "value": "{ \"{{WETH}}\": 18,  \"{{DAI}}\": 18}",
-                  "type": "text"
-                },
-                {
-                  "key": "connector",
-                  "value": "balancer",
-                  "type": "text"
-                },
-                {
-                  "key": "privateKey",
-                  "value": "{{privateKey}}",
-                  "type": "text"
-                }
-              ]
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/eth/balances",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["eth", "balances"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "eth/allowances",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                {
-                  "key": "tokenAddressList",
-                  "value": "{ \"{{BAT}}\": 18, \"{{DAI}}\": 18 }",
-                  "type": "text"
-                },
-                {
-                  "key": "connector",
-                  "value": "balancer",
-                  "type": "text"
-                },
-                {
-                  "key": "privateKey",
-                  "value": "{{privateKey}}",
-                  "type": "text"
-                }
-              ],
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/eth/allowances",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["eth", "allowances"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "eth/approve",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                {
-                  "key": "tokenAddress",
-                  "value": "{{WETH}}",
-                  "type": "text"
-                },
-                {
-                  "key": "privateKey",
-                  "value": "{{privateKey}}",
-                  "type": "text"
-                },
-                {
-                  "key": "gasPrice",
-                  "value": "23",
-                  "type": "text"
-                },
-                {
-                  "key": "decimals",
-                  "value": "18",
-                  "type": "text"
-                },
-                {
-                  "key": "connector",
-                  "value": "balancer",
-                  "type": "text"
-                },
-                {
-                  "key": "amount",
-                  "value": "999999",
-                  "type": "text"
-                }
-              ]
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/eth/approve",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["eth", "approve"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "eth/get-receipt",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                {
-                  "key": "txHash",
-                  "value": "{{txHash}}",
-                  "type": "text"
-                }
-              ],
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/eth/get-receipt",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["eth", "get-receipt"]
-            }
-          },
-          "response": []
-        }
-      ],
-      "protocolProfileBehavior": {}
-    },
-    {
-      "name": "balancer",
-      "item": [
-        {
-          "name": "balancer",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [],
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/balancer",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["balancer"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "balancer/gas-limit",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                {
-                  "key": "maxSwaps",
-                  "value": "3",
-                  "type": "text"
-                }
-              ],
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/balancer/gas-limit",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["balancer", "gas-limit"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "balancer/buy-price/",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                {
-                  "key": "base",
-                  "value": "{{BAT}}",
-                  "type": "text"
-                },
-                {
-                  "key": "quote",
-                  "value": "{{DAI}}",
-                  "type": "text"
-                },
-                {
-                  "key": "amount",
-                  "value": "10",
-                  "type": "text"
-                },
-                {
-                  "key": "maxSwaps",
-                  "value": "4",
-                  "type": "text"
-                },
-                {
-                  "key": "base_decimals",
-                  "value": "18",
-                  "type": "text"
-                },
-                {
-                  "key": "quote_decimals",
-                  "value": "18",
-                  "type": "text"
-                }
-              ]
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/balancer/buy-price",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["balancer", "buy-price"]
-            }
-          },
-          "response": [
-            {
-              "name": "{network}/quote",
-              "originalRequest": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "http://localhost:5000/{{network}}/quote/trading_pair/{{celo-cusd}}/amount/1",
-                  "protocol": "http",
-                  "host": ["localhost"],
-                  "port": "5000",
-                  "path": [
-                    "{{network}}",
-                    "quote",
-                    "trading_pair",
-                    "{{celo-cusd}}",
-                    "amount",
-                    "1"
-                  ]
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "_postman_previewlanguage": "json",
-              "header": [
-                {
-                  "key": "Content-Security-Policy",
-                  "value": "default-src 'self';base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
-                },
-                {
-                  "key": "X-DNS-Prefetch-Control",
-                  "value": "off"
-                },
-                {
-                  "key": "Expect-CT",
-                  "value": "max-age=0"
-                },
-                {
-                  "key": "X-Frame-Options",
-                  "value": "SAMEORIGIN"
-                },
-                {
-                  "key": "Strict-Transport-Security",
-                  "value": "max-age=15552000; includeSubDomains"
-                },
-                {
-                  "key": "X-Download-Options",
-                  "value": "noopen"
-                },
-                {
-                  "key": "X-Content-Type-Options",
-                  "value": "nosniff"
-                },
-                {
-                  "key": "X-Permitted-Cross-Domain-Policies",
-                  "value": "none"
-                },
-                {
-                  "key": "Referrer-Policy",
-                  "value": "no-referrer"
-                },
-                {
-                  "key": "X-XSS-Protection",
-                  "value": "0"
-                },
-                {
-                  "key": "Content-Type",
-                  "value": "application/json; charset=utf-8"
-                },
-                {
-                  "key": "Content-Length",
-                  "value": "97"
-                },
-                {
-                  "key": "ETag",
-                  "value": "W/\"61-Wemp9YmP9g/CsUFMa7Y5zK6SoLQ\""
-                },
-                {
-                  "key": "Date",
-                  "value": "Wed, 23 Sep 2020 18:07:26 GMT"
-                },
-                {
-                  "key": "Connection",
-                  "value": "keep-alive"
-                }
-              ],
-              "cookie": [],
-              "body": "{\n    \"timestamp\": 1600884444051,\n    \"latency\": 2.542,\n    \"trading_pair\": \"CELO-CUSD\",\n    \"price\": 2.5435604641582747\n}"
-            }
-          ]
-        },
-        {
-          "name": "balancer/sell-price/",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                {
-                  "key": "base",
-                  "value": "{{BAT}}",
-                  "type": "text"
-                },
-                {
-                  "key": "quote",
-                  "value": "{{DAI}}",
-                  "type": "text"
-                },
-                {
-                  "key": "amount",
-                  "value": "10",
-                  "type": "text"
-                },
-                {
-                  "key": "maxSwaps",
-                  "value": "4",
-                  "type": "text"
-                },
-                {
-                  "key": "base_decimals",
-                  "value": "18",
-                  "type": "text"
-                },
-                {
-                  "key": "quote_decimals",
-                  "value": "18",
-                  "type": "text"
-                }
-              ]
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/balancer/sell-price",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["balancer", "sell-price"]
-            }
-          },
-          "response": [
-            {
-              "name": "{network}/quote",
-              "originalRequest": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "http://localhost:5000/{{network}}/quote/trading_pair/{{celo-cusd}}/amount/1",
-                  "protocol": "http",
-                  "host": ["localhost"],
-                  "port": "5000",
-                  "path": [
-                    "{{network}}",
-                    "quote",
-                    "trading_pair",
-                    "{{celo-cusd}}",
-                    "amount",
-                    "1"
-                  ]
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "_postman_previewlanguage": "json",
-              "header": [
-                {
-                  "key": "Content-Security-Policy",
-                  "value": "default-src 'self';base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
-                },
-                {
-                  "key": "X-DNS-Prefetch-Control",
-                  "value": "off"
-                },
-                {
-                  "key": "Expect-CT",
-                  "value": "max-age=0"
-                },
-                {
-                  "key": "X-Frame-Options",
-                  "value": "SAMEORIGIN"
-                },
-                {
-                  "key": "Strict-Transport-Security",
-                  "value": "max-age=15552000; includeSubDomains"
-                },
-                {
-                  "key": "X-Download-Options",
-                  "value": "noopen"
-                },
-                {
-                  "key": "X-Content-Type-Options",
-                  "value": "nosniff"
-                },
-                {
-                  "key": "X-Permitted-Cross-Domain-Policies",
-                  "value": "none"
-                },
-                {
-                  "key": "Referrer-Policy",
-                  "value": "no-referrer"
-                },
-                {
-                  "key": "X-XSS-Protection",
-                  "value": "0"
-                },
-                {
-                  "key": "Content-Type",
-                  "value": "application/json; charset=utf-8"
-                },
-                {
-                  "key": "Content-Length",
-                  "value": "97"
-                },
-                {
-                  "key": "ETag",
-                  "value": "W/\"61-Wemp9YmP9g/CsUFMa7Y5zK6SoLQ\""
-                },
-                {
-                  "key": "Date",
-                  "value": "Wed, 23 Sep 2020 18:07:26 GMT"
-                },
-                {
-                  "key": "Connection",
-                  "value": "keep-alive"
-                }
-              ],
-              "cookie": [],
-              "body": "{\n    \"timestamp\": 1600884444051,\n    \"latency\": 2.542,\n    \"trading_pair\": \"CELO-CUSD\",\n    \"price\": 2.5435604641582747\n}"
-            }
-          ]
-        },
-        {
-          "name": "balancer/buy",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                {
-                  "key": "base",
-                  "value": "{{BAT}}",
-                  "type": "text"
-                },
-                {
-                  "key": "quote",
-                  "value": "{{DAI}}",
-                  "type": "text"
-                },
-                {
-                  "key": "amount",
-                  "value": "1",
-                  "type": "text"
-                },
-                {
-                  "key": "maxSwaps",
-                  "value": "4",
-                  "type": "text"
-                },
-                {
-                  "key": "maxPrice",
-                  "value": "0.19767217120251",
-                  "type": "text"
-                },
-                {
-                  "key": "gasPrice",
-                  "value": "37",
-                  "type": "text"
-                },
-                {
-                  "key": "privateKey",
-                  "value": "{{privateKey}}",
-                  "type": "text"
-                },
-                {
-                  "key": "base_decimals",
-                  "value": "18",
-                  "type": "text"
-                },
-                {
-                  "key": "quote_decimals",
-                  "value": "18",
-                  "type": "text"
-                }
-              ]
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/balancer/buy",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["balancer", "buy"]
-            }
-          },
-          "response": [
-            {
-              "name": "{network}/quote",
-              "originalRequest": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "http://localhost:5000/{{network}}/quote/trading_pair/{{celo-cusd}}/amount/1",
-                  "protocol": "http",
-                  "host": ["localhost"],
-                  "port": "5000",
-                  "path": [
-                    "{{network}}",
-                    "quote",
-                    "trading_pair",
-                    "{{celo-cusd}}",
-                    "amount",
-                    "1"
-                  ]
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "_postman_previewlanguage": "json",
-              "header": [
-                {
-                  "key": "Content-Security-Policy",
-                  "value": "default-src 'self';base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
-                },
-                {
-                  "key": "X-DNS-Prefetch-Control",
-                  "value": "off"
-                },
-                {
-                  "key": "Expect-CT",
-                  "value": "max-age=0"
-                },
-                {
-                  "key": "X-Frame-Options",
-                  "value": "SAMEORIGIN"
-                },
-                {
-                  "key": "Strict-Transport-Security",
-                  "value": "max-age=15552000; includeSubDomains"
-                },
-                {
-                  "key": "X-Download-Options",
-                  "value": "noopen"
-                },
-                {
-                  "key": "X-Content-Type-Options",
-                  "value": "nosniff"
-                },
-                {
-                  "key": "X-Permitted-Cross-Domain-Policies",
-                  "value": "none"
-                },
-                {
-                  "key": "Referrer-Policy",
-                  "value": "no-referrer"
-                },
-                {
-                  "key": "X-XSS-Protection",
-                  "value": "0"
-                },
-                {
-                  "key": "Content-Type",
-                  "value": "application/json; charset=utf-8"
-                },
-                {
-                  "key": "Content-Length",
-                  "value": "97"
-                },
-                {
-                  "key": "ETag",
-                  "value": "W/\"61-Wemp9YmP9g/CsUFMa7Y5zK6SoLQ\""
-                },
-                {
-                  "key": "Date",
-                  "value": "Wed, 23 Sep 2020 18:07:26 GMT"
-                },
-                {
-                  "key": "Connection",
-                  "value": "keep-alive"
-                }
-              ],
-              "cookie": [],
-              "body": "{\n    \"timestamp\": 1600884444051,\n    \"latency\": 2.542,\n    \"trading_pair\": \"CELO-CUSD\",\n    \"price\": 2.5435604641582747\n}"
-            }
-          ]
-        },
-        {
-          "name": "balancer/sell",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                {
-                  "key": "base",
-                  "value": "{{BAT}}",
-                  "type": "text"
-                },
-                {
-                  "key": "quote",
-                  "value": "{{DAI}}",
-                  "type": "text"
-                },
-                {
-                  "key": "amount",
-                  "value": "0.1",
-                  "type": "text"
-                },
-                {
-                  "key": "maxSwaps",
-                  "value": "4",
-                  "type": "text"
-                },
-                {
-                  "key": "maxPrice",
-                  "value": "0.2685681573104575",
-                  "type": "text"
-                },
-                {
-                  "key": "gasPrice",
-                  "value": "37",
-                  "type": "text"
-                },
-                {
-                  "key": "privateKey",
-                  "value": "{{privateKey}}",
-                  "type": "text"
-                },
-                {
-                  "key": "base_decimals",
-                  "value": "18",
-                  "type": "text"
-                },
-                {
-                  "key": "quote_decimals",
-                  "value": "18",
-                  "type": "text"
-                }
-              ]
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/balancer/sell",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["balancer", "sell"]
-            }
-          },
-          "response": [
-            {
-              "name": "{network}/quote",
-              "originalRequest": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "http://localhost:5000/{{network}}/quote/trading_pair/{{celo-cusd}}/amount/1",
-                  "protocol": "http",
-                  "host": ["localhost"],
-                  "port": "5000",
-                  "path": [
-                    "{{network}}",
-                    "quote",
-                    "trading_pair",
-                    "{{celo-cusd}}",
-                    "amount",
-                    "1"
-                  ]
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "_postman_previewlanguage": "json",
-              "header": [
-                {
-                  "key": "Content-Security-Policy",
-                  "value": "default-src 'self';base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
-                },
-                {
-                  "key": "X-DNS-Prefetch-Control",
-                  "value": "off"
-                },
-                {
-                  "key": "Expect-CT",
-                  "value": "max-age=0"
-                },
-                {
-                  "key": "X-Frame-Options",
-                  "value": "SAMEORIGIN"
-                },
-                {
-                  "key": "Strict-Transport-Security",
-                  "value": "max-age=15552000; includeSubDomains"
-                },
-                {
-                  "key": "X-Download-Options",
-                  "value": "noopen"
-                },
-                {
-                  "key": "X-Content-Type-Options",
-                  "value": "nosniff"
-                },
-                {
-                  "key": "X-Permitted-Cross-Domain-Policies",
-                  "value": "none"
-                },
-                {
-                  "key": "Referrer-Policy",
-                  "value": "no-referrer"
-                },
-                {
-                  "key": "X-XSS-Protection",
-                  "value": "0"
-                },
-                {
-                  "key": "Content-Type",
-                  "value": "application/json; charset=utf-8"
-                },
-                {
-                  "key": "Content-Length",
-                  "value": "97"
-                },
-                {
-                  "key": "ETag",
-                  "value": "W/\"61-Wemp9YmP9g/CsUFMa7Y5zK6SoLQ\""
-                },
-                {
-                  "key": "Date",
-                  "value": "Wed, 23 Sep 2020 18:07:26 GMT"
-                },
-                {
-                  "key": "Connection",
-                  "value": "keep-alive"
-                }
-              ],
-              "cookie": [],
-              "body": "{\n    \"timestamp\": 1600884444051,\n    \"latency\": 2.542,\n    \"trading_pair\": \"CELO-CUSD\",\n    \"price\": 2.5435604641582747\n}"
-            }
-          ]
-        }
-      ],
-      "protocolProfileBehavior": {}
-    },
-    {
-      "name": "uniswap",
-      "item": [
-        {
-          "name": "uniswap",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [],
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/uniswap",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["uniswap"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "uniswap/gas-limit",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [],
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/uniswap/gas-limit",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["uniswap", "gas-limit"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "uniswap/buy-price/",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                {
-                  "key": "base",
-                  "value": "{{BAT}}",
-                  "type": "text"
-                },
-                {
-                  "key": "quote",
-                  "value": "{{DAI}}",
-                  "type": "text"
-                },
-                {
-                  "key": "amount",
-                  "value": "10",
-                  "type": "text"
-                },
-                {
-                  "key": "base_decimals",
-                  "value": "18",
-                  "type": "text"
-                },
-                {
-                  "key": "quote_decimals",
-                  "value": "18",
-                  "type": "text"
-                }
-              ]
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/uniswap/buy-price",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["uniswap", "buy-price"]
-            }
-          },
-          "response": [
-            {
-              "name": "{network}/quote",
-              "originalRequest": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "http://localhost:5000/{{network}}/quote/trading_pair/{{celo-cusd}}/amount/1",
-                  "protocol": "http",
-                  "host": ["localhost"],
-                  "port": "5000",
-                  "path": [
-                    "{{network}}",
-                    "quote",
-                    "trading_pair",
-                    "{{celo-cusd}}",
-                    "amount",
-                    "1"
-                  ]
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "_postman_previewlanguage": "json",
-              "header": [
-                {
-                  "key": "Content-Security-Policy",
-                  "value": "default-src 'self';base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
-                },
-                {
-                  "key": "X-DNS-Prefetch-Control",
-                  "value": "off"
-                },
-                {
-                  "key": "Expect-CT",
-                  "value": "max-age=0"
-                },
-                {
-                  "key": "X-Frame-Options",
-                  "value": "SAMEORIGIN"
-                },
-                {
-                  "key": "Strict-Transport-Security",
-                  "value": "max-age=15552000; includeSubDomains"
-                },
-                {
-                  "key": "X-Download-Options",
-                  "value": "noopen"
-                },
-                {
-                  "key": "X-Content-Type-Options",
-                  "value": "nosniff"
-                },
-                {
-                  "key": "X-Permitted-Cross-Domain-Policies",
-                  "value": "none"
-                },
-                {
-                  "key": "Referrer-Policy",
-                  "value": "no-referrer"
-                },
-                {
-                  "key": "X-XSS-Protection",
-                  "value": "0"
-                },
-                {
-                  "key": "Content-Type",
-                  "value": "application/json; charset=utf-8"
-                },
-                {
-                  "key": "Content-Length",
-                  "value": "97"
-                },
-                {
-                  "key": "ETag",
-                  "value": "W/\"61-Wemp9YmP9g/CsUFMa7Y5zK6SoLQ\""
-                },
-                {
-                  "key": "Date",
-                  "value": "Wed, 23 Sep 2020 18:07:26 GMT"
-                },
-                {
-                  "key": "Connection",
-                  "value": "keep-alive"
-                }
-              ],
-              "cookie": [],
-              "body": "{\n    \"timestamp\": 1600884444051,\n    \"latency\": 2.542,\n    \"trading_pair\": \"CELO-CUSD\",\n    \"price\": 2.5435604641582747\n}"
-            }
-          ]
-        },
-        {
-          "name": "uniswap/sell-price/",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                {
-                  "key": "base",
-                  "value": "{{BAT}}",
-                  "type": "text"
-                },
-                {
-                  "key": "quote",
-                  "value": "{{DAI}}",
-                  "type": "text"
-                },
-                {
-                  "key": "amount",
-                  "value": "10",
-                  "type": "text"
-                },
-                {
-                  "key": "base_decimals",
-                  "value": "18",
-                  "type": "text"
-                },
-                {
-                  "key": "quote_decimals",
-                  "value": "18",
-                  "type": "text"
-                }
-              ]
-            },
-            "url": {
-              "raw": "https://localhost:{{port}}/uniswap/sell-price",
-              "protocol": "https",
-              "host": ["localhost"],
-              "port": "{{port}}",
-              "path": ["uniswap", "sell-price"]
-            }
-          },
-          "response": [
-            {
-              "name": "{network}/quote",
-              "originalRequest": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "http://localhost:5000/{{network}}/quote/trading_pair/{{celo-cusd}}/amount/1",
-                  "protocol": "http",
-                  "host": ["localhost"],
-                  "port": "5000",
-                  "path": [
-                    "{{network}}",
-                    "quote",
-                    "trading_pair",
-                    "{{celo-cusd}}",
-                    "amount",
-                    "1"
-                  ]
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "_postman_previewlanguage": "json",
-              "header": [
-                {
-                  "key": "Content-Security-Policy",
-                  "value": "default-src 'self';base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
-                },
-                {
-                  "key": "X-DNS-Prefetch-Control",
-                  "value": "off"
-                },
-                {
-                  "key": "Expect-CT",
-                  "value": "max-age=0"
-                },
-                {
-                  "key": "X-Frame-Options",
-                  "value": "SAMEORIGIN"
-                },
-                {
-                  "key": "Strict-Transport-Security",
-                  "value": "max-age=15552000; includeSubDomains"
-                },
-                {
-                  "key": "X-Download-Options",
-                  "value": "noopen"
-                },
-                {
-                  "key": "X-Content-Type-Options",
-                  "value": "nosniff"
-                },
-                {
-                  "key": "X-Permitted-Cross-Domain-Policies",
-                  "value": "none"
-                },
-                {
-                  "key": "Referrer-Policy",
-                  "value": "no-referrer"
-                },
-                {
-                  "key": "X-XSS-Protection",
-                  "value": "0"
-                },
-                {
-                  "key": "Content-Type",
-                  "value": "application/json; charset=utf-8"
-                },
-                {
-                  "key": "Content-Length",
-                  "value": "97"
-                },
-                {
-                  "key": "ETag",
-                  "value": "W/\"61-Wemp9YmP9g/CsUFMa7Y5zK6SoLQ\""
-                },
-                {
-                  "key": "Date",
-                  "value": "Wed, 23 Sep 2020 18:07:26 GMT"
-                },
-                {
-                  "key": "Connection",
-                  "value": "keep-alive"
-                }
-              ],
-              "cookie": [],
-              "body": "{\n    \"timestamp\": 1600884444051,\n    \"latency\": 2.542,\n    \"trading_pair\": \"CELO-CUSD\",\n    \"price\": 2.5435604641582747\n}"
-            }
-          ]
-        }
-      ],
-      "protocolProfileBehavior": {}
-    }
-  ],
-  "protocolProfileBehavior": {}
+	"info": {
+		"_postman_id": "56ee6c33-d41f-40d2-b248-eaf472c38eb0",
+		"name": "Gateway-Ethereum-Base",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "ethereum",
+			"item": [
+				{
+					"name": "eth/balances",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "tokenList",
+									"value": "[\"WETH\", \"DAI\"]",
+									"type": "text"
+								},
+								{
+									"key": "privateKey",
+									"value": "{{privateKey}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:{{port}}/eth/balances",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"eth",
+								"balances"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "eth/allowances",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "tokenList",
+									"value": "[\"WETH\", \"DAI\"]",
+									"type": "text"
+								},
+								{
+									"key": "privateKey",
+									"value": "{{privateKey}}",
+									"type": "text"
+								},
+								{
+									"key": "connector",
+									"value": "balancer",
+									"type": "text"
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:{{port}}/eth/allowances",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"eth",
+								"allowances"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "eth/approve",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "token",
+									"value": "WETH",
+									"type": "text"
+								},
+								{
+									"key": "privateKey",
+									"value": "{{privateKey}}",
+									"type": "text"
+								},
+								{
+									"key": "connector",
+									"value": "balancer",
+									"type": "text"
+								},
+								{
+									"key": "amount",
+									"value": "999999",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:{{port}}/eth/approve",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"eth",
+								"approve"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "eth/poll",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "txHash",
+									"value": "0x8e070298f624a0c65f938cb5a6c1635e8021ba25382f474304e8261e1363dbe3",
+									"type": "text"
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:{{port}}/eth/poll",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"eth",
+								"poll"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "balancer",
+			"item": [
+				{
+					"name": "eth/balancer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:{{port}}/eth/balancer/",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"eth",
+								"balancer",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "eth/balancer/start",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:{{port}}/eth/balancer/start?pairs=[\"WETH-DAI\"]",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"eth",
+								"balancer",
+								"start"
+							],
+							"query": [
+								{
+									"key": "pairs",
+									"value": "[\"WETH-DAI\"]"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "eth/balancer/gas-limit",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "maxSwaps",
+									"value": "1",
+									"type": "text"
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:{{port}}/eth/balancer/gas-limit",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"eth",
+								"balancer",
+								"gas-limit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "eth/balancer/price/",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "base",
+									"value": "WETH",
+									"type": "text"
+								},
+								{
+									"key": "quote",
+									"value": "DAI",
+									"type": "text"
+								},
+								{
+									"key": "amount",
+									"value": "0.01",
+									"type": "text"
+								},
+								{
+									"key": "side",
+									"value": "buy",
+									"type": "text"
+								},
+								{
+									"key": "limitPrice",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "privateKey",
+									"value": "{{privateKey}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:{{port}}/eth/balancer/price",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"eth",
+								"balancer",
+								"price"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "eth/balancer/trade",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "base",
+									"value": "WETH",
+									"type": "text"
+								},
+								{
+									"key": "quote",
+									"value": "DAI",
+									"type": "text"
+								},
+								{
+									"key": "amount",
+									"value": "0.01",
+									"type": "text"
+								},
+								{
+									"key": "side",
+									"value": "buy",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:{{port}}/eth/balancer/price",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"eth",
+								"balancer",
+								"price"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "uniswap",
+			"item": [
+				{
+					"name": "eth/uniswap",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:{{port}}/eth/uniswap",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"eth",
+								"uniswap"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "eth/uniswap/start",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:{{port}}/eth/uniswap/start?pairs=[\"WETH-DAI\"]",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"eth",
+								"uniswap",
+								"start"
+							],
+							"query": [
+								{
+									"key": "pairs",
+									"value": "[\"WETH-DAI\"]"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "eth/uniswap/gas-limit",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:{{port}}/eth/uniswap/gas-limit",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"eth",
+								"uniswap",
+								"gas-limit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "eth/uniswap/price",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "base",
+									"value": "WETH",
+									"type": "text"
+								},
+								{
+									"key": "quote",
+									"value": "DAI",
+									"type": "text"
+								},
+								{
+									"key": "amount",
+									"value": "0.01",
+									"type": "text"
+								},
+								{
+									"key": "side",
+									"value": "buy",
+									"type": "text"
+								},
+								{
+									"key": "",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:{{port}}/eth/uniswap/price",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"eth",
+								"uniswap",
+								"price"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "eth/uniswap/trade",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "base",
+									"value": "WETH",
+									"type": "text"
+								},
+								{
+									"key": "quote",
+									"value": "DAI",
+									"type": "text"
+								},
+								{
+									"key": "amount",
+									"value": "0.01",
+									"type": "text"
+								},
+								{
+									"key": "side",
+									"value": "buy",
+									"type": "text"
+								},
+								{
+									"key": "limitPrice",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "privateKey",
+									"value": "{{privateKey}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:{{port}}/eth/uniswap/trade",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"eth",
+								"uniswap",
+								"trade"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
 }
