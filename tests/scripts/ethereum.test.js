@@ -11,7 +11,7 @@ const config = YAML.parseDocument(file);
 
 const host = 'localhost';
 const port = 5000;
-const privateKey = config.get('PRIVATE_KEY');
+const privateKey = process.env.PRIVATE_KEY;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
