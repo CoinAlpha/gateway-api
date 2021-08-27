@@ -1,23 +1,24 @@
 ![Hummingbot](https://i.ibb.co/X5zNkKw/blacklogo-with-text.png)
 
-----
-
-The aim of Hummingbot Gateway Test scripts is to test endpoints related to supported decentralized protocols in an ideal order in each script.
+Test scripts for endpoints used by different connectors in Hummingbot Gateway
 
 ## Requirements
 
-- [Have gateway server properly configured and running](https://docs.hummingbot.io/gateway/installation/)
-- Ensure you have the following line containing your private key in the gateway's `global_conf.yml` file:
+- [Run the Gateway server](https://docs.hummingbot.io/gateway/installation/)
 
 ```bash
-PRIVATE_KEY: "********"
+yarn start
 ```
 
-*** Note that test scripts are expected to be run on thesame machine running the gateway server. ***
+- Expose your Ethereum wallet private key as environment variable `PRIVATE_KEY`
 
-## How to run test scripts
+```bash
+export PRIVATE_KEY = [your private key]
+```
 
-From the root directory, run  `node -r esm PATH_TO_SCRIPT` .i.e. to run `uniswap.v2.test.js`, run:
+## How to run
+
+From the root Hummingbot directory, run  `node -r esm PATH_TO_SCRIPT` .i.e. to run `uniswap.v2.test.js`, run:
 
 ```bash
 node -r esm ./tests/scripts/uniswap.v2.test.js
