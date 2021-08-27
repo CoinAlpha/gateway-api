@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { request, ethTests } from './ethereum.test';
 
-let tokens = ['COIN1', 'COIN3'];
+let tokens = ['WETH', 'DAI'];
 const tier = 'MEDIUM';
 
 async function unitTests() {
@@ -29,6 +29,21 @@ async function unitTests() {
     tier: tier,
   });
   console.log(`Mid price: ${midPrice.prices[0]}`);
+
+  // check if pool exists on other 2 tiers
+  let tiers = [ "LOW", "MEDIUM", "HIGH" ];
+  tiers.pop(tiers.indexOf(tier) - 1);
+  for (let tr of tiers) {
+    console.log(`Checking mid price for ${pair} on the ${tr} fee tier...`);
+    let checkPrice = await request('post', '/eth/uniswap/v3/price', {
+      base: tokens[0],
+      quote: tokens[1],
+      seconds: '1',
+      tier: tr,
+    });
+    console.log(checkPrice)
+  }
+
 
   // add position
   console.log(`Adding position on ${tier} fee tier for ${pair}...`);
