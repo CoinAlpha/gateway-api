@@ -1,13 +1,17 @@
 import { assert } from 'chai';
 import { request, ethTests } from './ethereum.test';
 
-const tokens = ['WETH', 'DAI'];
+// constants
+const TOKENS = ['WETH', 'DAI'];
+const AMOUNT_PRICE = 1;
+const AMOUNT_TRADE = 0.01;
+const SCALE_FACTOR = 1000;
 
 async function unitTests() {
   console.log('\nStarting Uniswap tests');
   console.log('***************************************************');
   // call /start
-  let pair = `${tokens[0]}-${tokens[1]}`;
+  let pair = `${TOKENS[0]}-${TOKENS[1]}`;
   console.log(`Starting Uniswap v2 on pair ${pair}...`);
   const start = await request('get', '/eth/uniswap/start', {
     pairs: JSON.stringify([pair]),
@@ -22,9 +26,9 @@ async function unitTests() {
   // price buy
   console.log(`Checking buy price for ${pair}...`);
   const buyPrice = await request('post', '/eth/uniswap/price', {
-    base: tokens[0],
-    quote: tokens[1],
-    amount: '1',
+    base: TOKENS[0],
+    quote: TOKENS[1],
+    amount: AMOUNT_PRICE.toString(),
     side: 'buy',
   });
   console.log(`Buy price: ${buyPrice.price}`);
@@ -32,19 +36,19 @@ async function unitTests() {
   // price sell
   console.log(`Checking sell price for ${pair}...`);
   const sellPrice = await request('post', '/eth/uniswap/price', {
-    base: tokens[0],
-    quote: tokens[1],
-    amount: '1',
+    base: TOKENS[0],
+    quote: TOKENS[1],
+    amount: AMOUNT_PRICE.toString(),
     side: 'sell',
   });
   console.log(`Sell price: ${sellPrice.price}`);
 
   // trade buy
-  console.log(`Executing buy trade on ${pair} with 0.01 amount...`);
+  console.log(`Executing buy trade on ${pair} with ${AMOUNT_TRADE} amount...`);
   const buy = await request('post', '/eth/uniswap/trade', {
-    base: tokens[0],
-    quote: tokens[1],
-    amount: '0.01',
+    base: TOKENS[0],
+    quote: TOKENS[1],
+    amount: AMOUNT_TRADE.toString(),
     side: 'buy',
     limitPrice: buyPrice.price,
   });
@@ -63,11 +67,11 @@ async function unitTests() {
   done = false;
 
   // trade sell
-  console.log(`Executing sell trade on ${pair} with 0.01 amount...`);
+  console.log(`Executing sell trade on ${pair} with ${AMOUNT_TRADE} amount...`);
   const sell = await request('post', '/eth/uniswap/trade', {
-    base: tokens[0],
-    quote: tokens[1],
-    amount: '0.01',
+    base: TOKENS[0],
+    quote: TOKENS[1],
+    amount: AMOUNT_TRADE.toString(),
     side: 'sell',
     limitPrice: sellPrice.price,
   });
@@ -82,31 +86,31 @@ async function unitTests() {
   assert.equal(tx2.receipt.status, 1, 'Sell trade reverted.');
 
   // add tests for extreme values of limitPrice - buy and sell
-  console.log('Testing for failure with extreme values of buy limitPrice...');
+  console.log(`Testing for failure with ${buyPrice.price / SCALE_FACTOR} buy limitPrice...`);
   assert.notExists(
     await request('post', '/eth/uniswap/trade', {
-      base: tokens[0],
-      quote: tokens[1],
+      base: TOKENS[0],
+      quote: TOKENS[1],
       amount: '1',
       side: 'buy',
-      limitPrice: buyPrice.price / 1000,
+      limitPrice: buyPrice.price / SCALE_FACTOR,
     })
   );
 
   // add tests for extreme values of minimumSlippage
-  console.log('Testing for failure with extreme values of sell limitPrice...');
+  console.log(`Testing for failure with ${sellPrice.price * SCALE_FACTOR} sell limitPrice...`);
   assert.notExists(
     await request('post', '/eth/uniswap/trade', {
-      base: tokens[0],
-      quote: tokens[1],
+      base: TOKENS[0],
+      quote: TOKENS[1],
       amount: '1',
       side: 'sell',
-      limitPrice: sellPrice.price * 1000,
+      limitPrice: sellPrice.price * SCALE_FACTOR,
     })
   );
 }
 
 (async () => {
-  await ethTests('uniswap', tokens);
+  await ethTests('uniswap', TOKENS);
   await unitTests();
 })();

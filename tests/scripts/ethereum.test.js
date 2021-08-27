@@ -13,6 +13,9 @@ const host = 'localhost';
 const port = 5000;
 const privateKey = process.env.PRIVATE_KEY;
 
+// constants
+const ALLOWANCE = 5000000;
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -104,11 +107,11 @@ export async function ethTests(connector = null, tokens = []) {
 
   for (let token of tokens) {
     // call /approve on each token
-    console.log(`Resetting allowance for ${token} to 5000...`);
+    console.log(`Resetting allowance for ${token} to ${ALLOWANCE}...`);
     let approve1 = await request('post', '/eth/approve', {
       token: token,
       connector: connector,
-      amount: '5000',
+      amount: ALLOWANCE.toString(),
     });
     console.log(approve1);
     while (allowances[token] !== approve1.amount) {
