@@ -7,7 +7,6 @@ const uniV3 = require('@uniswap/v3-sdk');
 const ethers = require('ethers');
 const globalConfig =
   require('../services/configuration_manager').configManagerInstance;
-const routeTokens = require('../static/uniswap_route_tokens.json');
 
 const nftArtifact = require('@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json');
 const routerArtifact = require('@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json');
@@ -33,17 +32,8 @@ export default class UniswapV3 {
     this.nftManager = globalConfig.getConfig('UNISWAP_V3_NFT_MANAGER');
     this.core = globalConfig.getConfig('UNISWAP_V3_CORE');
     this.slippage = globalConfig.getConfig('UNISWAP_ALLOWED_SLIPPAGE');
-    this.pairsCacheTime = globalConfig.getConfig('UNISWAP_PAIRS_CACHE_TIME');
     this.gasLimit = GAS_LIMIT;
-    this.expireTokenPairUpdate = UPDATE_PERIOD;
-    this.zeroReserveCheckInterval = globalConfig.getConfig(
-      'UNISWAP_NO_RESERVE_CHECK_INTERVAL'
-    );
-    this.zeroReservePairs = {}; // No reserve pairs
     this.tokenList = {};
-    this.pools = {};
-    this.tokenSwapList = {};
-    this.cachedRoutes = {};
     this.abiDecoder = abiDecoder;
 
     switch (network) {
@@ -154,7 +144,6 @@ export default class UniswapV3 {
   ) {
     let fetchPrice = [],
       prices = [];
-    this.extend_update_pairs([tokenInAddressInfo, tokenOutAddressInfo]);
     const tokenIn = this.get_token(tokenInAddressInfo);
     const tokenOut = this.get_token(tokenOutAddressInfo);
     const poolContract = new ethers.Contract(
@@ -193,167 +182,85 @@ This swap section of this code is a duplicate of Uniswap v2 with little modifica
 Note that extending the uniswap v2 code may be possible in the future if uniswap v2 is updated to use the new uniswap/sdk-core library.
 */
   /////////////////////////////////////////////////////// Swap section
-  generate_tokens() {
-    for (let token of routeTokens[this.network]) {
-      this.get_token(token);
-    }
-  }
-
-  extend_update_pairs(tokens = []) {
-    for (let token of tokens) {
-      if (
-        !Object.prototype.hasOwnProperty.call(this.tokenList, token.address)
-      ) {
-        this.get_token(token);
+/*
+  async get_pairs(firstToken, secondToken) {
+    let poolDataRequests = [];
+    let pools = [];
+    try {
+      for (let tier of ['LOW', 'MEDIUM', 'HIGH']) {
+        let poolAddress = uniV3.Pool.getAddress(
+          firstToken,
+          secondToken,
+          FeeAmount[tier]
+        );
+        poolDataRequests.push(
+          this.get_pool_state(
+            poolAddress,
+            FeeAmount[tier],
+            this.provider
+          )
+        );
       }
-      this.tokenSwapList[token.address] =
-        Date.now() + this.expireTokenPairUpdate;
+    } catch (err) {
+      logger.error(err);
     }
-  }
-
-  async update_pairs() {
-    // Remove banned pairs after ban period
-    if (Object.keys(this.zeroReservePairs).length > 0) {
-      for (let pair in this.zeroReservePairs) {
-        if (this.zeroReservePairs[pair] <= Date.now()) {
-          delete this.zeroReservePairs[pair];
-          // delete this.tokenList[token];
-        }
-      }
-    }
-    // Generate all possible pair combinations of tokens
-    // This is done by generating an upper triangular matrix or right triangular matrix
-    if (Object.keys(this.tokenSwapList).length > 0) {
-      for (let tokenAddr in this.tokenSwapList) {
-        if (this.tokenSwapList[tokenAddr] <= Date.now()) {
-          delete this.tokenSwapList[tokenAddr];
-          // delete this.tokenList[tokenAddr];
-        }
-      }
-
-      let tokens = Object.keys(this.tokenList);
-      var firstToken, secondToken, position;
-      let length = tokens.length;
-      let pairs = [];
-      let poolDataRequests = [];
-      for (firstToken = 0; firstToken < length; firstToken++) {
-        for (
-          secondToken = firstToken + 1;
-          secondToken < length;
-          secondToken++
-        ) {
+    await Promise.allSettled(poolDataRequests).then((values) => {
+      for (let position = 0; position < poolDataRequests.length; position++) {
+        if (values[position].status === 'fulfilled') {
           try {
-            for (let tier of ['LOW', 'MEDIUM', 'HIGH']) {
-              let poolAddress = uniV3.Pool.getAddress(
-                this.tokenList[tokens[firstToken]],
-                this.tokenList[tokens[secondToken]],
-                FeeAmount[tier]
-              );
-              if (
-                !Object.prototype.hasOwnProperty.call(
-                  this.zeroReservePairs,
-                  poolAddress
-                )
-              ) {
-                pairs.push([
-                  poolAddress,
-                  this.tokenList[tokens[firstToken]],
-                  this.tokenList[tokens[secondToken]],
-                ]);
-                poolDataRequests.push(
-                  this.get_pool_state(
-                    poolAddress,
-                    FeeAmount[tier],
-                    this.provider
-                  )
-                );
-              }
-            }
+            let poolData = values[position].value;
+            pools.push(new uniV3.Pool(
+              firstToken,
+              secondToken,
+              poolData.fee,
+              poolData.sqrtPriceX96.toString(),
+              poolData.liquidity.toString(),
+              poolData.tick,
+              poolData.tickProvider
+            ));
           } catch (err) {
             logger.error(err);
           }
         }
       }
-
-      await Promise.allSettled(poolDataRequests).then((values) => {
-        for (position = 0; position < poolDataRequests.length; position++) {
-          if (values[position].status === 'fulfilled') {
-            try {
-              let poolData = values[position].value;
-              this.pools[pairs[position][0]] = new uniV3.Pool(
-                pairs[position][1],
-                pairs[position][2],
-                poolData.fee,
-                poolData.sqrtPriceX96.toString(),
-                poolData.liquidity.toString(),
-                poolData.tick,
-                poolData.tickProvider
-              );
-            } catch (err) {
-              debug(err);
-            }
-          } else {
-            this.zeroReservePairs[pairs[position][0]] =
-              Date.now() + this.zeroReserveCheckInterval;
-          }
-        }
-      });
-    }
-    setTimeout(this.update_pairs.bind(this), 4000);
+    });
+    return pools;
   }
 
   async priceSwapIn(tokenIn, tokenOut, tokenInAmount) {
-    this.extend_update_pairs([tokenIn, tokenOut]);
-    const tIn = this.tokenList[tokenIn.address];
-    const tOut = this.tokenList[tokenOut.address];
+    const tIn = this.get_token(tokenIn);
+    const tOut = this.get_token(tokenOut);
     const tokenAmountIn = new uni.CurrencyAmount.fromRawAmount(
       tIn,
       ethers.utils.parseUnits(tokenInAmount, tIn.decimals)
     );
-    if (Object.values(this.pools).length === 0) {
-      throw 'Connector not ready';
-    }
+    const pools = await this.get_pairs(tIn, tOut);
     const trades = await uniV3.Trade.bestTradeExactIn(
-      Object.values(this.pools),
+      pools,
       tokenAmountIn,
       tOut,
       { maxHops: 1 }
     );
-    let trade;
-    if (trades === undefined) {
-      trade = this.cachedRoutes[tIn.symbol + tOut.Symbol];
-    } else {
-      this.cachedRoutes[tIn.symbol + tOut.Symbol] = trades[0];
-      trade = trades[0];
-    }
+    let trade = trades[0]
     const expectedAmount = trade.minimumAmountOut(this.get_slippage());
     return { trade, expectedAmount };
   }
 
   async priceSwapOut(tokenIn, tokenOut, tokenOutAmount) {
-    this.extend_update_pairs([tokenIn, tokenOut]);
-    const tOut = this.tokenList[tokenOut.address];
-    const tIn = this.tokenList[tokenIn.address];
+    const tIn = this.get_token(tokenIn);
+    const tOut = this.get_token(tokenOut);
     const tokenAmountOut = new uni.CurrencyAmount.fromRawAmount(
       tOut,
       ethers.utils.parseUnits(tokenOutAmount, tOut.decimals)
     );
-    if (Object.values(this.pools).length === 0) {
-      throw 'Connector not ready';
-    }
+    const pools = await this.get_pairs(tIn, tOut);
     const trades = await uniV3.Trade.bestTradeExactOut(
-      Object.values(this.pools),
+      pools,
       tIn,
       tokenAmountOut,
       { maxHops: 1 }
     );
-    let trade;
-    if (trades === undefined) {
-      trade = this.cachedRoutes[tIn.symbol + tOut.Symbol];
-    } else {
-      this.cachedRoutes[tIn.symbol + tOut.Symbol] = trades[0];
-      trade = trades[0];
-    }
+    let trade = trades[0]
     const expectedAmount = trade.maximumAmountIn(this.get_slippage());
     return { trade, expectedAmount };
   }
@@ -377,7 +284,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
   }
 
   /////////////////////////////////////////////////// End of Swap section
-
+*/
   //////////////////////////////////////////////////////////// LP section
 
   async getPosition(wallet, tokenId, eth, isRaw = false) {
@@ -440,7 +347,7 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
       liquidityPercentage: this.get_percent(percent),
       slippageTolerance: this.get_slippage(),
       deadline: this.get_ttl(),
-      burnToken: percent == 100 ? true : false,
+      burnToken: false,  // percent == 100 ? true : false,
       collectOptions: {
         expectedCurrencyOwed0: new uni.CurrencyAmount.fromRawAmount(
           token0,
@@ -609,3 +516,4 @@ Note that extending the uniswap v2 code may be possible in the future if uniswap
   }
 }
 /////////////////////////////////////////////////////////// End of LP section
+exports.default = UniswapV3;
