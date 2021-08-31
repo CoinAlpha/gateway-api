@@ -83,7 +83,8 @@ export class EthereumService {
         this.chainId = 42;
         this.erc20TokenList = kovanErc20TokenList;
         break;
-      default: // MAINNET
+      default:
+        // MAINNET
         (async () => {
           const { data } = await axios.get(this.config.tokenListUrl);
           this.erc20TokenList = data;
