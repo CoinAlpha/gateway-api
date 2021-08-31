@@ -1,0 +1,216 @@
+{
+	"info": {
+		"_postman_id": "3c837b4c-d9ed-4ab8-baf4-6bc3af708e7a",
+		"name": "Balancer",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "eth/balancer",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/balancer/",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"balancer",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/balancer/start",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/balancer/start?pairs=[\"WETH-DAI\"]",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"balancer",
+						"start"
+					],
+					"query": [
+						{
+							"key": "pairs",
+							"value": "[\"WETH-DAI\"]"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/balancer/gas-limit",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "maxSwaps",
+							"value": "1",
+							"type": "text"
+						}
+					],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/balancer/gas-limit",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"balancer",
+						"gas-limit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/balancer/trade",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "base",
+							"value": "WETH",
+							"type": "text"
+						},
+						{
+							"key": "quote",
+							"value": "DAI",
+							"type": "text"
+						},
+						{
+							"key": "amount",
+							"value": "0.01",
+							"type": "text"
+						},
+						{
+							"key": "side",
+							"value": "buy",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/balancer/price",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"balancer",
+						"price"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/balancer/price/",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "base",
+							"value": "WETH",
+							"type": "text"
+						},
+						{
+							"key": "quote",
+							"value": "DAI",
+							"type": "text"
+						},
+						{
+							"key": "amount",
+							"value": "0.01",
+							"type": "text"
+						},
+						{
+							"key": "side",
+							"value": "buy",
+							"type": "text"
+						},
+						{
+							"key": "limitPrice",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "privateKey",
+							"value": "{{privateKey}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/balancer/price",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"balancer",
+						"price"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
