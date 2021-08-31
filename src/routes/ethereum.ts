@@ -7,6 +7,8 @@ import { EthereumConfigService } from '../services/ethereum_config';
 // import { EthereumGasService } from '../services/ethereum_gas';
 import Fees from '../services/fees';
 
+import { getNonceManager } from '../services/utils';
+
 import { logger } from '../services/logger';
 import { Router, Request, Response } from 'express';
 import { ethers } from 'ethers';
@@ -136,7 +138,9 @@ router.post('/approve', async (req: Request, res: Response) => {
   }
   // Getting Wallet
   try {
-    const wallet = ethereumService.getWallet(req.body.privateKey);
+    const wallet = await getNonceManager(
+      ethereumService.getWallet(req.body.privateKey)
+    );
 
     // Getting token info
     const token = ethereumService.getERC20Token(req.body.token);
