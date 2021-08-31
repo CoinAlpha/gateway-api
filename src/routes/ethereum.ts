@@ -144,7 +144,9 @@ router.post('/approve', async (req: Request, res: Response) => {
     if (!token) {
       res.status(500).send(`Token "${req.body.token}" is not supported`);
     } else {
-      const amount = ethers.utils.parseUnits(req.body.amount, token.decimals);
+      const amount = req.body.amount
+        ? ethers.utils.parseUnits(req.body.amount, token.decimals)
+        : ethers.constants.MaxUint256;
       // call approve function
       let approval;
       try {
