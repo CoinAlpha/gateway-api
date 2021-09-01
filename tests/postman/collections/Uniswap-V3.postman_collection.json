@@ -1,0 +1,444 @@
+{
+	"info": {
+		"_postman_id": "28f0dee4-0afc-4bee-b41f-60db8087c35e",
+		"name": "Uniswap-V3",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "eth/uniswap/v3",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/uniswap/v3",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"uniswap",
+						"v3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/uniswap/v3/start",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/uniswap/v3/start?pairs=[\"WETH-DAI\"]",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"uniswap",
+						"v3",
+						"start"
+					],
+					"query": [
+						{
+							"key": "pairs",
+							"value": "[\"WETH-DAI\"]"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/uniswap/v3/gas-limit",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/uniswap/v3/gas-limit",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"uniswap",
+						"v3",
+						"gas-limit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/uniswap/v3/result",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "logs",
+							"value": "[]",
+							"type": "text"
+						},
+						{
+							"key": "pair",
+							"value": "WETH-DAI",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/uniswap/v3/result",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"uniswap",
+						"v3",
+						"result"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/uniswap/v3/price",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "base",
+							"value": "DAI",
+							"type": "text"
+						},
+						{
+							"key": "quote",
+							"value": "WETH",
+							"type": "text"
+						},
+						{
+							"key": "privateKey",
+							"value": "{{privateKey}}",
+							"type": "text"
+						},
+						{
+							"key": "tier",
+							"value": "LOW",
+							"type": "text"
+						},
+						{
+							"key": "seconds",
+							"value": "1",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/uniswap/v3/price",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"uniswap",
+						"v3",
+						"price"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/uniswap/v3/trade",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "base",
+							"value": "DAI",
+							"type": "text"
+						},
+						{
+							"key": "quote",
+							"value": "WETH",
+							"type": "text"
+						},
+						{
+							"key": "amount",
+							"value": "100",
+							"type": "text"
+						},
+						{
+							"key": "side",
+							"value": "sell",
+							"type": "text"
+						},
+						{
+							"key": "limitPrice",
+							"value": "",
+							"type": "text"
+						},
+						{
+							"key": "tier",
+							"value": "LOW",
+							"type": "text"
+						},
+						{
+							"key": "privateKey",
+							"value": "{{privateKey}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/uniswap/v3/trade",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"uniswap",
+						"v3",
+						"trade"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/uniswap/v3/position",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "tokenId",
+							"value": "6498",
+							"type": "text"
+						},
+						{
+							"key": "privateKey",
+							"value": "{{privateKey}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/uniswap/v3/position",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"uniswap",
+						"v3",
+						"position"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/uniswap/v3/add-position",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "gasPrice",
+							"value": "37",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "privateKey",
+							"value": "{{privateKey}}",
+							"type": "text"
+						},
+						{
+							"key": "token0",
+							"value": "DAI",
+							"type": "text"
+						},
+						{
+							"key": "token1",
+							"value": "WETH",
+							"type": "text"
+						},
+						{
+							"key": "fee",
+							"value": "LOW",
+							"type": "text"
+						},
+						{
+							"key": "lowerPrice",
+							"value": "0.0003",
+							"type": "text"
+						},
+						{
+							"key": "upperPrice",
+							"value": "0.0005",
+							"type": "text"
+						},
+						{
+							"key": "amount0",
+							"value": "100",
+							"type": "text"
+						},
+						{
+							"key": "amount1",
+							"value": "0.05",
+							"type": "text"
+						},
+						{
+							"key": "tokenId",
+							"value": "3413",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/uniswap/v3/add-position",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"uniswap",
+						"v3",
+						"add-position"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/uniswap/v3/remove-position",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "privateKey",
+							"value": "{{privateKey}}",
+							"type": "text"
+						},
+						{
+							"key": "tokenId",
+							"value": "6498",
+							"type": "text"
+						},
+						{
+							"key": "getFee",
+							"value": "FALSE",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/uniswap/v3/remove-position",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"uniswap",
+						"v3",
+						"remove-position"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eth/uniswap/v3/collect-fees",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "privateKey",
+							"value": "{{privateKey}}",
+							"type": "text"
+						},
+						{
+							"key": "tokenId",
+							"value": "6498",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://localhost:{{port}}/eth/uniswap/v3/collect-fees",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "{{port}}",
+					"path": [
+						"eth",
+						"uniswap",
+						"v3",
+						"collect-fees"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
