@@ -90,7 +90,7 @@ router.get('/start', async (req: Request, res: Response) => {
       gasPrice = fees.ethGasPrice;
     }
 
-    // get token contract address and cache pools
+    // get token contract address pools
     for (let pair of pairs) {
       pair = pair.split('-');
       const baseTokenSymbol = pair[0];
@@ -100,18 +100,7 @@ router.get('/start', async (req: Request, res: Response) => {
 
       // check for valid token symbols
 
-      if (baseTokenContractInfo && quoteTokenContractInfo) {
-        await Promise.allSettled([
-          balancer.fetchPool(
-            baseTokenContractInfo.address,
-            quoteTokenContractInfo.address
-          ),
-          balancer.fetchPool(
-            quoteTokenContractInfo.address,
-            baseTokenContractInfo.address
-          ),
-        ]);
-      } else {
+      if (!baseTokenContractInfo && !quoteTokenContractInfo) {
         const undefinedToken =
           baseTokenContractInfo === undefined
             ? baseTokenSymbol
@@ -137,7 +126,6 @@ router.get('/start', async (req: Request, res: Response) => {
       gasLimit: gasLimit,
       gasCost: gasCost,
     };
-    logger.info('Initializing balancer');
     res.status(200).json(result);
   } else {
     res.status(500).json({ err: 'unexpected pairs type' });

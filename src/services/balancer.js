@@ -24,7 +24,6 @@ export default class Balancer {
     this.gasPerSwap = GAS_PER_SWAP;
     this.maxSwaps = globalConfig.getConfig('BALANCER_MAX_SWAPS') || 4;
     this.exchangeProxy = globalConfig.getConfig('EXCHANGE_PROXY');
-    this.cachedPools = [];
 
     switch (network) {
       case 'mainnet':
@@ -43,7 +42,6 @@ export default class Balancer {
 
   async fetchPool(tokenIn, tokenOut) {
     const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut);
-    this.cachedPools[tokenIn + tokenOut] = pools;
 
     if (pools.pools.length === 0) {
       debug('>>> No pools contain the tokens provided.', {
@@ -54,14 +52,7 @@ export default class Balancer {
     debug(`>>> ${pools.pools.length} Pools Retrieved.`, {
       message: this.network,
     });
-  }
-
-  async getCachedPools(tokenIn, tokenOut) {
-    const cachePools = this.cachedPools[tokenIn + tokenOut].pools;
-    debug(`>>> get cached Pools. ${tokenIn + tokenOut}`, {
-      message: `total pools: ${cachePools.length}`,
-    });
-    return cachePools;
+    return pools.pools;
   }
 
   async priceSwapIn(
@@ -73,13 +64,12 @@ export default class Balancer {
     // Fetch all the pools that contain the tokens provided
     try {
       // Get current on-chain data about the fetched pools
-      await this.fetchPool(tokenIn, tokenOut);
+      const pools = await this.fetchPool(tokenIn, tokenOut);
 
       let poolData;
-      const cachedPools = await this.getCachedPools(tokenIn, tokenOut);
       if (this.network === 'mainnet') {
         poolData = await sor.parsePoolDataOnChain(
-          cachedPools,
+          pools,
           tokenIn,
           tokenOut,
           this.multiCall,
@@ -87,7 +77,7 @@ export default class Balancer {
         );
       } else {
         // Kovan multicall throws an ENS error
-        poolData = await sor.parsePoolData(cachedPools, tokenIn, tokenOut);
+        poolData = await sor.parsePoolData(pools, tokenIn, tokenOut);
       }
 
       // Parse the pools and pass them to smart order outer to get the swaps needed
@@ -138,13 +128,12 @@ export default class Balancer {
     // Fetch all the pools that contain the tokens provided
     try {
       // Get current on-chain data about the fetched pools
-      await this.fetchPool(tokenIn, tokenOut);
+      const pools = await this.fetchPool(tokenIn, tokenOut);
 
       let poolData;
-      const cachedPools = await this.getCachedPools(tokenIn, tokenOut);
       if (this.network === 'mainnet') {
         poolData = await sor.parsePoolDataOnChain(
-          cachedPools,
+          pools,
           tokenIn,
           tokenOut,
           this.multiCall,
@@ -152,7 +141,7 @@ export default class Balancer {
         );
       } else {
         // Kovan multicall throws an ENS error
-        poolData = await sor.parsePoolData(cachedPools, tokenIn, tokenOut);
+        poolData = await sor.parsePoolData(pools, tokenIn, tokenOut);
       }
 
       // Parse the pools and pass them to smart order outer to get the swaps needed
