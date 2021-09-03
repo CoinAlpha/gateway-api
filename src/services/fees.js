@@ -9,7 +9,9 @@ const globalConfig =
 const ethGasStationEnabled =
   globalConfig.getConfig('ETH_GAS_STATION_ENABLE') || false;
 const ethGasStationApiKey = globalConfig.getConfig('ETH_GAS_STATION_API_KEY');
-const ethManualGasPrice = parseInt(globalConfig.getConfig('ETH_MANUAL_GAS_PRICE'));
+const ethManualGasPrice = parseInt(
+  globalConfig.getConfig('ETH_MANUAL_GAS_PRICE')
+);
 const ethGasStationURL =
   ethGasStationHost + '/api/ethgasAPI.json?api-key=' + ethGasStationApiKey;
 const defaultRefreshInterval = 120;
