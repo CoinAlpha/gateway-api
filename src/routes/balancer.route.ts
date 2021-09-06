@@ -153,7 +153,7 @@ router.post('/price', async (req: Request, res: Response) => {
     const baseDenomMultiplier = 10 ** baseTokenContractInfo.decimals;
     const quoteDenomMultiplier = 10 ** quoteTokenContractInfo.decimals;
     const amount = new BigNumber(
-      parseInt(req.body.amount) * baseDenomMultiplier
+      parseFloat(req.body.amount) * baseDenomMultiplier
     );
     const maxSwaps = balancer.maxSwaps;
     const side = req.body.side.toUpperCase();
@@ -262,7 +262,7 @@ router.post('/trade', async (req: Request, res: Response) => {
     const baseDenomMultiplier = 10 ** baseTokenContractInfo.decimals;
     const quoteDenomMultiplier = 10 ** quoteTokenContractInfo.decimals;
     const amount = new BigNumber(
-      parseInt(req.body.amount) * baseDenomMultiplier
+      parseFloat(req.body.amount) * baseDenomMultiplier
     );
 
     const maxSwaps = balancer.maxSwaps;
