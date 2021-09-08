@@ -28,20 +28,6 @@ ETHEREUM_CHAIN:
 ETHEREUM_RPC_URL: "https://{chain}.infura.io/v3/{api_key}"
 ETHEREUM_TOKEN_LIST_URL: https://wispy-bird-88a7.uniswap.workers.dev/?url=http://tokens.1inch.eth.link
 
-# Balancer
-# subgraph_chain
-# Reference: https://docs.balancer.finance/sor/development#subgraph
-# - mainnet: balancer
-# - kovan: balancer-kovan
-# Note: REACT_APP_SUBGRAPH_URL used by @balancer-labs/sor
-REACT_APP_SUBGRAPH_URL: https://api.thegraph.com/subgraphs/name/balancer-labs/{subgraph_chain}
-
-# exchange_proxy:
-# Reference: https://docs.balancer.finance/smart-contracts/addresses
-# - mainnet: 0x3E66B66Fd1d0b02fDa6C811Da9E0547970DB2f21
-# - kovan: 0x4e67bf5bD28Dd4b570FBAFe11D0633eCbA2754Ec
-EXCHANGE_PROXY:
-
 # Uniswap
 # Reference: https://uniswap.org/docs/v2/smart-contracts/router02/
 # UniswapV2Router02 is deployed at 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D on the Ethereum mainnet, and the Ropsten, Rinkeby, Görli, and Kovan testnets.
