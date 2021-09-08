@@ -86,7 +86,11 @@ async function unitTests() {
   assert.equal(tx2.receipt.status, 1, 'Sell trade reverted.');
 
   // add tests for extreme values of limitPrice - buy and sell
-  console.log(`Testing for failure with ${buyPrice.price / SCALE_FACTOR} buy limitPrice...`);
+  console.log(
+    `Testing for failure with ${
+      buyPrice.price / SCALE_FACTOR
+    } buy limitPrice...`
+  );
   assert.notExists(
     await request('post', '/eth/balancer/trade', {
       base: TOKENS[0],
@@ -98,7 +102,11 @@ async function unitTests() {
   );
 
   // add tests for extreme values of minimumSlippage
-  console.log(`Testing for failure with ${sellPrice.price * SCALE_FACTOR} sell limitPrice...`);
+  console.log(
+    `Testing for failure with ${
+      sellPrice.price * SCALE_FACTOR
+    } sell limitPrice...`
+  );
   assert.notExists(
     await request('post', '/eth/balancer/trade', {
       base: TOKENS[0],

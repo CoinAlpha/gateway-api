@@ -1,212 +1,141 @@
 import { logger } from '../services/logger';
+import Fees from '../services/fees';
 const debug = require('debug')('router');
 const sor = require('@balancer-labs/sor');
 const BigNumber = require('bignumber.js');
 const ethers = require('ethers');
-const proxyArtifact = require('../static/ExchangeProxy.json');
+const proxyArtifact = require('../static/balancer_vault_abi.json');
 const globalConfig =
   require('../services/configuration_manager').configManagerInstance;
 
 // constants
-const MULTI = '0xeefba1e63905ef1d7acba5a8513c70307c1ce441';
-const MULTI_KOVAN = ' 0x2cc8688C5f75E365aaEEb4ea8D6a480405A48D2A';
 const MAX_UINT = ethers.constants.MaxUint256;
-const GAS_BASE = globalConfig.getConfig('BALANCER_GAS_BASE') || 200688;
-const GAS_PER_SWAP = globalConfig.getConfig('BALANCER_GAS_PER_SWAP') || 100000;
+const GAS_BASE = globalConfig.getConfig('BALANCER_GAS_BASE') || 200688; // thesame as gas limit
+const VAULT = '0xBA12222222228d8Ba445958a75a0704d566BF2C8'; // vault address, thesame on all major networks
+const Network = {
+  MAINNET: 1,
+  KOVAN: 42,
+};
+
+const SUBGRAPH_URLS = {
+  [Network.MAINNET]:
+    'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2',
+  [Network.KOVAN]:
+    'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-kovan-v2',
+};
 
 export default class Balancer {
-  constructor(network = 'kovan') {
-    const providerUrl = globalConfig.getConfig('ETHEREUM_RPC_URL');
+  constructor() {
     this.network = globalConfig.getConfig('ETHEREUM_CHAIN');
-    this.provider = new ethers.providers.JsonRpcProvider(providerUrl);
-    this.subgraphUrl = globalConfig.getConfig('REACT_APP_SUBGRAPH_URL');
-    this.gasBase = GAS_BASE;
-    this.gasPerSwap = GAS_PER_SWAP;
-    this.maxSwaps = globalConfig.getConfig('BALANCER_MAX_SWAPS') || 4;
-    this.exchangeProxy = globalConfig.getConfig('EXCHANGE_PROXY');
+    this.maxSwaps = globalConfig.getConfig('BALANCER_MAX_SWAPS') || 4; // or max hop
+    this.provider = new ethers.providers.JsonRpcProvider(
+      globalConfig.getConfig('ETHEREUM_RPC_URL')
+    );
+    this.fees = new Fees();
+    this.chainId = Network[this.network.toUpperCase()]
+    this.subgraphUrl = SUBGRAPH_URLS[this.chainId];
+    this.sor = new sor.SOR(
+      this.provider,
+      this.chainId,
+      this.subgraphUrl
+    );
+    this.gasLimit = GAS_BASE;
+    this.vault = VAULT;
+  }
 
-    switch (network) {
-      case 'mainnet':
-        this.multiCall = MULTI;
-        break;
-      case 'kovan':
-        this.multiCall = MULTI_KOVAN;
-        break;
-      default: {
-        const err = `Invalid network ${network}`;
-        logger.error(err);
-        throw Error(err);
-      }
+  async priceSwapIn(tokenIn, tokenOut, tokenInAmount) {
+    try {
+      await this.sor.fetchPools(true); // update pools from current on-chain data
+      const gasPrice = new BigNumber(this.fees.ethGasPrice * 1e9); // update gas price for sor to enable it find effectivice routes
+
+      const swapInfo = await this.sor.getSwaps(
+        tokenIn.address,
+        tokenOut.address,
+        sor.SwapTypes.SwapExactIn,
+        tokenInAmount,
+        { gasPrice: gasPrice, maxPools: this.maxSwaps}
+      );
+      const expectedAmount = sor
+        .scale(swapInfo.returnAmount, -tokenOut.decimals)
+        .toString();
+      debug(`Expected Out: ${expectedAmount}`);
+
+      return { swapInfo, expectedAmount, cost: '0', fee: this.fees.ethGasPrice };
+    } catch (err) {
+      logger.error(err);
+      let reason;
+      err.reason
+        ? (reason = err.reason)
+        : (reason = 'error fetching price to swap in');
+      return reason;
     }
   }
 
-  async fetchPool(tokenIn, tokenOut) {
-    const pools = await sor.getPoolsWithTokens(tokenIn, tokenOut);
+  async priceSwapOut(tokenIn, tokenOut, tokenOutAmount) {
+    try {
+      await this.sor.fetchPools(); // update pools from current on-chain data
+      const maxPools = this.maxSwaps;
+      const gasPrice = new BigNumber(this.fees.ethGasPrice * 1e9); // update gas price for sor to enable it find effectivice routes
 
-    if (pools.pools.length === 0) {
-      debug('>>> No pools contain the tokens provided.', {
-        message: this.network,
+      const swapInfo = await this.sor.getSwaps(
+        tokenIn.address,
+        tokenOut.address,
+        sor.SwapTypes.SwapExactOut,
+        tokenOutAmount,
+        { gasPrice: gasPrice, maxPools: this.maxSwaps}
+      );
+      const expectedAmount = sor
+        .scale(swapInfo.returnAmount, -tokenIn.decimals)
+        .toString();
+
+      debug(`Expected Out: ${expectedAmount})`);
+
+      return { swapInfo, expectedAmount, cost: '0', fee: this.fees.ethGasPrice };
+    } catch (err) {
+      logger.error(err);
+      let reason;
+      err.reason
+        ? (reason = err.reason)
+        : (reason = 'error fetching price to swap out');
+      return reason;
+    }
+  }
+
+  async swapExactIn(wallet, swapInfo, gasPrice) {
+    const limits = [];
+    if (swapInfo) {
+      swapInfo.tokenAddresses.forEach((token, i) => {
+        if (token.toLowerCase() === swapInfo.tokenIn.toLowerCase()) {
+          limits[i] = swapInfo.swapAmount.toString();
+        } else if (token.toLowerCase() === swapInfo.tokenOut.toLowerCase()) {
+          limits[i] = swapInfo.returnAmount.toString();
+        } else {
+          limits[i] = '0';
+        }
       });
-      return {};
     }
-    debug(`>>> ${pools.pools.length} Pools Retrieved.`, {
-      message: this.network,
-    });
-    return pools.pools;
-  }
-
-  async priceSwapIn(
-    tokenIn,
-    tokenOut,
-    tokenInAmount,
-    maxSwaps = this.maxSwaps
-  ) {
-    // Fetch all the pools that contain the tokens provided
-    try {
-      // Get current on-chain data about the fetched pools
-      const pools = await this.fetchPool(tokenIn, tokenOut);
-
-      let poolData;
-      if (this.network === 'mainnet') {
-        poolData = await sor.parsePoolDataOnChain(
-          pools,
-          tokenIn,
-          tokenOut,
-          this.multiCall,
-          this.provider
-        );
-      } else {
-        // Kovan multicall throws an ENS error
-        poolData = await sor.parsePoolData(pools, tokenIn, tokenOut);
-      }
-
-      // Parse the pools and pass them to smart order outer to get the swaps needed
-      const sorSwaps = sor.smartOrderRouter(
-        poolData, // balancers: Pool[]
-        'swapExactIn', // swapType: string
-        tokenInAmount, // targetInputAmount: BigNumber
-        new BigNumber(maxSwaps.toString()), // maxBalancers: number
-        0 // costOutputToken: BigNumber
-      );
-
-      const swapsFormatted = sor.formatSwapsExactAmountIn(
-        sorSwaps,
-        MAX_UINT,
-        0
-      );
-      const expectedAmount = sor.calcTotalOutput(swapsFormatted, poolData);
-      debug(`Expected Out: ${expectedAmount.toString()} (${tokenOut})`);
-
-      // Create correct swap format for new proxy
-      let swaps = [];
-      for (let i = 0; i < swapsFormatted.length; i++) {
-        let swap = {
-          pool: swapsFormatted[i].pool,
-          tokenIn: tokenIn,
-          tokenOut: tokenOut,
-          swapAmount: swapsFormatted[i].tokenInParam,
-          limitReturnAmount: swapsFormatted[i].tokenOutParam,
-          maxPrice: swapsFormatted[i].maxPrice.toString(),
-        };
-        swaps.push(swap);
-      }
-      return { swaps, expectedAmount };
-    } catch (err) {
-      logger.error(err);
-      let reason;
-      err.reason ? (reason = err.reason) : (reason = 'error in swapExactOut');
-      return reason;
-    }
-  }
-
-  async priceSwapOut(
-    tokenIn,
-    tokenOut,
-    tokenOutAmount,
-    maxSwaps = this.maxSwaps
-  ) {
-    // Fetch all the pools that contain the tokens provided
-    try {
-      // Get current on-chain data about the fetched pools
-      const pools = await this.fetchPool(tokenIn, tokenOut);
-
-      let poolData;
-      if (this.network === 'mainnet') {
-        poolData = await sor.parsePoolDataOnChain(
-          pools,
-          tokenIn,
-          tokenOut,
-          this.multiCall,
-          this.provider
-        );
-      } else {
-        // Kovan multicall throws an ENS error
-        poolData = await sor.parsePoolData(pools, tokenIn, tokenOut);
-      }
-
-      // Parse the pools and pass them to smart order outer to get the swaps needed
-      const sorSwaps = sor.smartOrderRouter(
-        poolData, // balancers: Pool[]
-        'swapExactOut', // swapType: string
-        tokenOutAmount, // targetInputAmount: BigNumber
-        new BigNumber(maxSwaps.toString()), // maxBalancers: number
-        0 // costOutputToken: BigNumber
-      );
-      const swapsFormatted = sor.formatSwapsExactAmountOut(
-        sorSwaps,
-        MAX_UINT,
-        MAX_UINT
-      );
-      const expectedAmount = sor.calcTotalInput(swapsFormatted, poolData);
-      debug(`Expected In: ${expectedAmount.toString()} (${tokenIn})`);
-
-      // Create correct swap format for new proxy
-      let swaps = [];
-      for (let i = 0; i < swapsFormatted.length; i++) {
-        let swap = {
-          pool: swapsFormatted[i].pool,
-          tokenIn: tokenIn,
-          tokenOut: tokenOut,
-          swapAmount: swapsFormatted[i].tokenOutParam,
-          limitReturnAmount: swapsFormatted[i].tokenInParam,
-          maxPrice: swapsFormatted[i].maxPrice.toString(),
-        };
-        swaps.push(swap);
-      }
-      return { swaps, expectedAmount };
-    } catch (err) {
-      logger.error(err);
-      let reason;
-      err.reason ? (reason = err.reason) : (reason = 'error in swapExactOut');
-      return reason;
-    }
-  }
-
-  async swapExactIn(
-    wallet,
-    swaps,
-    tokenIn,
-    tokenOut,
-    amountIn,
-    minAmountOut,
-    gasPrice
-  ) {
-    debug(`Number of swaps: ${swaps.length}`);
+    const funds = {
+      sender: wallet.address,
+      recipient: wallet.address,
+      fromInternalBalance: false,
+      toInternalBalance: false,
+    };
     try {
       const contract = new ethers.Contract(
-        this.exchangeProxy,
+        this.vault,
         proxyArtifact.abi,
         wallet
       );
-      const tx = await contract.batchSwapExactIn(
-        swaps,
-        tokenIn,
-        tokenOut,
-        amountIn,
-        0,
+      const tx = await contract.batchSwap(
+        sor.SwapTypes.SwapExactIn,
+        swapInfo.swaps,
+        swapInfo.tokenAddresses,
+        funds,
+        limits,
+        MAX_UINT, // deadline
         {
           gasPrice: gasPrice * 1e9,
-          gasLimit: GAS_BASE + swaps.length * GAS_PER_SWAP,
+          gasLimit: this.gasLimit,
         }
       );
       debug(`Tx Hash: ${tx.hash}`);
@@ -214,27 +143,46 @@ export default class Balancer {
     } catch (err) {
       logger.error(err);
       let reason;
-      err.reason ? (reason = err.reason) : (reason = 'error in swapExactIn');
+      err.reason ? (reason = err.reason) : (reason = 'error swapping in');
       return reason;
     }
   }
 
-  async swapExactOut(wallet, swaps, tokenIn, tokenOut, expectedIn, gasPrice) {
-    debug(`Number of swaps: ${swaps.length}`);
+  async swapExactOut(wallet, swapInfo, gasPrice) {
+    const limits = [];
+    if (swapInfo) {
+      swapInfo.tokenAddresses.forEach((token, i) => {
+        if (token.toLowerCase() === swapInfo.tokenIn.toLowerCase()) {
+          limits[i] = swapInfo.returnAmount.toString();
+        } else if (token.toLowerCase() === swapInfo.tokenOut.toLowerCase()) {
+          limits[i] = swapInfo.swapAmount.toString();
+        } else {
+          limits[i] = '0';
+        }
+      });
+    }
+    const funds = {
+      sender: wallet.address,
+      recipient: wallet.address,
+      fromInternalBalance: false,
+      toInternalBalance: false,
+    };
     try {
       const contract = new ethers.Contract(
-        this.exchangeProxy,
+        this.vault,
         proxyArtifact.abi,
         wallet
       );
-      const tx = await contract.batchSwapExactOut(
-        swaps,
-        tokenIn,
-        tokenOut,
-        expectedIn,
+      const tx = await contract.batchSwap(
+        sor.SwapTypes.SwapExactOut,
+        swapInfo.swaps,
+        swapInfo.tokenAddresses,
+        funds,
+        limits,
+        MAX_UINT, // deadline
         {
           gasPrice: gasPrice * 1e9,
-          gasLimit: GAS_BASE + swaps.length * GAS_PER_SWAP,
+          gasLimit: this.gasLimit,
         }
       );
       debug(`Tx Hash: ${tx.hash}`);
