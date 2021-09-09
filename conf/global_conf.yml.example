@@ -28,6 +28,9 @@ ETHEREUM_CHAIN:
 ETHEREUM_RPC_URL: "https://{chain}.infura.io/v3/{api_key}"
 ETHEREUM_TOKEN_LIST_URL: https://wispy-bird-88a7.uniswap.workers.dev/?url=http://tokens.1inch.eth.link
 
+# Balancer
+BALANCER_VAULT: "0xBA12222222228d8Ba445958a75a0704d566BF2C8"
+
 # Uniswap
 # Reference: https://uniswap.org/docs/v2/smart-contracts/router02/
 # UniswapV2Router02 is deployed at 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D on the Ethereum mainnet, and the Ropsten, Rinkeby, Görli, and Kovan testnets.
