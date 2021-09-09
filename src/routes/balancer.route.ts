@@ -140,13 +140,13 @@ router.post('/price', async (req: Request, res: Response) => {
 
   if (baseTokenContractInfo && quoteTokenContractInfo) {
     const amount = new BigNumber(
-      parseFloat(req.body.amount) * 10 ** baseTokenContractInfo.decimals
+      parseFloat(req.body.amount)
     );
     const side = req.body.side.toUpperCase();
 
     try {
       // fetch the optimal pool mix from balancer-sor
-      const { swaps, expectedAmount, swapCost, gasPrice } =
+      const { swapInfo, expectedAmount, cost, gasPrice } =
         side === 'BUY'
           ? await balancer.priceSwapOut(
               quoteTokenContractInfo, // tokenIn is quote asset
@@ -159,19 +159,19 @@ router.post('/price', async (req: Request, res: Response) => {
               amount
             );
 
-      if (swaps != null && expectedAmount != null) {
-        const gasLimit = estimateGasLimit(swapCost);
+      if (swapInfo != null && expectedAmount != null && expectedAmount > "0") {
+        const gasLimit = estimateGasLimit(cost);
         const gasCost = await fees.getGasCost(gasPrice, gasLimit);
 
-        const tradePrice = expectedAmount / Number(amount);
+        const tradePrice = expectedAmount.div(amount).toString();
 
         const result = {
           network: balancer.network,
           timestamp: initTime,
           latency: latency(initTime, Date.now()),
-          base: baseTokenContractInfo,
-          quote: quoteTokenContractInfo,
-          amount: Number(amount),
+          base: baseTokenContractInfo.symbol,
+          quote: quoteTokenContractInfo.symbol,
+          amount: amount.toString(),
           side: side,
           expectedAmount: expectedAmount,
           price: tradePrice,
@@ -181,12 +181,12 @@ router.post('/price', async (req: Request, res: Response) => {
           swaps: balancer.maxSwaps,
         };
         debug(
-          `Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`
+          `Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount.toString()} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`
         );
         res.status(200).json(result);
       } else {
         // no pool available
-        res.status(200).json({
+        res.status(500).json({
           info: statusMessages.no_pool_available,
           message: statusMessages.no_pool_available,
         });
@@ -232,7 +232,7 @@ router.post('/trade', async (req: Request, res: Response) => {
 
   if (baseTokenContractInfo && quoteTokenContractInfo) {
     const amount = new BigNumber(
-      parseFloat(req.body.amount) * 10 ** baseTokenContractInfo.decimals
+      parseFloat(req.body.amount)
     );
 
     const side = req.body.side.toUpperCase();
@@ -241,7 +241,7 @@ router.post('/trade', async (req: Request, res: Response) => {
 
     try {
       // fetch the optimal pool mix from balancer-sor
-      const { swaps, expectedAmount, swapCost, gasPrice } =
+      const { swapInfo, expectedAmount, cost, gasPrice } =
         side === 'BUY'
           ? await balancer.priceSwapOut(
               quoteTokenContractInfo, // tokenIn is quote asset
@@ -254,23 +254,23 @@ router.post('/trade', async (req: Request, res: Response) => {
               amount
             );
 
-      const gasLimit = estimateGasLimit(swapCost);
+      const gasLimit = estimateGasLimit(cost);
       const gasCost = await fees.getGasCost(gasPrice, gasLimit);
 
       if (side === 'BUY') {
-        const price = expectedAmount / Number(amount);
-        logger.info(`Price: ${price.toString()}`);
-        if (!limitPrice || price <= limitPrice) {
+        const price = expectedAmount.div(amount).toString();
+        logger.info(`Price: ${price}`);
+        if (!limitPrice || parseFloat(price) <= limitPrice) {
           // pass swaps to exchange-proxy to complete trade
-          const tx = await balancer.swapExactOut(wallet, swaps, gasPrice);
+          const tx = await balancer.swapExactOut(wallet, swapInfo, gasPrice);
 
           // submit response
           res.status(200).json({
             network: balancer.network,
             timestamp: initTime,
             latency: latency(initTime, Date.now()),
-            base: baseTokenContractInfo,
-            quote: quoteTokenContractInfo,
+            base: baseTokenContractInfo.symbol,
+            quote: quoteTokenContractInfo.symbol,
             amount: parseFloat(req.body.amount),
             expectedIn: expectedAmount,
             price: price,
@@ -288,20 +288,20 @@ router.post('/trade', async (req: Request, res: Response) => {
         }
       } else {
         // sell
-        const minAmountOut = limitPrice / Number(amount);
+        const minAmountOut = limitPrice / parseFloat(amount.toString());
         debug('minAmountOut', minAmountOut);
-        const price = expectedAmount / Number(amount);
-        logger.info(`Price: ${price.toString()}`);
-        if (!limitPrice || price >= limitPrice) {
+        const price = expectedAmount.div(amount).toString();
+        logger.info(`Price: ${price}`);
+        if (!limitPrice || parseFloat(price) >= limitPrice) {
           // pass swaps to exchange-proxy to complete trade
-          const tx = await balancer.swapExactIn(wallet, swaps, gasPrice);
+          const tx = await balancer.swapExactIn(wallet, swapInfo, gasPrice);
           // submit response
           res.status(200).json({
             network: balancer.network,
             timestamp: initTime,
             latency: latency(initTime, Date.now()),
-            base: baseTokenContractInfo,
-            quote: quoteTokenContractInfo,
+            base: baseTokenContractInfo.symbol,
+            quote: quoteTokenContractInfo.symbol,
             amount: parseFloat(req.body.amount),
             expectedOut: expectedAmount,
             price: price,

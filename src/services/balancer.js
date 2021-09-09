@@ -11,7 +11,7 @@ const globalConfig =
 // constants
 const MAX_UINT = ethers.constants.MaxUint256;
 const GAS_BASE = globalConfig.getConfig('BALANCER_GAS_BASE') || 200688; // thesame as gas limit
-const VAULT = '0xBA12222222228d8Ba445958a75a0704d566BF2C8'; // vault address, thesame on all major networks
+export const VAULT = '0xBA12222222228d8Ba445958a75a0704d566BF2C8'; // vault address, thesame on all major networks
 const Network = {
   MAINNET: 1,
   KOVAN: 42,
@@ -56,11 +56,10 @@ export default class Balancer {
         { gasPrice: gasPrice, maxPools: this.maxSwaps}
       );
       const expectedAmount = sor
-        .scale(swapInfo.returnAmount, -tokenOut.decimals)
-        .toString();
-      debug(`Expected Out: ${expectedAmount}`);
+        .scale(swapInfo.returnAmount, -tokenOut.decimals);
+      debug(`Expected Out: ${expectedAmount.toString()}`);
 
-      return { swapInfo, expectedAmount, cost: '0', fee: this.fees.ethGasPrice };
+      return { swapInfo, expectedAmount, cost: '0', gasPrice: this.fees.ethGasPrice };
     } catch (err) {
       logger.error(err);
       let reason;
@@ -85,12 +84,11 @@ export default class Balancer {
         { gasPrice: gasPrice, maxPools: this.maxSwaps}
       );
       const expectedAmount = sor
-        .scale(swapInfo.returnAmount, -tokenIn.decimals)
-        .toString();
+        .scale(swapInfo.returnAmount, -tokenIn.decimals);
 
-      debug(`Expected Out: ${expectedAmount})`);
+      debug(`Expected Out: ${expectedAmount.toString()})`);
 
-      return { swapInfo, expectedAmount, cost: '0', fee: this.fees.ethGasPrice };
+      return { swapInfo, expectedAmount, cost: '0', gasPrice: this.fees.ethGasPrice };
     } catch (err) {
       logger.error(err);
       let reason;
