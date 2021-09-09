@@ -249,17 +249,17 @@ router.post('/trade', async (req: Request, res: Response) => {
               amount
             )
           : await balancer.priceSwapIn(
-              quoteTokenContractInfo, // tokenIn is base asset
-              baseTokenContractInfo, // tokenOut is quote asset
+              baseTokenContractInfo, // tokenIn is base asset
+              quoteTokenContractInfo, // tokenOut is quote asset
               amount
             );
 
       const gasLimit = estimateGasLimit(cost);
       const gasCost = await fees.getGasCost(gasPrice, gasLimit);
+      const price = expectedAmount.div(amount).toString();
+      logger.info(`Price: ${price}`);
 
       if (side === 'BUY') {
-        const price = expectedAmount.div(amount).toString();
-        logger.info(`Price: ${price}`);
         if (!limitPrice || parseFloat(price) <= limitPrice) {
           // pass swaps to exchange-proxy to complete trade
           const tx = await balancer.swapExactOut(wallet, swapInfo, gasPrice);
@@ -286,12 +286,7 @@ router.post('/trade', async (req: Request, res: Response) => {
           });
           debug(`Swap price ${price} exceeds limitPrice ${limitPrice}`);
         }
-      } else {
-        // sell
-        const minAmountOut = limitPrice / parseFloat(amount.toString());
-        debug('minAmountOut', minAmountOut);
-        const price = expectedAmount.div(amount).toString();
-        logger.info(`Price: ${price}`);
+      } else { // sell
         if (!limitPrice || parseFloat(price) >= limitPrice) {
           // pass swaps to exchange-proxy to complete trade
           const tx = await balancer.swapExactIn(wallet, swapInfo, gasPrice);
