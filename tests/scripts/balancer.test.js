@@ -2,9 +2,9 @@ import { assert } from 'chai';
 import { request, ethTests } from './ethereum.test';
 
 // constants
-const TOKENS = ['WETH', 'USDC'];
+const TOKENS = ['WETH', 'DAI'];
 const AMOUNT_PRICE = 1;
-const AMOUNT_TRADE = 0.01;
+const AMOUNT_TRADE = 0.001;
 const SCALE_FACTOR = 1000;
 
 async function unitTests() {
