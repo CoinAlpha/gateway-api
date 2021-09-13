@@ -10,8 +10,8 @@ const globalConfig =
 
 // constants
 const MAX_UINT = ethers.constants.MaxUint256;
-const GAS_BASE = globalConfig.getConfig('BALANCER_GAS_BASE') || 200688; // thesame as gas limit
-export const VAULT = '0xBA12222222228d8Ba445958a75a0704d566BF2C8'; // vault address, thesame on all major networks
+const GAS_BASE = globalConfig.getConfig('BALANCER_GAS_BASE') || 300688; // thesame as gas limit
+export const VAULT = globalConfig.getConfig('BALANCER_VAULT'); // vault address, thesame on all major networks
 const Network = {
   MAINNET: 1,
   KOVAN: 42,

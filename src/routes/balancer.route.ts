@@ -159,7 +159,7 @@ router.post('/price', async (req: Request, res: Response) => {
               amount
             );
 
-      if (swapInfo != null && expectedAmount != null && expectedAmount > "0") {
+      if (swapInfo != null && parseFloat(expectedAmount) > parseFloat("0")) {
         const gasLimit = estimateGasLimit(cost);
         const gasCost = await fees.getGasCost(gasPrice, gasLimit);
 

@@ -313,7 +313,7 @@
 
 "@balancer-labs/sor@github:balancer-labs/balancer-sor#john/v2-package":
   version "1.1.0"
-  resolved "https://codeload.github.com/balancer-labs/balancer-sor/tar.gz/82a150f814a175dd61abe82c5969496bf60093f7"
+  resolved "https://codeload.github.com/balancer-labs/balancer-sor/tar.gz/53cfea0891aa52e959a479d391fa64a3400bba71"
   dependencies:
     "@ethersproject/address" "^5.0.5"
     "@ethersproject/constants" "^5.0.5"
