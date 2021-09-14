@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import { request, ethTests } from './ethereum.test';
 
 // constants
-const TOKENS = ['WETH', 'DAI'];
+const TOKENS = ['BALWETH', 'BALDAI'];
 const AMOUNT_PRICE = 1;
 const AMOUNT_TRADE = 0.001;
 const SCALE_FACTOR = 1000;
@@ -76,7 +76,7 @@ async function unitTests() {
     limitPrice: sellPrice.price,
   });
   assert.hasAnyKeys(sell, ['txHash'], 'Sell trade failed.');
-  console.log(`Buy hash - ${sell.txHash}`);
+  console.log(`Sell hash - ${sell.txHash}`);
   console.log(`Polling...`);
   while (!done) {
     tx2 = await request('post', '/eth/poll', { txHash: sell.txHash });
