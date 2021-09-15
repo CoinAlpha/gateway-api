@@ -178,7 +178,7 @@ router.post('/price', async (req: Request, res: Response) => {
           gasPrice: gasPrice,
           gasLimit: gasLimit,
           gasCost: gasCost,
-          swaps: balancer.maxSwaps,
+          swaps: swapInfo.swaps,
         };
         debug(
           `Price ${side} ${baseTokenContractInfo.symbol}-${quoteTokenContractInfo.symbol} | amount:${amount.toString()} (rate:${tradePrice}) - gasPrice:${gasPrice} gasLimit:${gasLimit} estimated fee:${gasCost} ETH`
