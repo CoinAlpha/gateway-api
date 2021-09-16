@@ -24,9 +24,8 @@ const eth = new EthereumService(ethConfig);
 const swapMoreThanMaxPriceError = 'Price too high';
 const swapLessThanMaxPriceError = 'Price too low';
 
-const estimateGasLimit = (swapCost: BigNumber) => {
-  const gasLimit = balancer.gasLimit + swapCost;
-  return gasLimit;
+const estimateGasLimit = (swapCost: string) => {
+  return parseInt(balancer.gasLimit) + parseInt(swapCost);
 };
 
 router.post('/', async (_req: Request, res: Response) => {
