@@ -29,18 +29,9 @@ ETHEREUM_RPC_URL: "https://{chain}.infura.io/v3/{api_key}"
 ETHEREUM_TOKEN_LIST_URL: https://wispy-bird-88a7.uniswap.workers.dev/?url=http://tokens.1inch.eth.link
 
 # Balancer
-# subgraph_chain
-# Reference: https://docs.balancer.finance/sor/development#subgraph
-# - mainnet: balancer
-# - kovan: balancer-kovan
-# Note: REACT_APP_SUBGRAPH_URL used by @balancer-labs/sor
-REACT_APP_SUBGRAPH_URL: https://api.thegraph.com/subgraphs/name/balancer-labs/{subgraph_chain}
-
-# exchange_proxy:
-# Reference: https://docs.balancer.finance/smart-contracts/addresses
-# - mainnet: 0x3E66B66Fd1d0b02fDa6C811Da9E0547970DB2f21
-# - kovan: 0x4e67bf5bD28Dd4b570FBAFe11D0633eCbA2754Ec
-EXCHANGE_PROXY:
+BALANCER_VAULT: "0xBA12222222228d8Ba445958a75a0704d566BF2C8"
+BALANCER_GAS_BASE: 300688
+BALANCER_MAX_SWAPS: 4
 
 # Uniswap
 # Reference: https://uniswap.org/docs/v2/smart-contracts/router02/
@@ -81,10 +72,6 @@ ETH_GAS_STATION_API_KEY:
 ETH_GAS_STATION_GAS_LEVEL: fast
 ETH_GAS_STATION_REFRESH_TIME: 60
 ETH_MANUAL_GAS_PRICE: 100
-
-# Balancer Config
-BALANCER_MAX_SWAPS: 4
-
 
 # Perpetual Finance Provider URL
 # default:  https://dai.poa.network , https://rpc.xdaichain.com, etc
