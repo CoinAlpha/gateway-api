@@ -16,7 +16,7 @@ const debug = require('debug')('router');
 const router = express.Router();
 const ethConfig = new EthereumConfigService();
 const eth = new EthereumService(ethConfig);
-const uniswap = new Uniswap();
+const uniswap:any = new Uniswap();
 const fees = new EthereumGasService(ethConfig);
 const feesOld = new Fees();
 

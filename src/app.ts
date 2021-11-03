@@ -2,7 +2,7 @@ import bodyParser from 'body-parser';
 import express from 'express';
 import helmet from 'helmet';
 import { statusMessages } from './services/utils';
-import { validateAccess } from './services/access';
+// import { validateAccess } from './services/access';
 import { IpFilter } from 'express-ipfilter';
 import { logger } from './services/logger';
 
@@ -15,6 +15,7 @@ import balancerRoutes from './routes/balancer.route';
 import ethRoutes from './routes/ethereum';
 import perpFiRoutes from './routes/perpetual_finance.route';
 import terraRoutes from './routes/terra';
+import sifchainRoutes from './routes/sifchain';
 import uniswapRoutes from './routes/uniswap';
 import uniswapV3Routes from './routes/uniswap_v3';
 
@@ -37,7 +38,7 @@ if (ipWhitelist) {
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(validateAccess);
+// app.use(validateAccess);
 
 // set up logging for all API queries
 app.use(
@@ -64,13 +65,13 @@ app.use('/eth/uniswap', uniswapRoutes);
 app.use('/eth/uniswap/v3', uniswapV3Routes);
 app.use('/eth/balancer', balancerRoutes);
 app.use('/terra', terraRoutes);
+app.use('/sifchain', sifchainRoutes);
 app.use('/perpfi', perpFiRoutes);
 
 // a simple, pingable route
 app.get('/', (_req, res) => {
   res.send('ok');
 });
-
 // Catch all 404 response when routes are not found
 app.use((req, res, _next) => {
   const message = `${statusMessages.page_not_found} at ${req.originalUrl}`;

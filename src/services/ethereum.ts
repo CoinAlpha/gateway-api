@@ -73,7 +73,7 @@ export const bigNumberWithDecimalToStr = (n: BigNumber, d: number): string => {
 };
 
 export class EthereumService {
-  private readonly provider = new providers.JsonRpcProvider(this.config.rpcUrl);
+  private readonly provider:any = new providers.JsonRpcProvider(this.config.rpcUrl);
   private chainId = 1;
   private erc20TokenList: ERC20TokensList | null = null;
 
@@ -168,7 +168,7 @@ export class EthereumService {
    * @return {Promise<string>}
    */
   async approveERC20(
-    wallet: Wallet,
+    wallet: any,
     spender: string,
     tokenAddress: string,
     amount: BigNumber,
@@ -197,7 +197,7 @@ export class EthereumService {
    * @return {Promise<any>}
    */
   async deposit(
-    wallet: Wallet,
+    wallet: any,
     tokenAddress: string,
     amount: number,
     gasPrice: number,

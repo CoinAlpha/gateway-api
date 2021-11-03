@@ -13,17 +13,18 @@ const globalConfig =
 
 const env = globalConfig.CORE.NODE_ENV;
 const port = globalConfig.CORE.PORT;
-const certPassphrase = globalConfig.CERT_PASSPHRASE;
 const ethereumChain = globalConfig.ETHEREUM_CHAIN;
 const terraChain = globalConfig.TERRA_CHAIN;
 let certPath = globalConfig.CERT_PATH;
 
-if ((typeof certPath === 'undefined' && certPath == null) || certPath === '') {
-  // assuming it is local development using test script to generate certs
-  certPath = './certs';
-} else {
-  certPath = certPath.replace(/\/$/, '');
-}
+certPath = './certs';
+
+// if ((typeof certPath === 'undefined' && certPath == null) || certPath === '') {
+//   // assuming it is local development using test script to generate certs
+//   certPath = './certs';
+// } else {
+//   certPath = certPath.replace(/\/$/, '');
+// }
 
 // set app environment
 app.set('env', env);
@@ -35,12 +36,9 @@ const options = {
     encoding: 'utf-8',
   }),
   // request client certificate from user
-  requestCert: true,
+  // requestCert: false,
   // reject requests with no valid certificate
-  rejectUnauthorized: true,
-  // use ca cert created with own key for self-signed
-  ca: [fs.readFileSync(certPath.concat('/ca_cert.pem'), { encoding: 'utf-8' })],
-  passphrase: certPassphrase,
+  // rejectUnauthorized: false,
 };
 
 const server = https.createServer(options, app);

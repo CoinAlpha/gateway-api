@@ -8,14 +8,16 @@ import { latency, statusMessages } from '../services/utils';
 import { EthereumService } from '../services/ethereum';
 import { EthereumConfigService } from '../services/ethereum_config';
 
+import { IBalancer } from "../types"
 import Balancer from '../services/balancer';
+
 import Fees from '../services/fees';
 import { logger } from '../services/logger';
 
 const debug = require('debug')('router');
 const router = express.Router();
 
-const balancer = new Balancer();
+const balancer:IBalancer = new Balancer();
 const fees = new Fees();
 
 const ethConfig = new EthereumConfigService();

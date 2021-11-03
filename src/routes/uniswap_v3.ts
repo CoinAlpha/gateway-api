@@ -22,7 +22,7 @@ const router = express.Router();
 const ethConfig = new EthereumConfigService();
 const eth = new EthereumService(ethConfig);
 
-const uniswap = new UniswapV3(globalConfig.getConfig('ETHEREUM_CHAIN'));
+const uniswap:any = new UniswapV3(globalConfig.getConfig('ETHEREUM_CHAIN'));
 
 const fees = new Fees();
 
