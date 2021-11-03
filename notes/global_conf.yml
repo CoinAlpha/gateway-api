@@ -1,0 +1,78 @@
+CORE:
+  APPNAME: Hummingbot Gateway API
+  NODE_ENV: dev
+  PORT: 5000
+
+  # use only if ip whitelist is required for local or docker instance
+  # note that docker instance does not use 127.0.0.1 address
+  # ipv6 format for locahost ["::ffff:127.0.0.1", "::ffff:1", "fe80::1", "::1"]
+  IP_WHITELIST:
+
+HUMMINGBOT_INSTANCE_ID:
+
+# Celo
+
+# Terra
+# - mainnet: https://lcd.terra.dev
+# - mainnet chain: columbus-4
+# - testnet: https://tequila-lcd.terra.dev
+# - testnet chain: tequila-0004
+TERRA_LCD_URL: https://lcd.terra.dev
+TERRA_CHAIN: columbus-4
+
+# Ethereum
+# - chain: mainnet, kovan, etc
+# - rpc url: infura or other rpc url
+# - token list: erc20 token list source (ref: https://tokenlists.org/)
+ETHEREUM_CHAIN: mainnet
+ETHEREUM_RPC_URL: "https://{chain}.infura.io/v3/{api_key}"
+ETHEREUM_TOKEN_LIST_URL: https://wispy-bird-88a7.uniswap.workers.dev/?url=http://tokens.1inch.eth.link
+
+# Balancer
+BALANCER_VAULT: "0xBA12222222228d8Ba445958a75a0704d566BF2C8"
+BALANCER_GAS_BASE: 300688
+BALANCER_MAX_SWAPS: 4
+
+# Uniswap
+# Reference: https://uniswap.org/docs/v2/smart-contracts/router02/
+# UniswapV2Router02 is deployed at 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D on the Ethereum mainnet, and the Ropsten, Rinkeby, Görli, and Kovan testnets.
+
+# UNISWAP_V3_CORE is deployed at 0x1F98431c8aD98523631AE4a59f267346ea31F984 on the Ethereum mainnet, and the Ropsten, Rinkeby, Görli, and Kovan testnets.
+# UNISWAP_V3_ROUTER is deployed at 0xE592427A0AEce92De3Edee1F18E0157C05861564 on the Ethereum mainnet, and the Ropsten, Rinkeby, Görli, and Kovan testnets.
+# UNISWAP_V3_NFT_MANAGER is deployed at 0xC36442b4a4522E871399CD717aBDD847Ab11FE88 on the Ethereum mainnet, and the Ropsten, Rinkeby, Görli, and Kovan testnets.
+
+UNISWAP_ROUTER: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'
+UNISWAP_V3_CORE: '0x1F98431c8aD98523631AE4a59f267346ea31F984'
+UNISWAP_V3_ROUTER: '0xE592427A0AEce92De3Edee1F18E0157C05861564'
+UNISWAP_V3_NFT_MANAGER: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88'
+# allowed slippage for swap transactions
+UNISWAP_ALLOWED_SLIPPAGE: 1.5
+# restrict updating pairs that have no reserves or failed for 5 minutes
+UNISWAP_NO_RESERVE_CHECK_INTERVAL: 300000
+# cache info about pair for 1 second
+UNISWAP_PAIRS_CACHE_TIME: 1000
+
+# cert
+CERT_PATH:
+CERT_PASSPHRASE:
+
+# logs
+# default to ./logs if path is not set
+LOG_PATH: ./logs
+
+# GMT offset for logging (alpine docker image default to UTC timezone)
+# -0800, -0500, +0200, +0800
+GMT_OFFSET: +0800
+
+# EthGasStation
+# API key for defipulse.com gas station API
+# Gas level you want to use for Ethereum transactions (fast, fastest, safeLow, average)
+ETH_GAS_STATION_ENABLE: true
+ETH_GAS_STATION_API_KEY:
+ETH_GAS_STATION_GAS_LEVEL: fast
+ETH_GAS_STATION_REFRESH_TIME: 60
+ETH_MANUAL_GAS_PRICE: 100
+
+# Perpetual Finance Provider URL
+# default:  https://dai.poa.network , https://rpc.xdaichain.com, etc
+XDAI_PROVIDER:

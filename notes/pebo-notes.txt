@@ -1,0 +1,18 @@
+Test HTTP req:
+
+
+
+
+Setup:
+1. yarn
+2. yarn build
+
+3. Add the certs in the .zip  into /certs/
+4. Add the global_conf.yml to /conf/
+5. Now you can run the program with:
+yarn start
+6. Use a API test program such as Postman and sen POST request to:
+https://localhost:5000/terra/
+(You have to disable SSL in postman, as the prompt indicates when you send this request)
+
+
