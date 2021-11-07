@@ -1,3 +1,26 @@
+# Pecunia
+
+## How to setup the gateway-api
+
+A more detailed explanation of how to setup the **gateway-api**.
+1. Unzip the ```/pecunia-resources/certs.zip``` and add the files to ```/certs/```
+2. Add the ```/pecunia-resources/global_conf.yml``` to ```/conf/```
+3. Run terminal command: ```yarn```  or ```npm install```
+4. ```yarn build``` or ```npm run build```
+5. Now you can run the program with: ```yarn start``` or ```npm run start```
+6. Use a API test program such as Postman and sen POST request to:
+https://localhost:5000/terra/
+(*You have to disable SSL in Postman, as the prompt indicates when you send this request*)
+
+If you encounter Typescript type errors, just add '```any```' to the type that is throwing the error. E.g:<br>
+```wallet: Wallet,``` => ```wallet: any,```
+
+## Notes
+- The Sifchain SDK has been added in ```/sifchain/```
+
+- Files ```/src/routes/sifchain.ts``` and ```/src/services/sifchain.ts``` have been added.
+
+----
 ![Hummingbot](https://i.ibb.co/X5zNkKw/blacklogo-with-text.png)
 
 ----
