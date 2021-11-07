@@ -10,6 +10,9 @@ CORE:
 
 HUMMINGBOT_INSTANCE_ID:
 
+# Sifchain
+SIFCHAIN_LCD_URL: https://api-int.sifchain.finance
+
 # Celo
 
 # Terra

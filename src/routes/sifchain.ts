@@ -1,16 +1,24 @@
 import express from 'express';
 import { Request, Response } from 'express';
-import { AssetsApi, Configuration } from '../../sifchain';
+import { Configuration } from '../../sifchain';
+import Sifchain from '../services/sifchain';
+
 const router = express.Router();
 
-const config = new Configuration({ basePath: process.env.REST_API });
-const assetsApi = new AssetsApi(config);
-// console.log(assetsApi);
+const sifchain: Sifchain = new Sifchain();
 
+// constants
+const config = new Configuration({ basePath: process.env.REST_API });
 router.post('/', async (_req: Request, res: Response) => {
-  const kek = await assetsApi.getTotalSupply();
-  console.log(kek.data);
-  res.send('siffy my iffy yaw');
+  /*
+    POST /
+  */
+  res.status(200).json({
+    config,
+    lcdUrl: sifchain.getLCDURL(),
+    connection: true,
+    timestamp: Date.now(),
+  });
 });
 
 export default router;
