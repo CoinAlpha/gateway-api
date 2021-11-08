@@ -14,9 +14,9 @@ HUMMINGBOT_INSTANCE_ID:
 
 # Terra
 # - mainnet: https://lcd.terra.dev
-# - mainnet chain: columbus-4
-# - testnet: https://tequila-lcd.terra.dev
-# - testnet chain: tequila-0004
+# - mainnet chain: columbus-5
+# - testnet: https://bombay-lcd.terra.dev
+# - testnet chain: bombay-12
 TERRA_LCD_URL:
 TERRA_CHAIN:
 
