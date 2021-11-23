@@ -1,0 +1,12 @@
+{
+  "precision": 18,
+  "amountPerMessage": 9.2,
+  "symbol": "cusdt",
+  "messagesToSend": 1,
+  "maxAmountPerMsg": "9223372036854775807",
+  "maxMsgsPerBatch": 1,
+  "networkEnv": "testnet_042_ibc",
+  "sourceNetwork": "sifchain",
+  "destinationNetwork": "cosmoshub",
+  "mnemonic": "race draft rival universe maid cheese steel logic crowd fork comic easy truth drift tomorrow eye buddy head time cash swing swift midnight borrow"
+}

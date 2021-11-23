@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"],
+    "target": "es2015",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "strict": true,
+    "experimentalDecorators": true,
+    "declaration": true,
+    "outDir": "./lib",
+    "types": ["node", "jest"],
+    "baseUrl": "./src",
+    "jsx": "react",
+    "removeComments": false,
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["./src/**/*.ts", "./src/**/*.tsx", "./src/**/*.vue"],
+  "exclude": ["node_modules"]
+}

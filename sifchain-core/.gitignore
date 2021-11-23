@@ -1,0 +1,4 @@
+lib
+coverage
+package-lock.json
+yarn-error.log
