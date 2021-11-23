@@ -24,5 +24,8 @@
     "typeRoots": ["./node_modules/@types", "src/@types"]
   },
   "exclude": ["node_modules"],
-  "include": ["src/**/*.ts", "src/**/*.js"]
+  "include": ["src/**/*.ts", "src/**/*.js"],
+  "paths": {
+    "@sifchain/sdk": ["./sifchain-core/src"]
+  }
 }
