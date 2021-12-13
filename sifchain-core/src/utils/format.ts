@@ -2,7 +2,7 @@ import { Amount, IAmount } from "../entities/Amount";
 import { IAssetAmount } from "../entities/AssetAmount";
 import numbro from "numbro";
 import { IAsset } from "../entities";
-import { decimalShift } from "./decimalShift";
+import { decimalShift, toBaseUnits } from "./decimalShift";
 
 type IFormatOptionsBase = {
   exponent?: number; // display = (amount * 10^-exponent) when undefined exponent will be set by (amount as IAssetAmount).decimals ?? 0 - defaults to 2 for percent mode
@@ -15,13 +15,12 @@ type IFormatOptionsBase = {
   zeroFormat?: string; // could be something like `N/A`
 };
 
-type IFormatOptionsMantissa<
-  M = number | DynamicMantissa
-> = IFormatOptionsBase & {
-  shorthand?: boolean;
-  mantissa?: M; // number of decimals after point default is exponent
-  trimMantissa?: boolean | "integer"; // Remove 0s from the mantissa default false
-};
+type IFormatOptionsMantissa<M = number | DynamicMantissa> =
+  IFormatOptionsBase & {
+    shorthand?: boolean;
+    mantissa?: M; // number of decimals after point default is exponent
+    trimMantissa?: boolean | "integer"; // Remove 0s from the mantissa default false
+  };
 
 type IFormatOptionsShorthandTotalLength = IFormatOptionsBase & {
   shorthand: true;
@@ -122,6 +121,14 @@ function convertDynamicMantissaToFixedMantissa(
 export type AmountNotAssetAmount<T extends IAmount> = T extends IAssetAmount
   ? never
   : T;
+
+export function formatAssetAmount(value: IAssetAmount) {
+  if (!value || value.equalTo("0")) return "0";
+  const { amount, asset } = value;
+  return amount.greaterThan(toBaseUnits("100000", asset))
+    ? format(amount, asset, { mantissa: 2 })
+    : format(amount, asset, { mantissa: 6 });
+}
 
 export function format<T extends IAmount>(
   amount: AmountNotAssetAmount<T>,

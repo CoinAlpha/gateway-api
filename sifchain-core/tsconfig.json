@@ -8,17 +8,22 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    // "allowJs": true,
     "sourceMap": true,
     "strict": true,
-    "experimentalDecorators": true,
-    "declaration": true,
+    // "experimentalDecorators": true,
     "outDir": "./lib",
     "types": ["node", "jest"],
     "baseUrl": "./src",
     "jsx": "react",
     "removeComments": false,
+    // "jsx": "preserve",
+    "importHelpers": true,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      
+      "@sifchain/sdk/*": ["./*"],
+      "@sifchain/sdk": ["./"],
     }
   },
   "include": ["./src/**/*.ts", "./src/**/*.tsx", "./src/**/*.vue"],

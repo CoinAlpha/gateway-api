@@ -5,7 +5,6 @@ import {
   ChainConfig,
   IAssetAmount,
   AssetAmount,
-  getChainsService,
 } from "../../entities";
 import { isLikeSymbol } from "../../utils/isLikeSymbol";
 import { urlJoin } from "url-join-ts";
@@ -71,5 +70,11 @@ export class BaseChain implements Chain {
   }
   getBlockExplorerUrlForAddress(address: string) {
     return urlJoin(this.chainConfig.blockExplorerUrl, "accounts", address);
+  }
+
+  forceGetAsset(symbol: string) {
+    return (
+      this.lookupAsset(symbol) || this.findAssetWithLikeSymbolOrThrow(symbol)
+    );
   }
 }

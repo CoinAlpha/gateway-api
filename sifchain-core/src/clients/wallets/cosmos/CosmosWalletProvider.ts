@@ -1,5 +1,4 @@
 import { WalletProvider, WalletProviderContext } from "../WalletProvider";
-import TokenRegistryService from "../../../services/TokenRegistryService";
 import {
   Chain,
   IBCChainConfig,
@@ -24,15 +23,15 @@ import {
 } from "@cosmjs/stargate";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { DenomTrace } from "@cosmjs/stargate/build/codec/ibc/applications/transfer/v1/transfer";
-import {
-  NativeDexTransaction,
-  NativeDexSignedTransaction,
-} from "../../../services/utils/SifClient/NativeDexTransaction";
 import { BroadcastTxResult } from "@cosmjs/launchpad";
-import { NativeDexClient } from "../../../services/utils/SifClient/NativeDexClient";
-import { Coin } from "generated/proto/cosmos/base/coin";
 import { createIBCHash } from "../../../utils/createIBCHash";
 import { QueryDenomTracesResponse } from "@cosmjs/stargate/build/codec/ibc/applications/transfer/v1/query";
+import { TokenRegistry } from "../../native/TokenRegistry";
+import {
+  NativeDexClient,
+  NativeDexTransaction,
+  NativeDexSignedTransaction,
+} from "../../native";
 
 type IBCHashDenomTraceLookup = Record<
   string,
@@ -40,11 +39,11 @@ type IBCHashDenomTraceLookup = Record<
 >;
 
 export abstract class CosmosWalletProvider extends WalletProvider<EncodeObject> {
-  tokenRegistry: ReturnType<typeof TokenRegistryService>;
+  tokenRegistry: ReturnType<typeof TokenRegistry>;
 
   constructor(public context: WalletProviderContext) {
     super();
-    this.tokenRegistry = TokenRegistryService(context);
+    this.tokenRegistry = TokenRegistry(context);
   }
 
   isChainSupported(chain: Chain) {
@@ -117,10 +116,8 @@ export abstract class CosmosWalletProvider extends WalletProvider<EncodeObject> 
     );
   }
 
-  private denomTracesCache: Record<
-    string,
-    Promise<IBCHashDenomTraceLookup>
-  > = {};
+  private denomTracesCache: Record<string, Promise<IBCHashDenomTraceLookup>> =
+    {};
   async getIBCDenomTracesLookupCached(chain: Chain) {
     const chainId = chain.chainConfig.chainId;
     if (!this.denomTracesCache[chainId]) {
@@ -315,6 +312,7 @@ export abstract class CosmosWalletProvider extends WalletProvider<EncodeObject> 
           );
           assetAmounts.push(assetAmount);
         } catch (error) {
+          console.log("error", error);
           // invalid token, ignore
         }
       } else {
@@ -352,9 +350,8 @@ export abstract class CosmosWalletProvider extends WalletProvider<EncodeObject> 
           if (asset) {
             asset.ibcDenom = coin.denom;
           }
-          const counterpartyAsset = await this.tokenRegistry.loadCounterpartyAsset(
-            nativeAsset,
-          );
+          const counterpartyAsset =
+            await this.tokenRegistry.loadCounterpartyAsset(nativeAsset);
           const assetAmount = AssetAmount(counterpartyAsset, coin.amount);
           assetAmounts.push(
             await this.tokenRegistry.loadNativeAssetAmount(assetAmount),

@@ -22,6 +22,9 @@ dist/
 # misc
 logs/
 package-lock.json
+.bk/
+sifchain-core/generated/
+
 
 # cert
 *.pem

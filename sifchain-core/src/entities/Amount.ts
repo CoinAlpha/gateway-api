@@ -22,24 +22,18 @@ export type IAmount = {
   subtract(other: IAmount | string): IAmount;
 };
 
-const INTEGER_REG_EX = /^[+-]?\d+$/;
-const NUMBER_WITH_DECIMAL_POINT_REG_EX = /^[+-]?(\d+)?\.\d+$/;
-
 export function Amount(
   source: JSBI | bigint | string | IAmount,
 ): Readonly<IAmount> {
   type _IAmount = _ExposeInternal<IAmount>;
 
   // Am I a decimal number string with a period?
-  if (
-    typeof source === "string" &&
-    source.match(NUMBER_WITH_DECIMAL_POINT_REG_EX)
-  ) {
+  if (typeof source === "string" && /^[+-]?(\d+)?\.\d+$/.test(source)) {
     return getAmountFromDecimal(source);
   }
 
   // Ok so I must be an integer or something is wrong
-  if (typeof source === "string" && !source.match(INTEGER_REG_EX)) {
+  if (typeof source === "string" && !/^[+-]?\d+$/.test(source)) {
     throw new Error(`Amount input error! string "${source}" is not numeric`);
   }
 

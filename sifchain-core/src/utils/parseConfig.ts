@@ -1,9 +1,9 @@
-import { ServiceContext } from "../services";
 import {
-  Asset,
   Network,
   ChainConfig,
   NetworkChainConfigLookup,
+  IAsset,
+  Asset,
 } from "../entities";
 import { getMetamaskProvider } from "../clients/wallets/ethereum/getMetamaskProvider";
 import { NetEnvChainConfigLookup } from "../config/chains/NetEnvChainConfigLookup";
@@ -49,7 +49,7 @@ function parseLabel(a: AssetConfig) {
   return a.symbol === "erowan" ? "eROWAN" : a.symbol.toUpperCase();
 }
 
-function parseAsset(a: AssetConfig): Asset {
+function parseAsset(a: AssetConfig): IAsset {
   return Asset({
     ...a,
     displaySymbol: a.displaySymbol || a.symbol,
@@ -110,19 +110,16 @@ export type CoreConfig = {
   keplrChainConfig: KeplrChainConfig;
 };
 
-export function parseAssets(configAssets: AssetConfig[]): Asset[] {
+export function parseAssets(configAssets: AssetConfig[]): IAsset[] {
   return configAssets.map(parseAsset);
 }
 
 export function parseConfig(
   config: CoreConfig,
-  assets: Asset[],
+  assets: IAsset[],
   chainConfigsByNetwork: NetworkChainConfigLookup,
   peggyCompatibleCosmosBaseDenoms: Set<string>,
-  createCosmosWalletProvider: (
-    context: WalletProviderContext,
-  ) => CosmosWalletProvider,
-): ServiceContext {
+) {
   const nativeAsset = assets.find((a) => a.symbol === config.nativeAsset);
 
   if (!nativeAsset)
@@ -170,6 +167,5 @@ export function parseConfig(
       chainId: config.sifChainId,
       currencies: sifAssets,
     },
-    cosmosWalletProvider: createCosmosWalletProvider(config),
   };
 }

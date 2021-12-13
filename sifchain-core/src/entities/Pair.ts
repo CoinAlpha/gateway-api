@@ -1,4 +1,4 @@
-import { Asset } from "./Asset";
+import { Asset, IAsset } from "./Asset";
 import { IAssetAmount } from "./AssetAmount";
 import { createPoolKey } from "@sifchain/sdk";
 
@@ -10,7 +10,7 @@ export function Pair(nativeAsset: IAssetAmount, externalAsset: IAssetAmount) {
   return {
     amounts,
 
-    otherAsset(asset: Asset) {
+    otherAsset(asset: IAsset) {
       const otherAsset = amounts.find(
         (amount) => amount.symbol !== asset.symbol,
       );
@@ -22,7 +22,7 @@ export function Pair(nativeAsset: IAssetAmount, externalAsset: IAssetAmount) {
       return createPoolKey(externalAsset, nativeAsset);
     },
 
-    contains(...assets: Asset[]) {
+    contains(...assets: IAsset[]) {
       const local = amounts.map((a) => a.symbol);
 
       const other = assets.map((a) => a.symbol);
@@ -30,7 +30,7 @@ export function Pair(nativeAsset: IAssetAmount, externalAsset: IAssetAmount) {
       return !!local.find((s) => other.includes(s));
     },
 
-    getAmount(asset: Asset | string) {
+    getAmount(asset: IAsset | string) {
       const assetSymbol = typeof asset === "string" ? asset : asset.symbol;
       const found = this.amounts.find((amount) => {
         return amount.symbol === assetSymbol;

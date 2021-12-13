@@ -21,10 +21,10 @@ export function Pool(a: IAssetAmount, b: IAssetAmount, poolUnits?: IAmount) {
   return {
     amounts,
     get externalAmount() {
-      return amounts.find((amount) => amount.symbol !== "rowan");
+      return amounts.find((amount) => amount.symbol !== "rowan")!;
     },
     get nativeAmount() {
-      return amounts.find((amount) => amount.symbol === "rowan");
+      return amounts.find((amount) => amount.symbol === "rowan")!;
     },
     otherAsset: pair.otherAsset,
     symbol: pair.symbol,
@@ -152,13 +152,13 @@ export function CompositePool(pair1: IPool, pair2: IPool): IPool {
   return {
     amounts: amounts as [IAssetAmount, IAssetAmount],
     get externalAmount() {
-      return amounts.find((amount) => amount.symbol !== "rowan");
+      return amounts[0];
     },
     get nativeAmount() {
-      return amounts.find((amount) => amount.symbol === "rowan");
+      return amounts[1];
     },
 
-    getAmount: (asset: Asset | string) => {
+    getAmount: (asset: IAsset | string) => {
       if (Asset(asset).symbol === nativeSymbol) {
         throw new Error(`Asset ${nativeSymbol} doesnt exist in pair`);
       }
@@ -171,11 +171,11 @@ export function CompositePool(pair1: IPool, pair2: IPool): IPool {
       return pair2.getAmount(asset);
     },
 
-    priceAsset(asset: Asset) {
+    priceAsset(asset: IAsset) {
       return this.calcSwapResult(AssetAmount(asset, "1"));
     },
 
-    otherAsset(asset: Asset) {
+    otherAsset(asset: IAsset) {
       const otherAsset = amounts.find(
         (amount) => amount.symbol !== asset.symbol,
       );
@@ -190,7 +190,7 @@ export function CompositePool(pair1: IPool, pair2: IPool): IPool {
         .join("_");
     },
 
-    contains(...assets: Asset[]) {
+    contains(...assets: IAsset[]) {
       const local = amounts.map((a) => a.symbol).sort();
       const other = assets.map((a) => a.symbol).sort();
       return !!local.find((s) => other.includes(s));

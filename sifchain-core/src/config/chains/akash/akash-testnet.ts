@@ -25,6 +25,11 @@ export const AKASH_TESTNET: IBCChainConfig = {
     bip44: {
       coinType: 118,
     },
+    gasPriceStep: {
+      low: 6250,
+      average: 9375,
+      high: 12500,
+    },
     bech32Config: {
       bech32PrefixAccAddr: "akash",
       bech32PrefixAccPub: "akashpub",

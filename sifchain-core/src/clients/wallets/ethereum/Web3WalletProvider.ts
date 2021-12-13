@@ -13,7 +13,7 @@ import {
   NativeDexTransaction,
   NativeDexSignedTransaction,
   NativeDexTransactionResult,
-} from "../../../services/utils/SifClient/NativeDexTransaction";
+} from "../../../clients";
 import { EventEmitter } from "events";
 
 // NOTE(ajoslin): Web3WalletProvider doesn't actually sign anything yet,
@@ -52,7 +52,7 @@ export class Web3WalletProvider extends WalletProvider<Web3Transaction> {
 
     web3.currentProvider.on(eventName, () => callback());
     return () =>
-      ((web3.currentProvider as unknown) as EventEmitter)?.off(
+      (web3.currentProvider as unknown as EventEmitter)?.off(
         eventName,
         callback,
       );

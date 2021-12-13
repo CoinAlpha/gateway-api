@@ -1,8 +1,8 @@
-import { Asset } from "./Asset";
+import { Asset, IAsset } from "./Asset";
 import { IAmount } from "./Amount";
 
 export function LiquidityProvider(
-  asset: Asset,
+  asset: IAsset,
   units: IAmount,
   address: string,
   nativeAmount: IAmount,
@@ -11,7 +11,7 @@ export function LiquidityProvider(
   return { asset, units, address, nativeAmount, externalAmount };
 }
 export type LiquidityProvider = {
-  asset: Asset;
+  asset: IAsset;
   units: IAmount;
   address: string;
   nativeAmount: IAmount;

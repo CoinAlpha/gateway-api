@@ -1092,8 +1092,8 @@ paths:
             type: string
       tags:
         - Query
-  ? "/cosmos/distribution/v1beta1/delegators/{delegator_address}/rewards/{validator_address}"
-  : get:
+  "/cosmos/distribution/v1beta1/delegators/{delegator_address}/rewards/{validator_address}":
+    get:
       summary: DelegationRewards queries the total rewards accrued by a delegation.
       operationId: DelegationRewards
       responses:
@@ -1214,8 +1214,8 @@ paths:
             type: string
       tags:
         - Query
-  ? "/cosmos/distribution/v1beta1/delegators/{delegator_address}/withdraw_address"
-  : get:
+  "/cosmos/distribution/v1beta1/delegators/{delegator_address}/withdraw_address":
+    get:
       summary: DelegatorWithdrawAddress queries withdraw address of a delegator.
       operationId: DelegatorWithdrawAddress
       responses:
@@ -1382,8 +1382,8 @@ paths:
             type: string
       tags:
         - Query
-  ? "/cosmos/distribution/v1beta1/validators/{validator_address}/outstanding_rewards"
-  : get:
+  "/cosmos/distribution/v1beta1/validators/{validator_address}/outstanding_rewards":
+    get:
       summary: ValidatorOutstandingRewards queries rewards of a validator address.
       operationId: ValidatorOutstandingRewards
       responses:
@@ -5577,8 +5577,8 @@ paths:
             type: boolean
       tags:
         - Query
-  ? "/cosmos/staking/v1beta1/delegators/{delegator_addr}/validators/{validator_addr}"
-  : get:
+  "/cosmos/staking/v1beta1/delegators/{delegator_addr}/validators/{validator_addr}":
+    get:
       summary: |-
         DelegatorValidator queries validator info for given delegator validator
         pair.
@@ -7399,8 +7399,8 @@ paths:
             type: boolean
       tags:
         - Query
-  ? "/cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}"
-  : get:
+  "/cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}":
+    get:
       summary: Delegation queries delegate info for given validator delegator pair.
       operationId: Delegation
       responses:
@@ -7592,8 +7592,8 @@ paths:
             type: string
       tags:
         - Query
-  ? "/cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}/unbonding_delegation"
-  : get:
+  "/cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}/unbonding_delegation":
+    get:
       summary: |-
         UnbondingDelegation queries unbonding info for given validator delegator
         pair.
@@ -9328,8 +9328,8 @@ paths:
             type: string
       tags:
         - Query
-  ? "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/client_state"
-  : get:
+  "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/client_state":
+    get:
       summary: |-
         ChannelClientState queries for the client state for the channel associated
         with the provided channel identifiers.
@@ -9643,8 +9643,8 @@ paths:
             type: string
       tags:
         - Query
-  ? "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/consensus_state/revision/{revision_number}/height/{revision_height}"
-  : get:
+  "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/consensus_state/revision/{revision_number}/height/{revision_height}":
+    get:
       summary: |-
         ChannelConsensusState queries for the consensus state for the channel
         associated with the provided channel identifiers.
@@ -9965,8 +9965,8 @@ paths:
             format: uint64
       tags:
         - Query
-  ? "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/next_sequence"
-  : get:
+  "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/next_sequence":
+    get:
       summary: NextSequenceReceive returns the next receive sequence for a given channel.
       operationId: NextSequenceReceive
       responses:
@@ -10154,8 +10154,8 @@ paths:
             type: string
       tags:
         - Query
-  ? "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_acknowledgements"
-  : get:
+  "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_acknowledgements":
+    get:
       summary: |-
         PacketAcknowledgements returns all the packet acknowledgements associated
         with a channel.
@@ -10424,8 +10424,8 @@ paths:
             type: boolean
       tags:
         - Query
-  ? "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_acks/{sequence}"
-  : get:
+  "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_acks/{sequence}":
+    get:
       summary: PacketAcknowledgement queries a stored packet acknowledgement hash.
       operationId: PacketAcknowledgement
       responses:
@@ -10621,8 +10621,8 @@ paths:
             format: uint64
       tags:
         - Query
-  ? "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_commitments"
-  : get:
+  "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_commitments":
+    get:
       summary: |-
         PacketCommitments returns all the packet commitments hashes associated
         with a channel.
@@ -10891,8 +10891,8 @@ paths:
             type: boolean
       tags:
         - Query
-  ? "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_ack_sequences}/unreceived_acks"
-  : get:
+  "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_ack_sequences}/unreceived_acks":
+    get:
       summary: |-
         UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a
         channel and sequences.
@@ -11091,8 +11091,8 @@ paths:
             minItems: 1
       tags:
         - Query
-  ? "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_commitment_sequences}/unreceived_packets"
-  : get:
+  "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_commitment_sequences}/unreceived_packets":
+    get:
       summary: |-
         UnreceivedPackets returns all the unreceived IBC packets associated with a
         channel and sequences.
@@ -11291,8 +11291,8 @@ paths:
             minItems: 1
       tags:
         - Query
-  ? "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_commitments/{sequence}"
-  : get:
+  "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_commitments/{sequence}":
+    get:
       summary: PacketCommitment queries a stored packet commitment hash.
       operationId: PacketCommitment
       responses:
@@ -11488,8 +11488,8 @@ paths:
             format: uint64
       tags:
         - Query
-  ? "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_receipts/{sequence}"
-  : get:
+  "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_receipts/{sequence}":
+    get:
       summary: PacketReceipt queries if a given packet sequence has been received on the queried chain
       operationId: PacketReceipt
       responses:
@@ -13157,8 +13157,8 @@ paths:
             type: boolean
       tags:
         - Query
-  ? "/ibc/core/client/v1beta1/consensus_states/{client_id}/revision/{revision_number}/height/{revision_height}"
-  : get:
+  "/ibc/core/client/v1beta1/consensus_states/{client_id}/revision/{revision_number}/height/{revision_height}":
+    get:
       summary: |-
         ConsensusState queries a consensus state associated with a client state at
         a given height.
@@ -14528,8 +14528,8 @@ paths:
             type: string
       tags:
         - Query
-  ? "/ibc/core/connection/v1beta1/connections/{connection_id}/consensus_state/revision/{revision_number}/height/{revision_height}"
-  : get:
+  "/ibc/core/connection/v1beta1/connections/{connection_id}/consensus_state/revision/{revision_number}/height/{revision_height}":
+    get:
       summary: |-
         ConnectionConsensusState queries the consensus state associated with the
         connection.
@@ -15476,15 +15476,6 @@ components:
           title: |-
             Parameters for changing the weights in a balancer pool smoothly from
             a start weight and end weight over a period of time.
-            Currently, the only smooth change supported is linear changing between
-            the two weights, but more types may be added in the future.
-            When these parameters are set, the weight w(t) for pool time `t` is the
-            following:
-              t <= start_time: w(t) = initial_pool_weights
-              start_time < t <= start_time + duration:
-                w(t) = initial_pool_weights + (t - start_time) *
-                  (target_pool_weights - initial_pool_weights) / (duration)
-              t > start_time + duration: w(t) = target_pool_weights
         start_time:
           type: string
           format: date-time
@@ -15593,15 +15584,6 @@ components:
               title: |-
                 Parameters for changing the weights in a balancer pool smoothly from
                 a start weight and end weight over a period of time.
-                Currently, the only smooth change supported is linear changing between
-                the two weights, but more types may be added in the future.
-                When these parameters are set, the weight w(t) for pool time `t` is the
-                following:
-                  t <= start_time: w(t) = initial_pool_weights
-                  start_time < t <= start_time + duration:
-                    w(t) = initial_pool_weights + (t - start_time) *
-                      (target_pool_weights - initial_pool_weights) / (duration)
-                  t > start_time + duration: w(t) = target_pool_weights
             start_time:
               type: string
               format: date-time
@@ -15979,15 +15961,6 @@ components:
       title: |-
         Parameters for changing the weights in a balancer pool smoothly from
         a start weight and end weight over a period of time.
-        Currently, the only smooth change supported is linear changing between
-        the two weights, but more types may be added in the future.
-        When these parameters are set, the weight w(t) for pool time `t` is the
-        following:
-          t <= start_time: w(t) = initial_pool_weights
-          start_time < t <= start_time + duration:
-            w(t) = initial_pool_weights + (t - start_time) *
-              (target_pool_weights - initial_pool_weights) / (duration)
-          t > start_time + duration: w(t) = target_pool_weights
     osmosis.gamm.v1beta1.SwapAmountInRoute:
       type: object
       properties:

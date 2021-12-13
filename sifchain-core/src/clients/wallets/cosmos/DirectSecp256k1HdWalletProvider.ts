@@ -1,25 +1,23 @@
+// @ts-nocheck
 import {
   DirectSecp256k1HdWallet,
   EncodeObject,
   makeSignDoc,
 } from "@cosmjs/proto-signing";
 
-import { Chain } from "../../../entities";
-import { WalletProviderContext } from "../WalletProvider";
-import { TokenRegistryService } from "../../../services/TokenRegistryService/TokenRegistryService";
-import { stringToPath } from "@cosmjs/crypto";
-import { CosmosWalletProvider } from "./CosmosWalletProvider";
-import {
-  NativeDexTransaction,
-  NativeDexSignedTransaction,
-} from "../../../services/utils/SifClient/NativeDexTransaction";
-import { SigningStargateClient } from "@cosmjs/stargate";
+import {Chain} from "../../../entities";
+import {WalletProviderContext} from "../WalletProvider";
+import {stringToPath} from "@cosmjs/crypto";
+import {CosmosWalletProvider} from "./CosmosWalletProvider";
+import {NativeDexTransaction, NativeDexSignedTransaction} from "../../native";
+import {SigningStargateClient} from "@cosmjs/stargate";
 import {
   TxRaw,
   TxBody,
   SignDoc,
 } from "@cosmjs/stargate/build/codec/cosmos/tx/v1beta1/tx";
-import { BroadcastTxResult } from "@cosmjs/launchpad";
+import {BroadcastTxResult} from "@cosmjs/launchpad";
+import {TokenRegistry} from "../../native/TokenRegistry";
 
 export type DirectSecp256k1HdWalletProviderOptions = {
   mnemonic: string;
@@ -42,7 +40,7 @@ export class DirectSecp256k1HdWalletProvider extends CosmosWalletProvider {
     private options: DirectSecp256k1HdWalletProviderOptions,
   ) {
     super(context);
-    this.tokenRegistry = TokenRegistryService(context);
+    this.tokenRegistry = TokenRegistry(context);
   }
 
   async hasConnected(chain: Chain) {

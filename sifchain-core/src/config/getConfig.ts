@@ -22,34 +22,28 @@ import {
   CoreConfig,
   AssetConfig,
 } from "../utils/parseConfig";
-import { Asset, Network } from "../entities";
-import { ServiceContext } from "../services";
+import { Asset, Network, IAsset } from "../entities";
 import { NetworkEnv } from "./getEnv";
 import { chainConfigByNetworkEnv } from "./chains";
-import { KeplrWalletProvider, WalletProviderContext } from "../clients/wallets";
-import { CosmosWalletProvider } from "../clients/wallets/cosmos/CosmosWalletProvider";
-import { NativeDexClient } from "../services/utils/SifClient/NativeDexClient";
+import { WalletProviderContext } from "../clients/wallets";
 
-type ConfigMap = Record<NetworkEnv, ServiceContext>;
+type ConfigMap = Record<NetworkEnv, ReturnType<typeof parseConfig>>;
 
 // type ChainNetwork = `${Network}.${NetworkEnv}`;
 type ChainNetwork = string;
-type AssetMap = Record<ChainNetwork, Asset[]>;
+type AssetMap = Record<ChainNetwork, IAsset[]>;
 
 // Save assets for sync lookup throughout the app via Asset.get('symbol')
-function cacheAsset(asset: Asset) {
+function cacheAsset(asset: IAsset) {
   return Asset(asset);
 }
 
-export type AppConfig = ServiceContext; // Will include other injectables
+export type AppConfig = ReturnType<typeof parseConfig>; // Will include other injectables
 
 export function getConfig(
   applicationNetworkEnv: NetworkEnv = NetworkEnv.LOCALNET,
   sifchainAssetTag: ChainNetwork = "sifchain.localnet",
   ethereumAssetTag: ChainNetwork = "ethereum.localnet",
-  createCosmosWalletProvider: (
-    context: WalletProviderContext,
-  ) => CosmosWalletProvider = (context) => new KeplrWalletProvider(context),
 ): AppConfig {
   const assetMap: Partial<AssetMap> = {
     "sifchain.localnet": parseAssets(
@@ -108,8 +102,6 @@ export function getConfig(
     "uixo",
     "ujuno",
     "udvpn",
-    "ungm",
-    "eeur",
     // not sure if these contracts actually exist
     "uphoton",
     "unyan",
@@ -120,42 +112,36 @@ export function getConfig(
       allAssets,
       chainConfigByNetworkEnv[NetworkEnv.LOCALNET],
       peggyCompatibleCosmosBaseDenoms,
-      createCosmosWalletProvider,
     ),
     devnet: parseConfig(
       devnetconfig as CoreConfig,
       allAssets,
       chainConfigByNetworkEnv[NetworkEnv.DEVNET],
       peggyCompatibleCosmosBaseDenoms,
-      createCosmosWalletProvider,
     ),
     devnet_042: parseConfig(
       devnet042config as CoreConfig,
       allAssets,
       chainConfigByNetworkEnv[NetworkEnv.DEVNET_042],
       peggyCompatibleCosmosBaseDenoms,
-      createCosmosWalletProvider,
     ),
     testnet: parseConfig(
       testnetconfig as CoreConfig,
       allAssets,
       chainConfigByNetworkEnv[NetworkEnv.TESTNET],
       peggyCompatibleCosmosBaseDenoms,
-      createCosmosWalletProvider,
     ),
     mainnet: parseConfig(
       mainnnetconfig as CoreConfig,
       allAssets,
       chainConfigByNetworkEnv[NetworkEnv.MAINNET],
       peggyCompatibleCosmosBaseDenoms,
-      createCosmosWalletProvider,
     ),
     testnet_042_ibc: parseConfig(
       testnet042ibcconfig as CoreConfig,
       allAssets,
       chainConfigByNetworkEnv[NetworkEnv.TESTNET_042_IBC],
       peggyCompatibleCosmosBaseDenoms,
-      createCosmosWalletProvider,
     ),
   };
 

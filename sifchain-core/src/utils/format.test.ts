@@ -33,7 +33,7 @@ describe("format", () => {
   const tests: Test[] = [
     {
       input: format(Amount("100000000000"), { mantissa: 2, separator: true }),
-      expected: `100,000,000,000.00`,
+      expected: `100,000,000,000`,
     },
     {
       input: format(Amount("100000000000"), { shorthand: true }),

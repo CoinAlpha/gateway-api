@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./scripts/unit.sh $@ && ./scripts/integration.sh $@
+./scripts/unit.sh # $@ && ./scripts/integration.sh $@

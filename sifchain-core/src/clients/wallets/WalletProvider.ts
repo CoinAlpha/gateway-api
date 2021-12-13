@@ -1,14 +1,16 @@
-import { IAssetAmount, Chain, TransactionStatus, IAsset } from "../../entities";
+import {
+  IAssetAmount,
+  Chain,
+  TransactionStatus,
+  IAsset,
+  AssetAmount,
+} from "../../entities";
 import {
   NativeDexTransaction,
   NativeDexSignedTransaction,
   NativeDexTransactionResult,
-} from "../../services/utils/SifClient/NativeDexTransaction";
-import { NativeDexClient } from "../../services/utils/SifClient/NativeDexClient";
-// import {
-//   NativeDexSignedTransaction,
-//   NativeDexTransaction,
-// } from "../../services/utils/SifClient/NativeDexTransaction";
+  NativeDexClient,
+} from "../../clients";
 
 export type WalletProviderContext = {
   sifRpcUrl: string;
@@ -32,6 +34,16 @@ export abstract class WalletProvider<TxType> {
     chain: Chain,
     address: string,
   ): Promise<IAssetAmount[]>;
+
+  async fetchBalance(chain: Chain, address: string, symbol: string) {
+    const balances = await this.fetchBalances(chain, address);
+    return (
+      balances.find(
+        (assetAmount) =>
+          assetAmount.symbol.toLowerCase() === symbol.toLowerCase(),
+      ) || AssetAmount(symbol, "0")
+    );
+  }
 
   abstract getRequiredApprovalAmount(
     chain: Chain,

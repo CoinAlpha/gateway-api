@@ -20,9 +20,6 @@ export type IAsset = {
 type ReadonlyAsset = Readonly<IAsset>;
 const assetMap = new Map<string, ReadonlyAsset>();
 
-// XXX:Legacy
-export type Asset = IAsset;
-
 function isAsset(value: any): value is IAsset {
   return (
     typeof value?.symbol === "string" && typeof value?.decimals === "number"
@@ -53,12 +50,21 @@ export function Asset(assetOrSymbol: IAsset | string): ReadonlyAsset {
   return found;
 }
 
-// XXX:Legacy
-Asset.set = (symbol: string, asset: Asset) => {
+/**
+ * @ignore
+ */
+Asset.set = (symbol: string, asset: IAsset) => {
   Asset(asset); // assuming symbol is same
 };
 
-// XXX:Legacy
+/**
+ * A quick way to look up an asset by symbol.
+ * Pass in a string, and it will attempt to look up the asset and return it. Throws an error if the asset is not found.
+ *
+ * Pass in an IAsset, and it will save it for future lookups.
+ *
+ * @remarks This lookup is only a shortcut and does not allow you to lookup an asset by chain. For that, use Chain#lookupAsset.
+ */
 Asset.get = (symbol: string) => {
   return Asset(symbol);
 };

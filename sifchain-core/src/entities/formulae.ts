@@ -5,7 +5,6 @@ export function slipAdjustment(
   a: IAmount, // External amount added
   R: IAmount, // Native Balance (before)
   A: IAmount, // External Balance (before)
-  P: IAmount, // existing Pool Units
 ): IAmount {
   // slipAdjustment = ((R a - r A)/((r + R) (a + A)))
   const slipAdjDenominator = r.add(R).multiply(a.add(A));
@@ -48,7 +47,7 @@ export function calculatePoolUnits(
     return Amount("0");
   }
 
-  const slipAdjustmentCalc = slipAdjustment(r, a, R, A, P);
+  const slipAdjustmentCalc = slipAdjustment(r, a, R, A);
 
   // ((P (a R + A r))
   const numerator = P.multiply(a.multiply(R).add(A.multiply(r)));

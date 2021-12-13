@@ -14,4 +14,3 @@ export * from "./JunoChain";
 export * from "./IxoChain";
 export * from "./BandChain";
 export * from "./LikecoinChain";
-export * from "./EmoneyChain";

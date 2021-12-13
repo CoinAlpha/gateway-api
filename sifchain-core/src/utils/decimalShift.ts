@@ -1,4 +1,4 @@
-import { Amount, Asset, IAmount, IAsset } from "../entities";
+import { Amount, Asset, IAmount, IAsset, AssetAmount } from "../entities";
 import { AmountNotAssetAmount, format, trimMantissa } from "./format";
 
 /**
@@ -48,7 +48,7 @@ export function decimalShift(decimal: string, shift: number) {
  * @param asset the asset we want to get the base unit amount for
  * @returns amount as a string
  */
-export function toBaseUnits(decimal: string, asset: Asset): string {
+export function toBaseUnits(decimal: string, asset: IAsset): string {
   return decimalShift(decimal, asset.decimals);
 }
 
@@ -58,7 +58,7 @@ export function toBaseUnits(decimal: string, asset: Asset): string {
  * @param asset the asset we want to get the base unit amount for
  * @returns amount as a string
  */
-export function fromBaseUnits(integer: string, asset: Asset): string {
+export function fromBaseUnits(integer: string, asset: IAsset): string {
   return decimalShift(integer, -1 * asset.decimals);
 }
 
@@ -81,4 +81,11 @@ export function getMantissaLength<T extends IAmount>(
 ): number {
   const number = format(amount, { mantissa: 18, trimMantissa: true });
   return number.length - number.indexOf(".") - 1;
+}
+
+export function humanUnitsToAssetAmount(
+  asset: IAsset,
+  amount: string | number,
+) {
+  return AssetAmount(asset, toBaseUnits(String(amount), asset));
 }

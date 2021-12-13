@@ -1,7 +1,5 @@
 module.exports = {
   name: "integration",
-  testMatch: ["**/*.spec.ts"],
-  testTimeout: 1000000,
-  bail: true,
+  testMatch: ["**/*.integration-test.ts"],
   coveragePathIgnorePatterns: ["<rootDir>/src/generated/"],
 };
