@@ -1,0 +1,1 @@
+{"version":3,"file":"isOriginallySifchainNativeToken.js","sourceRoot":"","sources":["../../../../src/clients/bridges/EthBridge/isOriginallySifchainNativeToken.ts"],"names":[],"mappings":";;;AAAA,gDAAoD;AAEpD,SAAgB,+BAA+B,CAAC,KAAa;IAC3D,OAAO,CACL,KAAK,CAAC,WAAW,KAAK,kBAAO,CAAC,QAAQ;QACtC,KAAK,CAAC,MAAM,CAAC,WAAW,EAAE,KAAK,QAAQ,CACxC,CAAC;AACJ,CAAC;AALD,0EAKC"}

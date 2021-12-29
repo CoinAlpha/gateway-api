@@ -1,0 +1,1 @@
+{"version":3,"file":"ethereum-testnet.js","sourceRoot":"","sources":["../../../../src/config/chains/ethereum/ethereum-testnet.ts"],"names":[],"mappings":";;;AAAA,gDAA4D;AAE/C,QAAA,gBAAgB,GAAmB;IAC9C,SAAS,EAAE,KAAK;IAChB,OAAO,EAAE,KAAK;IACd,OAAO,EAAE,kBAAO,CAAC,QAAQ;IACzB,WAAW,EAAE,UAAU;IACvB,gBAAgB,EAAE,8BAA8B;IAChD,mBAAmB,EAAE,kCAAkC;IACvD,iBAAiB,EAAE,KAAK;CACzB,CAAC"}

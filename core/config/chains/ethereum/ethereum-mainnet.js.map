@@ -1,0 +1,1 @@
+{"version":3,"file":"ethereum-mainnet.js","sourceRoot":"","sources":["../../../../src/config/chains/ethereum/ethereum-mainnet.ts"],"names":[],"mappings":";;;AAAA,gDAA4D;AAE/C,QAAA,gBAAgB,GAAmB;IAC9C,SAAS,EAAE,KAAK;IAChB,OAAO,EAAE,KAAK;IACd,OAAO,EAAE,kBAAO,CAAC,QAAQ;IACzB,WAAW,EAAE,UAAU;IACvB,gBAAgB,EAAE,sBAAsB;IACxC,mBAAmB,EAAE,0BAA0B;IAC/C,iBAAiB,EAAE,KAAK;CACzB,CAAC"}

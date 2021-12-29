@@ -1,0 +1,82 @@
+declare const _default: {
+    assets: ({
+        symbol: string;
+        decimals: number;
+        name: string;
+        imageUrl: string;
+        network: string;
+        displaySymbol: string;
+        homeNetwork: string;
+        decommissioned?: undefined;
+        decommissionReason?: undefined;
+        hasDarkIcon?: undefined;
+        label?: undefined;
+        address?: undefined;
+    } | {
+        decimals: number;
+        imageUrl: string;
+        name: string;
+        network: string;
+        symbol: string;
+        displaySymbol: string;
+        homeNetwork: string;
+        decommissioned: boolean;
+        decommissionReason: string;
+        hasDarkIcon?: undefined;
+        label?: undefined;
+        address?: undefined;
+    } | {
+        decimals: number;
+        imageUrl: string;
+        name: string;
+        network: string;
+        symbol: string;
+        displaySymbol: string;
+        homeNetwork: string;
+        hasDarkIcon: boolean;
+        decommissioned?: undefined;
+        decommissionReason?: undefined;
+        label?: undefined;
+        address?: undefined;
+    } | {
+        symbol: string;
+        decimals: number;
+        name: string;
+        network: string;
+        label: string;
+        imageUrl: string;
+        displaySymbol: string;
+        homeNetwork: string;
+        decommissioned?: undefined;
+        decommissionReason?: undefined;
+        hasDarkIcon?: undefined;
+        address?: undefined;
+    } | {
+        address: string;
+        imageUrl: string;
+        name: string;
+        displaySymbol: string;
+        symbol: string;
+        network: string;
+        homeNetwork: string;
+        decimals: number;
+        decommissioned?: undefined;
+        decommissionReason?: undefined;
+        hasDarkIcon?: undefined;
+        label?: undefined;
+    } | {
+        address: string;
+        decimals: number;
+        imageUrl: string;
+        name: string;
+        label: string;
+        network: string;
+        displaySymbol: string;
+        symbol: string;
+        homeNetwork: string;
+        decommissioned?: undefined;
+        decommissionReason?: undefined;
+        hasDarkIcon?: undefined;
+    })[];
+};
+export default _default;

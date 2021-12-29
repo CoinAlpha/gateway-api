@@ -1,0 +1,1 @@
+{"version":3,"file":"BandChain.js","sourceRoot":"","sources":["../../../src/clients/chains/BandChain.ts"],"names":[],"mappings":";;;AAOA,6CAAyC;AACzC,6CAAsC;AAGtC,MAAa,SAAU,SAAQ,sBAAS;IACtC,4BAA4B,CAAC,IAAY;QACvC,OAAO,qBAAO,CAAC,IAAI,CAAC,WAAW,CAAC,gBAAgB,EAAE,IAAI,EAAE,IAAI,CAAC,CAAC;IAChE,CAAC;CACF;AAJD,8BAIC"}
