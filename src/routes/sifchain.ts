@@ -8,6 +8,28 @@ const router = express.Router();
 
 const sifchain: Sifchain = new Sifchain();
 
+/* Sifchain core */
+import { Asset, Network, format, Amount } from '../../core';
+
+// This function is only meant to demonstrate how to use the /core module
+const testCore = () => {
+  console.log('---Running core test---');
+  const amount = Amount('200');
+  const asset = Asset({
+    address: '1234568',
+    decimals: 18,
+    label: 'ETH',
+    name: 'Ethereum',
+    displaySymbol: 'ETH',
+    network: Network.ETHEREUM,
+    symbol: 'eth',
+    imageUrl: 'http://fooo',
+    homeNetwork: Network.ETHEREUM,
+  });
+  console.log(format(amount, asset));
+  console.log('---End of core test---');
+};
+
 /*
 Get Sifchain network and configuration information
 */
@@ -17,6 +39,9 @@ router.post('/', async (_req: Request, res: Response) => {
   */
   const networkInfoRes = await sifchain.getNetworkInfo();
   const config = sifchain.getConfig();
+
+  testCore();
+
   res.status(200).json({
     config,
     networkInfo: networkInfoRes.data,
