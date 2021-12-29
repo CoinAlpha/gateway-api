@@ -6,7 +6,6 @@ import {
   MsgSwap,
   MnemonicKey,
   isTxError,
-  StdTx,
   BlockTxBroadcastResult,
 } from '@terra-money/terra.js';
 import { getHummingbotMemo } from './utils';
@@ -320,7 +319,7 @@ export default class Terra {
         if (wallet) {
           await wallet
             .createAndSignTx(txOptions)
-            .then((tx: StdTx) => this.lcd.tx.broadcast(tx))
+            .then((tx: any) => this.lcd.tx.broadcast(tx))
             .then((txResult: BlockTxBroadcastResult) => {
               txResult_ = txResult;
               if (!isTxError(txResult)) {

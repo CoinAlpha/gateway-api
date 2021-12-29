@@ -48,7 +48,7 @@ router.post('/balances', async (req: Request, res: Response) => {
   const balances: Record<string, number> = {};
 
   try {
-    await terra.lcd.bank.balance(address).then((bal) => {
+    await terra.lcd.bank.balance(address).then((bal: any) => {
       bal.toArray().forEach(async (coin: Coin) => {
         const item = coin.toData();
         const denom = item.denom;
