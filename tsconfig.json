@@ -8,6 +8,7 @@
     "outDir": "./dist",
     "moduleResolution": "node",
     "removeComments": true,
+    "skipLibCheck": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
@@ -26,6 +27,6 @@
   "exclude": ["node_modules"],
   "include": ["src/**/*.ts", "src/**/*.js"],
   "paths": {
-    "@sifchain/sdk": ["./sifchain-core/src"]
+    "@sifchain-core/*": ["src/core/*"]
   }
 }
